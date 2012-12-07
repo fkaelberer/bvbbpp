@@ -35,7 +35,7 @@ var WIN			= { old: "#33FF00",  newcol:"#89E291", col:"#FFFFFF"};
 var LOSE		= { old: "#FF0000",  newcol:"#DF9496", col:"#FFFFFF"};
 var FRAME_TOP	= { old: "#D8D8D8",  newcol:"#2F3E3E", col:"#FFFFFF"};
 var FRAME_BOTTOM= { old: "#474747",  newcol:"#2F3E3E", col:"#FFFFFF"};
-var KAMPFLOS	= { old: "#FF6600",  newcol:"#FF0000", col:"#FFFFFF"};
+var KAMPFLOS	= { old: "#FF6600",  newcol:"#DF9496", col:"#FFFFFF"};
 
 
 var COLORS = [YELLOW, LIGHT_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE, AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
@@ -94,11 +94,11 @@ function makeAufstellung(doc) {
 		h2[0].outerHTML += makeLoadStatsButton(doc);
 	}
 
-	// diese Auswahl muss woch nach makeLoadStatsButton(doc) kommen, nachdem das doc mit "outerHMTL+=" veraendert wurde.
+	// diese Auswahl muss woch nach makeLoadStatsButton(doc) kommen. Warum eigentlich?
 	var sel = doc.getElementById('teamSelect');
 	if (sel) {
 		for (var i=0; i<data.length; i++) {
-			if (parseInt(data[i].nr, 10) == teamNum) {
+			if (data[i] && parseInt(data[i].nr, 10) == teamNum) {
 				sel.selectedIndex = i;
 			}
 		}
@@ -147,7 +147,7 @@ function makeVerein(doc) {
 	var sel = doc.getElementById('teamSelect');
 	if (sel) {
 		for (var i=0; i<data.length; i++) {
-			if (parseInt(data[i].nr, 10) == teamNum) {
+			if (data[i]  && parseInt(data[i].nr, 10) == teamNum) {
 				sel.selectedIndex = i;
 			}
 		}
@@ -296,7 +296,8 @@ function makeGegenueber(doc) {
 	var h2 = doc.body.getElementsByTagName("h2");
 	h2[1].parentNode.removeChild(h2[1]);
 	h2[0].parentNode.replaceChild(headLine, h2[0]);
-	doc.getElementById('groupSelect').selectedIndex = groupNum;
+	var sel = doc.getElementById('groupSelect');
+	sel.selectedIndex = groupNum;
 	
 	
 	if (!prefManager.getBoolPref("schonen")) {
@@ -352,7 +353,8 @@ function makeGegenueberStats(doc, e) {
 		html += "<span id='klick'>Klick auf den Vereinsnamen führt zum Spielbericht.</br></span>";
 		body.innerHTML += html;
 
-		doc.getElementById('groupSelect').selectedIndex = groupNum;
+		var sel = doc.getElementById('groupSelect');
+		sel.selectedIndex = groupNum;
 
 		
 
@@ -387,8 +389,8 @@ function makeGegenueberStats(doc, e) {
 		doc.getElementById('linkAndType').innerHTML += teamLink[e.team].replace(/\s+</, "<") + ",&nbsp;&nbsp;" + type;
 		if (e.sum1 + e.sum2 > rows)
 			body.innerHTML += "<span id='fehlen'>Fehlende Spiele wurden eventuell nicht gewertet!</span>";
-		
-		doc.getElementById('groupSelect').selectedIndex = groupNum;
+		var sel = doc.getElementById('groupSelect');
+		sel.selectedIndex = groupNum;
 	} catch(err) {error(doc, err)}
 }
 
@@ -438,7 +440,8 @@ function makeAnsetzung(doc) {
 		h2.parentNode.replaceChild(headLine, h2);
 	}
 
-	doc.getElementById('groupSelect').selectedIndex = groupNum;
+	var sel = doc.getElementById('groupSelect');
+	sel.selectedIndex = groupNum;
 
 	makeScript(doc, "function highlight(r, col) {" + 
 			"var a = document.body.getElementsByTagName(\"a\");" + 
@@ -447,30 +450,31 @@ function makeAnsetzung(doc) {
 			"    a[i].parentNode.parentNode.setAttribute(\"bgcolor\", col); }");
 
 	// teams durch links ersetzen und die Teamlinks speichern
-	var	div = doc.body.getElementsByTagName("table")[0].getElementsByTagName("div");
+	var	team = doc.body.getElementsByTagName("table")[0].getElementsByTagName("div");
+	var tab = loadDocument(doc, doc.URL.replace("staffel-", "gegenueber/gegenueber-"));
 	var teamObj = new Array(20); // rank: nummer innerhalb des vereins (I,II, ...), verein: globale nummer, link: link zu ansetzungen   
-	var a = loadDocument(doc, doc.URL.replace("staffel-", "gegenueber/gegenueber-")).getElementsByTagName("a");
+	var a = tab.getElementsByTagName("a");
 	
 	var teamNumber = 0;// kurznummer in dieser Tabelle
-	for (var i=0; i<div.length; i++) {
+	for (var i=0; i<team.length; i++) {
 		// leerzeichen alle entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
-		var nameI = div[i].innerHTML.replace(/<b>|&nbsp;|\s*<\/b>\s*/g, " ").replace(/^\s+|\s+$/g, "");
-		if (nameI.length > 0 && nameI.length < 3) {
-			teamNumber = parseInt(nameI);
+		var teamname = team[i].innerHTML.replace(/<b>|&nbsp;|\s*<\/b>\s*/g, " ").replace(/^\s+|\s+$/g, "");
+		if (teamname.length > 0 && teamname.length < 3) {
+			teamNumber = parseInt(teamname);
 		}
 			
 		for (var j=0; j<a.length; j++) {
-			var nameJ = a[j].innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, ""); 
-			if (nameJ.length < 6)
+			var name = a[j].innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, ""); 
+			if (name.length < 6)
 				continue;
-			if (nameJ == nameI) {
+			if (name == teamname) {
 				var href = a[j].getAttribute("href");
-				div[i].innerHTML = "<a href='" + href + "'>" + nameJ + "</a>";
-				div[i].setAttribute("onmouseover", "highlight('" + href + "', '" + DARK_YELLOW.col + "')");
-				div[i].setAttribute("onmouseout",  "highlight('" + href + "', '" + YELLOW.col + "')");
+				team[i].innerHTML = "<a href='" + href + "'>" + name + "</a>";
+				team[i].setAttribute("onmouseover", "highlight('" + href + "', '" + DARK_YELLOW.col + "')");
+				team[i].setAttribute("onmouseout",  "highlight('" + href + "', '" + YELLOW.col + "')");
 
-				teamObj[teamNumber] = { rank: deromanize(nameJ.substring(nameJ.lastIndexOf(" ") + 1)), 							
-										link: "<a title='"+ nameJ + "' href='" + href + "'>" + teamNumber + "</a>",
+				teamObj[teamNumber] = { rank: deromanize(name.substring(name.lastIndexOf(" ") + 1)), 							
+										link: "<a title='"+ name + "' href='" + href + "'>" + teamNumber + "</a>",
 				                        verein: parseInt(href.substr(-7, 2), 10)
 									  };
 			}
@@ -507,79 +511,16 @@ function makeAnsetzung(doc) {
 			nextWeek.setDate(nextWeek.getDate()+7);
 			lastWeek.setDate(lastWeek.getDate()-7);
 			if (lastWeek < date && date < new Date()) {
-				div[j].parentNode.setAttribute("bgcolor", DARK_YELLOW.col);
+				div[j].parentNode.setAttribute("bgcolor", LIGHT_YELLOW.col);
 			}
 			if (nextWeek > date && date > new Date()) {
-				div[j].parentNode.setAttribute("bgcolor", LIGHT_YELLOW.col);
+				div[j].parentNode.setAttribute("bgcolor", DARK_YELLOW.col);
 			}
 		}
 	}
 	
 	if (!prefManager.getBoolPref("schonen"))
 		replaceHallenschluessel(doc);
-}
-
-function parseAnsetzung(tabelle, groupNum) {
-	var tr = tabelle.getElementsByTagName("h2")[1].getElementsByTagName("tr");
-	var doc = loadDocument(tabelle, tabelle.URL.replace(/tabellen\/uebersicht-\d\d/, "staffel-" + SHORT_NAMES[groupNum]));
-	// team-Tabelle parsen und die Teamlinks speichern
-	var	div = doc.body.getElementsByTagName("h2")[1].getElementsByTagName("div");
-	var teamObj = new Array(20); // rank: nummer innerhalb des vereins (I,II, ...), verein: globale nummer, link: link zu ansetzungen   
-	
-	var teamNumber = 0;// kurznummer in dieser Tabelle
-	for (var i=0; i<div.length; i++) {
-		// leerzeichen alle entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
-		var nameI = div[i].innerHTML.replace(/<b>|<i>|&nbsp;|<\/b>|<\/i>/g, " ").replace(/^\s+|\s+$/g, "");
-		if (nameI.length > 0 && nameI.length < 3) {
-			teamNumber = parseInt(nameI);
-			continue;
-		}
-		for (var j=2; j<tr.length; j++) {
-			var a = tr[j].getElementsByTagName("a")[0];
-			var nameJ = a.innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, ""); 
-			if (nameJ.length < 6)
-				continue;
-			if (nameJ == nameI) {
-				var href = a.getAttribute("href");
-				teamObj[teamNumber] = { 
-					rank: deromanize(nameJ.substring(nameJ.lastIndexOf(" ") + 1)), 							
-					link: "<a title='"+ nameJ + "' href='" + href + "'>" + teamNumber + "</a>",
-				    verein: parseInt(href.substr(-7, 2), 10),
-					tabellenPlatz: j-2
-			  	};
-			}
-		}
-	}
-	teamObj = teamObj.filter(function(e) { return e} );
-//	alert(tabelle, teamObj.toSource());
-
-	// TeamNummern durch links ersetzen und dabei Teamnummern speichern. 
-	var num1;
-	var num2;
-	var ansetzung = new Array(200);
-	var numAns = 0;
-	var div = doc.body.getElementsByTagName("div"); 
-	for (var j=0; j<div.length; j++) { // start counting at 1 to skip body centering div
-		var ex = /^(\d+) \/ (\d+)$/.exec(div[j].innerHTML);
-		if (ex) {
-			num1 = ex[1];
-			num2 = ex[2];
-		}
-		if (/\d\d.\d\d.\d\d\d\d/.test(div[j].innerHTML)) {
-			// num1 und num2 sind noch von der letzten Zelle belegt
-			ansetzung[numAns++] = {
-//				num1: num1,
-//				num2: num2,
-				t1: teamObj[num1-1].tabellenPlatz,
-				t2: teamObj[num2-1].tabellenPlatz,
-				date: div[j].innerHTML
-			};
-		}
-	}
-	
-//	alert(tabelle, ansetzung.filter(function(e) { return e} ).toSource());
-//	alert(tabelle, teamObj.toSource());
-	return ansetzung.filter(function(e) { return e} );
 }
 
 function deromanize(str) {
@@ -699,48 +640,61 @@ function linkToKlasse(klasse, target) {
 
 function loadPlayerStats(e) {
 	var doc = e.detail.doc;
-	var input = doc.getElementsByTagName("input")[0];
-	input.parentNode.removeChild(input);
-	var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
+	try { 
+		var input = doc.getElementsByTagName("input")[0];
+		input.parentNode.removeChild(input);
+		var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
+		var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
+		
 	
-	var a = doc.body.getElementsByTagName("a");
-	for (var i=0; i<a.length; i++) {
-		if (a[i].outerHTML.indexOf("spielerstatistik/P-") >= 0) {
-			var ref = a[i].getAttribute("href");
-			var playerDoc = loadDocument(doc, ref);
-			var wins = getWinPercentage(playerDoc);
-			var fest = getFestgespielt(playerDoc);
-			var slash = a[i].innerHTML.indexOf("&nbsp;/") >= 0;
-			if (isBericht && fest == 0) {
-				a[i].innerHTML = a[i].innerHTML.replace("&nbsp;&nbsp;/", "") + "&nbsp;(E)" + (slash?"&nbsp;&nbsp;/":"");
-				a[i].outerHTML = a[i].outerHTML.replace("<a", "<a title='Ersatzspieler, (vermutlich) noch nicht festgespielt' ");
+		var a = doc.body.getElementsByTagName("a");
+		for (var i=0; i<a.length; i++) {
+			if (a[i].outerHTML.indexOf("spielerstatistik/P-") >= 0) {
+				var ref = a[i].getAttribute("href");
+				var playerDoc = loadDocument(doc, ref);
+				var wins = getWinPercentage(playerDoc);
+				var f = getFestgespielt(doc, playerDoc); // f = [stammmannschaft, festgespielt, vereinsnummer]
+				var stamm = f[0]>0 ? "Stammmannschaft " + romanize(f[0]) : "Ersatz";
+				var fest = (f[1] > 0 && f[1] != f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
+				// mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
+				if (isBericht && staemme) {
+					var mannschaft = (parseInt(staemme[1], 10) == f[2]) ? parseInt(staemme[2], 10) : parseInt(staemme[4], 10);
+				}
+				var slash = (a[i].innerHTML.indexOf("&nbsp;/") >= 0) ? "&nbsp;&nbsp;/" : "";
+				if (isBericht && (f[0] != mannschaft && staemme || !staemme && f[0] == 0)) {
+					if (f[1] == 0) {
+						a[i].innerHTML = a[i].innerHTML.replace("&nbsp;&nbsp;/", "") + "&nbsp;(E)" + slash;
+						a[i].setAttribute("title", "Ersatz");
+					} else {
+						a[i].innerHTML = a[i].innerHTML.replace("&nbsp;&nbsp;/", "") + (f[0]==0?" (E":" (") + f[1] + ")" + slash;
+						a[i].setAttribute("title", (stamm) + fest);
+					}
+				}
+				if (!isBericht && (f[1] != 0 && f[1] != f[0])) { 
+					a[i].innerHTML = a[i].innerHTML.replace(/\s\(\d\)/, "") + (f[0]==0?" (E":" (") + f[1] + ")";
+					a[i].setAttribute("title", (stamm) + fest);
+				}
+				a[i].outerHTML += 
+				"<table height=5 width=100 style='border:1px solid #888'>"+
+	               "<tr>"+
+	                 "<td bgcolor='" + WIN.col + "' width="+wins+"%></td>"+
+	                 "<td bgcolor='"+LOSE.col+"' width="+(100-wins)+"%></td>"+
+	               "</tr>"+
+	             "</table>";
+	             var el = a[i].parentNode.parentElement; 
+	             el.innerHTML = el.innerHTML.replace(/<br>/g, "");
 			}
-			if (isBericht && fest > 0) {
-				a[i].innerHTML = a[i].innerHTML.replace("&nbsp;&nbsp;/", "") + "&nbsp;(E " + romanize(fest) + (slash?")&nbsp;&nbsp;/":")");
-				a[i].outerHTML = a[i].outerHTML.replace("<a", "<a title='Ersatzspieler, (vermutlich) festgespielt in Mannschaft " + romanize(fest) + "' ");
+		}			
+		if (doc.contentWindow && doc.contentWindow.document) {
+			var iDoc = doc.contentWindow.document.getElementById("ifrmErgebnis");
+			if (iDoc) {
+				iDoc.style.height = (iDoc.contentWindow.document.documentElement.scrollHeight+1);
 			}
-			if (!isBericht && fest > 0) { 
-				a[i].innerHTML += " (" + romanize(fest) + ")";
-				a[i].outerHTML = a[i].outerHTML.replace("<a", "<a title='(vermutlich) festgespielt in Mannschaft " + romanize(fest) + "' ");
-			}
-			a[i].outerHTML += 
-			"<table height=5 width=100 style='border:1px solid #888'>"+
-               "<tr>"+
-                 "<td bgcolor='" + WIN.col + "' width="+wins+"%></td>"+
-                 "<td bgcolor='"+LOSE.col+"' width="+(100-wins)+"%></td>"+
-               "</tr>"+
-             "</table>";
-             var el = a[i].parentNode.parentElement; 
-             el.innerHTML = el.innerHTML.replace(/<br>/g, "");
 		}
-	}			
-	if (doc.contentWindow && doc.contentWindow.document) {
-		var iDoc = doc.contentWindow.document.getElementById("ifrmErgebnis");
-		if (iDoc) {
-			iDoc.style.height = (iDoc.contentWindow.document.documentElement.scrollHeight+1);
-		}
+		adjustIFrameHeight(doc);
+	} catch(err) { 
+		error(doc, err);
 	}
-	adjustIFrameHeight(doc);
 }
 
 function getIFrame(doc) {
@@ -827,33 +781,42 @@ function getWinPercentage(doc) {
 }
 
 /**
- * return: -1: Stammspieler, 0: Ersatz, nicht festgespielt, num>0: ersatzspieler, festgespielt in Mannsch. num.
+ * return: i>0: Stammspieler in Mannschaft i, i=0: Ersatz, nicht festgespielt, i<0: ersatzspieler, festgespielt in Mannsch. i.
  */
-function getFestgespielt(doc) {
-	 
-	if (doc.body.innerHTML.indexOf("Ersatzspieler") < 0)
-		return -1;
-	var s = doc.getElementsByTagName("span");
-	var mannschaft = new Array(100);
-	var num = 0;
-	for (var i=0; i<s.length-2; i++) {
-		if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i+2].innerHTML)) {
-			var d = s[i].innerHTML;
-			var m = parseInt(s[i+2].innerHTML, 10);
-			if (num == 0 || mannschaft[num-1].day != d || mannschaft[num-1].mann != m) {
-				mannschaft[num] = { day: d, mann: m };
-				num++;
+function getFestgespielt(doc1, doc) {
+	try {
+		var verein = doc.getElementsByTagName("a")[0].getAttribute("href").substr(-7, 2);
+		var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[2].innerHTML;
+		if (stamm == "Ersatz") 
+			stamm = 0;
+			
+		var s = doc.getElementsByTagName("span");
+		var mannschaft = new Array(100);
+		var num = 0;
+		for (var i=0; i<s.length-2; i++) {
+			if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i+2].innerHTML)) {
+				var d = s[i].innerHTML;
+				var m = parseInt(s[i+2].innerHTML, 10);
+				if (num == 0 || mannschaft[num-1].day != d || mannschaft[num-1].mann != m) {
+					mannschaft[num] = { day: d, mann: m };
+					num++;
+				}
 			}
 		}
+		if (num < 3)
+			return [stamm, 0, verein];
+		var ms = Array(num);
+		for (var i=0; i<num; i++) {
+			ms[i] = mannschaft[i].mann;
+		}
+		ms.sort();
+		var fest = ms[2];
+		if (stamm != 0 && fest != 0 && stamm < fest)
+			fest = 0;
+		return [stamm, fest, verein];
+	} catch (err) {
+		error(doc1, err);
 	}
-	if (num < 3)
-		return 0;
-	var ms = Array(num);
-	for (var i=0; i<num; i++) {
-		ms[i] = mannschaft[i].mann;
-	}
-	ms.sort();
-	return ms[2];
 }
 
 function loadDocument(docu, link) {
@@ -867,23 +830,40 @@ function loadDocument(docu, link) {
 }
 
 function makePlayerLinks(doc) {
-	var found = 0;
-	var error = 0;
-	var playerDoc = loadDocument(doc, WEB + "spielerstatistik/P-Drop-down-Spieler.HTML"); 
-	var d = doc.getElementsByTagName("b");
-	var p = playerDoc.getElementsByTagName("option");
-	for (var i=0; d && i<d.length; i++) {
-		var name = d[i].innerHTML.replace(/^\s+|\s+$/g, "");
-		d[i].innerHTML = name; // save trimmed name
-		if (!name || name.length < 6 || name.indexOf("<") >= 0 || name.indexOf("Additionsregeln") >= 0)
-			continue;
-		for (var j=0; p && j<p.length; j++) {
-			if (p[j].innerHTML.indexOf(name) > -1) {
-				var value = p[j].getAttribute("value");
-				d[i].innerHTML = "<a href='" + WEB + "spielerstatistik/" + value + "'>" + name + "</a>";
-				found++;
+	try {
+		var playerDoc = loadDocument(doc, WEB + "spielerstatistik/P-Drop-down-Spieler.HTML"); 
+		var d = doc.getElementsByTagName("b");
+		// load options and convert to array
+		var p = playerDoc.getElementsByTagName("option");
+		// convert entries to objects
+		p = Array.map(p, function(e) { return { 
+				name:	e.innerHTML.replace(/&nbsp;&nbsp;+\(.*\)/, ""), 
+				value:	e.getAttribute("value")
+			}});
+		for (var i=0; d && i<d.length; i++) {
+			var name = d[i].innerHTML.replace(/^\s+|\s+$|(\s\(\d\))/g, "");
+			var ext = (RegExp.$1?RegExp.$1:"");
+			if (!name || name.length < 5 || name.indexOf("<") >= 0 || name.indexOf("Additionsregeln") >= 0)
+				continue;
+			for (var j=0; j<p.length; j++) {
+				if (p[j].name == name) {
+					if ((!p[j-1] || p[j-1].name != name) && (!p[j+1] || p[j+1].name != name)) {
+						d[i].innerHTML = "<a href='" + WEB + "spielerstatistik/" + p[j].value + "'>" + name + ext + "</a>";
+						break;
+					}
+					if (doc.URL.indexOf("aufstellung/aufstellung-") >= 0) {
+						var playerDoc = loadDocument(doc, WEB + "spielerstatistik/" + p[j].value);
+						var ref = playerDoc.body.getElementsByTagName("a")[0].getAttribute("href");
+						if (ref.substr(-7) == doc.URL.substr(-7)) {
+							d[i].innerHTML = "<a href='" + WEB + "spielerstatistik/" + p[j].value + "'>" + name + ext + "</a>";
+							break;
+						}
+					}
+				}
 			}
 		}
+	} catch(err) {
+		error(doc, err);
 	}
 }
 
@@ -1011,61 +991,33 @@ function makeTabelle(doc) {
 				
 	var h2 = body.getElementsByTagName("h2")[0]; // uebersicht
 	h2.parentNode.replaceChild(headLine, h2);
-	
+	var sel = doc.getElementById('groupSelect');
+	sel.selectedIndex = groupNum;
+
 	removeElements(body, "p", /Vorheriger/);
 	removeElements(body, "h2", /Aufsteiger|Ergebniss-Link|Fenster schlie/);
-	setElementAttributes(doc, "tr", "height", 30);
 
-	var	td = body.getElementsByTagName("td");
-	for (var i = 0; i < td.length; i++) {
-		if (td[i].getAttribute("width") == 30) {
-			td[i].setAttribute("width", 40);
-		}
+	var	table = body.getElementsByTagName("table");
+	if (table[1] && table[1].getElementsByTagName("tr")[0]) {
+		table[1].outerHTML = "";
 	}
+
+	var	cells = body.getElementsByTagName("td");
+	var kampflos = false; // erschien "kampflos schon in einer Zelle?"
+	for (var i = 0; i < cells.length; i++) {
+		if (cells[i].getAttribute("width") && cells[i].getAttribute("width") == 30) {
+			cells[i].setAttribute("width", 40);
+		}
+		if (kampflos) {
+			cells[i].setAttribute("height", 30);
+		}
+		kampflos |= /kampflos/.test(cells[i].innerHTML);
+	}
+	
 	var	b = body.getElementsByTagName("b");
 	for (var i = b.length-1; i >= 0; i--) {
 		b[i].outerHTML = b[i].innerHTML;
 	}
-
-	if (!prefManager.getBoolPref("schonen")) {
-		var spiele = parseAnsetzung(doc, groupNum);
-		//alert(doc, spiele.toSource());
-		var	tr = body.getElementsByTagName("tr");
-		for (var i = 0; i < tr.length-2; i++) {
-			var	td = tr[i+2].getElementsByTagName("td");
-			for (var j = 0; j < td.length-6-1; j++) {
-				var cell = td[j+6];
-				var div = cell.getElementsByTagName("div")[0];
-				if (cell.getAttribute("bgcolor") == ORANGE.col || /<br>\s*<\/a>/.test(div.innerHTML)) { // fällt aus oder beide gespielt
-					continue;
-				}
-				if (cell.getAttribute("valign") == "top") { // heimspiel gewesen
-					var date = dateFromSpiele(spiele, j, i);
-					if (date) {
-						div.innerHTML += "</br><a style='font-weight:normal; color:#A2ADBC'>" + date + "</a>";
-					}
-					continue;
-				}
-				if (cell.getAttribute("valign") == "bottom") { // auswaerts gewesen
-					var date = dateFromSpiele(spiele, i, j);
-					if (date) {
-						div.innerHTML = "<a style='font-weight:normal; color:#A2ADBC'>" + date + 
-										"</a></br>" + div.innerHTML;
-					}
-					continue;
-				}
-				// nix gewesen
-				var hDate = dateFromSpiele(spiele, i, j);
-				var aDate = dateFromSpiele(spiele, j, i);
-				div.innerHTML = "<a style='font-weight:normal; color:#A2ADBC'>" + hDate + "</a></br>" +
-								"<a style='font-weight:normal; color:#A2ADBC'>" + aDate + "</a>";
-
-			}
-		}
-	}
-
-	doc.getElementById('groupSelect').selectedIndex = groupNum;
-
 
 	if (prefManager.getBoolPref("useIframe")) {
 		// frames definieren:
@@ -1082,19 +1034,23 @@ function makeTabelle(doc) {
 		// setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
 		var	links = body.getElementsByTagName("a");
 		for (var i=0; i<links.length; i++) {
-			if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) {
+			if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) 
 				links[i].setAttribute("target", "Ergebnis");
-			}
 		}
 	}
 }
 
-function dateFromSpiele(spiele, i, j) {
-	var spiel = spiele.filter(function(e) {return e.t1 == i && e.t2==j;})[0];
-	if (!spiel) 
-		return;
-	var date = spiel.date;
-	return date.substr(0, date.length-4);
+function tableToArray(table) {
+	var tr = table.getElementsByTagName("tr");
+	var cell = new Array(tr.length);
+	for (var i=0; i<tr.length; i++) {
+		var td = tr[i].getElementsByTagName("td");
+		cell[i] = new Array(td.length);
+		for (var j=0; j<td.length; j++) {
+			cell[i][j] = td[i];
+		}
+	}
+	return cell;
 }
 
 function makeStyle(doc) {
