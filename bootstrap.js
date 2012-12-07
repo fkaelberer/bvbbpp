@@ -24,6 +24,7 @@ var JUMPTO = "function jumpto(x){" +
 var OCHRE		= { old: "#CC9933",  newcol:"#A2ADBC", col:"#FFFFFF"};
 var LIGHT_YELLOW= { old: "#FFFFCC",  newcol:"#FAFAF7", col:"#FFFFFF"};
 var YELLOW 		= { old: "#FFFF66",  newcol:"#F6F4DA", col:"#FFFFFF"};
+var MIX_YELLOW  = { old: "#F7F733",  newcol:"#E7EBDD", col:"#FFFFFF"};
 var DARK_YELLOW = { old: "#F0F000",  newcol:"#D9E2E1", col:"#FFFFFF"};
 var LIGHT_ORANGE= { old: "#FFCC33",  newcol:"#A2ADBC", col:"#FFFFFF"};
 var ORANGE 		= { old: "#FF9900",  newcol:"#A2ADBC", col:"#FFFFFF"};
@@ -38,7 +39,7 @@ var FRAME_BOTTOM= { old: "#474747",  newcol:"#2F3E3E", col:"#FFFFFF"};
 var KAMPFLOS	= { old: "#FF6600",  newcol:"#DF9496", col:"#FFFFFF"};
 
 
-var COLORS = [YELLOW, LIGHT_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE, AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE, AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
 //var COLORS = [];
 
 // extend DOM so that array methods can be used on NodeLists
@@ -68,7 +69,7 @@ function alert(doc, msg) {
 	doc.body.innerHTML = "<p>" + msg  + "</p>"+ doc.body.innerHTML;
 };
 function error(doc, e, msg) {
-	doc.body.innerHTML = "<p><font size='2'>Error in line " + e.lineNumber + ": " + e.message + " " + msg + "</font></p>" + doc.body.innerHTML; 
+	doc.body.innerHTML = "<p><font size='2'>Error in line " + e.lineNumber + ": " + e.message + " " + (msg?msg:"") + "</font></p>" + doc.body.innerHTML; 
 };
 
 
@@ -119,7 +120,7 @@ function makeAufstellung(doc) {
 function setElementAttributes(doc, tag, attribute, value, regex) {
 	var e = doc.getElementsByTagName(tag);
 	for (var i=0; i<e.length; i++) {
-		if (!regex || regex.test(e[i].innerHTML)) {
+		if (!regex || regex.test(e[i].outerHTML)) {
 			e[i].setAttribute(attribute, value);
 		}
 	}
@@ -153,7 +154,7 @@ function makeVerein(doc) {
 		}
 	}
 
-	setElementAttributes(doc, "table", "style", "border:0", /Mannschaft/);
+	setElementAttributes(doc.body, "table", "style", "border:0", /Mannschaft/);
 
 	if (!prefManager.getBoolPref("schonen"))
 		replaceHallenschluessel(doc);
@@ -595,9 +596,7 @@ function makeSpielbericht(doc) {
 	if (!body.firstChild)
 		return;
 
-	// orangene Zeile verlinken
 	var tr = doc.getElementsByTagName("tr");
-	
 	if (!prefManager.getBoolPref("schonen")) {
 		tr[0].innerHTML += "<td>" + makeLoadStatsButton(doc) + "</td>";
 	}
@@ -619,7 +618,6 @@ function makeSpielbericht(doc) {
 	if (prefManager.getBoolPref("centering") && !getIFrame(doc))
 		body.innerHTML = "<div width="+ WIDTH + " id='centerstyle'>" + body.innerHTML + "</div>";
 	adjustIFrameHeight(doc);
-	
 }
 
 /*
@@ -725,20 +723,88 @@ function makeScript(doc, code) {
 
 function makeSpieler(doc) {
 	try {
+		makeScript(doc, "function highlight(r, j, color, color2) {" + 
+				"var table = document.body.getElementsByTagName(\"table\");" + 
+				"var tr = table[2].getElementsByTagName(\"tr\");" + 
+				"var sp=[0,0], sa=[0,0], pu=[0,0];" + 
+				"for (var i=2; i<tr.length; i++) {" + 
+				"  var td = tr[i].getElementsByTagName(\"td\");" + 
+				"  if (td[j] && td[j].innerHTML.indexOf(r) >= 0) {" +
+				"    if (color == '" + YELLOW.col + "')" + 
+				"      td[j].removeAttribute(\"bgcolor\"); "+
+				"    else" + 
+				"      td[j].setAttribute(\"bgcolor\", color); "+
+				"    tr[i].setAttribute(\"bgcolor\", color2); "+
+					// punkte parsen
+				"    var spi = />(\\d)</.exec(td[5].innerHTML);" + 
+				"    sp[1-parseInt(spi[1])]++;" + 
+				"    var sae = /(\\d)\\s:\\s(\\d)/.exec(td[6].innerHTML);" + 
+				"    sa = [sa[0] + parseInt(sae[1]), sa[1] + parseInt(sae[2])];" + 
+				"	 var reg = /(\\d\\d):(\\d\\d)/g;" + 
+				"	 var pun;" + 
+				"    var str = td[7].innerHTML; "  +
+				"    while ((pun = reg.exec(str)) !== null) {"+
+				"       pu[0] += parseInt(pun[1],10); "+
+				"       pu[1] += parseInt(pun[2],10); "+ 
+				"    }" + 
+//				"    alert('pu: ' + pu.toSource() + '  pun: ' + (pun?pun.toSource():''));"+
+				"}}"+
+				"var tr = table[5].getElementsByTagName(\"tr\");" + 
+				"tr[0].getElementsByTagName(\"td\")[0].innerHTML = '<div align=\"center\"><b>' + r + '</b></div>';" + 
+				"var erg = [sp, , sa, , pu];" + 
+				"for (var i=0; i<tr.length-1; i+=2) {" + 
+				"  var td = tr[i+1].getElementsByTagName(\"td\");" + 
+				"  td[1].innerHTML = '<div align=\"center\">' + (erg[i][0] + erg[i][1]) + '</div>';" + 
+				"  td[2].innerHTML = '<div align=\"center\">' + erg[i][0] + '</div>';" + 
+				"  td[3].innerHTML = '<div align=\"center\">' + Math.round(1000*erg[i][0]/(erg[i][0] + erg[i][1]))/10 + '%</div>';" + 
+				"  td[4].innerHTML = '<div align=\"center\">' + erg[i][1] + '</div>';" + 
+				"  td[5].innerHTML = '<div align=\"center\">' + Math.round(1000*erg[i][1]/(erg[i][0] + erg[i][1]))/10 + '%</div>';" + 
+				"  for (var j=0; j<td.length; j++) {" + 
+				"    if (td[j].getAttribute('bgcolor')=='" + WIN.col + "'){"+
+				"	   var w = Math.round(100*erg[i][0]/(erg[i][0] + erg[i][1]));" + 
+				"      td[j].setAttribute('width', ' ' + (w==0?1:w) + '%');"+
+				"    }" + 
+				"  }" + 
+				"}"+
+				"}");
+
+
 		var table = doc.body.getElementsByTagName("table");
 		// ergebnistabelle[4] ist in eine weitere Tabelle[2] geschachtelt -->
 		// aeussere Tabelle durch innere ersetzen, und die ueberschrift neumachen.
 		table[2].outerHTML = table[4].outerHTML;
-		// " + FRAME_BOTTOM.col + "
 		table[2].innerHTML = "<tr bgcolor='"+ LIGHT_ORANGE.col + "'>"+
 							 "<td colspan=8 style='font-size:0.9em'><b>H e i m m a n n s c h a f t</b></td>"+
 							 "<td bgcolor='" + DARK_ORANGE.col + "' style='border:0' >&nbsp;</td>"+
 							 "<td colspan=2 style='font-size:0.9em'><b>G a s t m a n n s c h a f t</b></td></tr>" +
 							 table[2].innerHTML;
 		table[2].setAttribute("Border", 5);
-		table[2].setAttribute("width", 798);
+		table[2].setAttribute("width", 780);
+		
+		// Satzsiege/verluste farbig
+		var td = table[2].getElementsByTagName("td");
+		for (var i=0; i<td.length; i++) {
+			var reg = /(\d) : (\d)/.exec(td[i].innerHTML);
+			if (reg) {
+				td[i].setAttribute("bgcolor", reg[1] > reg[2] ? WIN.col : LOSE.col);
+				td[i].setAttribute("id", reg[1] > reg[2] ? 'win' : 'lose');
+			}
+		}
+		var tr = table[2].getElementsByTagName("tr");
+		for (var i=2; i<tr.length; i++) {
+			var td = tr[i].getElementsByTagName("td");
+			for (var j=0; j<3; j++) {
+				td[j].setAttribute("onmouseover", "highlight('" +td[j].innerHTML+"', " + j + ", '" + DARK_YELLOW.col + "', '" + MIX_YELLOW.col + "')");
+				td[j].setAttribute("onmouseout",  "highlight('', " + j + ", '" + YELLOW.col + "', '" + YELLOW.col + "')");
+			}
+			var reg = /(DE|GD|DD|HE|HD)/.exec(td[3].innerHTML);
+			td[3].setAttribute("onmouseover", "highlight('" + reg[1] + "', 3, '" + DARK_YELLOW.col + "', '" + MIX_YELLOW.col + "')");
+			td[3].setAttribute("onmouseout",  "highlight('', 3, '" + YELLOW.col + "', '" + YELLOW.col + "')");
+		}
+
+
 		// table[3], table[4] sind text, table[5] die aeussere Tabelle, table[6] ueberschrift					
-		var tr = table[6].getElementsByTagName("tr")[0];
+		tr = table[6].getElementsByTagName("tr")[0];
 		tr.setAttribute("bgcolor", DARK_YELLOW.col);
 		var td = tr.getElementsByTagName("td");
 		td[2].setAttribute("colspan", 2);
@@ -749,9 +815,8 @@ function makeSpieler(doc) {
 		table[5].outerHTML = table[7].outerHTML;
 		table[5].setAttribute("cellpadding", 3);
 		table[5].setAttribute("bgcolor", "#999999");
-		table[5].setAttribute("width", 798);
+		table[5].setAttribute("width", 780);
 		table[5].removeAttribute("style");
-		table[5].innerHTML = table[5].innerHTML.replace("<td bgcolor=\"#FF0000\">&nbsp;</td>", "", "g");
 		setElementAttributes(doc, "table", "style", "border:0", /Statistik|Ergebnisse je|Stamm-Mannschaft/);
 		table[6].setAttribute("style", "border:1px solid #888");
 		table[7].setAttribute("style", "border:1px solid #888");
@@ -1031,7 +1096,9 @@ function makeTabelle(doc) {
 		ifrm.setAttribute("marginheight", 0);
 		ifrm.setAttribute("name", "Ergebnis");
 		doc.getElementById("centerstyle").appendChild(ifrm);
+
 		// setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
+//		setElementAttributes(doc, "a", "target", "Ergebnis", /\d\d-\d\d_\d\d-\d\d.HTML$/);
 		var	links = body.getElementsByTagName("a");
 		for (var i=0; i<links.length; i++) {
 			if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) 
