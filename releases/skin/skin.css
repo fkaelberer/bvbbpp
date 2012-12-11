@@ -1,0 +1,72 @@
+@page { 
+    size:29.71cm 21.0cm; 
+    margin-top:0.5cm;
+    margin-bottom:0.5cm;
+    margin-left:1.5cm;
+    margin-right:1.5cm
+}
+
+div#centerstyle {
+    width:845px; 
+    margin: 0 auto 0 auto;
+}
+
+h1 {font-size:24pt; font-weight:bold; }
+h2 {font-size:13pt; font-weight:bold; }
+h3 {font-size:12pt; font-weight: normal}
+h4 {font-size:10pt; font-weight:normal;  }
+h5 {font-size:6pt; font-weight: normal}
+h6 {font-size:10pt; font-weight: normal}
+td {font-size:8pt; font-weight: normal }
+div {font-size:8pt; font-weight: normal }
+p {font-size:7pt; font-weight: normal}
+
+.bvbbpp-selected {
+    outline: 2px solid red !important;
+}
+
+.navigationSelected {
+    color: #000;
+}
+
+a:visited.navigationUnselected {
+    color: #A2ADBC;
+}
+a:link.navigationUnselected {
+    color: #A2ADBC;
+}
+
+form {
+    margin: 0; 
+    display: inline;
+}
+
+select {
+    font-family:Arial,sans-serif;
+    font-size:13pt; 
+    font-weight:bold;
+    border-left: 2px solid #BBB;
+    border-right: 2px solid #777;
+    border-bottom: 2px solid #777;
+    border-top: 2px solid #BBB;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 2px 2px 2px 6px;
+} 
+body {
+    font-family:Helvetica,sans-serif; font-weight:normal;
+    margin-left: 10px;
+}
+a:link {
+    color: #FF303C;
+}
+a:visited {
+    color: #C01018;
+}
+table {
+    border-left: 2px solid #BBB;
+    border-right: 2px solid #777;
+    border-bottom: 2px solid #777;
+    border-top: 2px solid #BBB;
+    border-collapse: collapse;    
+}

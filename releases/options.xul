@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<setting type="bool" pref="extensions.bvbbpp.schonen" title="Datentransfer einschr&#228;nken" desc="Links zu Spielern, Hallen, Gegen&#252;berstellung werden nicht geladen"/>
+	<setting type="bool" pref="extensions.bvbbpp.newWindow" title="Links in neuen Fenstern &#246;ffnen" />
+	<setting type="bool" pref="extensions.bvbbpp.useIframe" title="Spielbericht unter Tabelle zeigen" desc="(statt im eigenen Fenster)" />
+	<setting type="bool" pref="extensions.bvbbpp.newColors" title="Farbschema &#228;ndern"/>
+	<setting type="bool" pref="extensions.bvbbpp.centering" title="Inhalte zentrieren"/>
+</vbox>
+
