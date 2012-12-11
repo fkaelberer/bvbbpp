@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+	<Description about="urn:mozilla:install-manifest">
+		<em:id>bvbbpp@felixkaelberer.de</em:id>
+		<em:name>BVBB++</em:name>
+		<em:version>0.7</em:version>
+		<em:type>2</em:type>
+		<em:creator>Felix K&#228;lberer</em:creator>
+		<em:homepageURL>mailto:bvbbpp@gmx-topmail.de</em:homepageURL>
+		<em:bootstrap>true</em:bootstrap>
+		<em:description>Verbessert die Navigation zu Spielergebnissen auf den Webseiten des Badminton-Verband Berlin-Brandenburg (www.bvbb.net)</em:description>
+<!--		<em:optionsURL>chrome://bvbbpp/content/options.xul</em:optionsURL> 
+		<em:optionsType>2</em:optionsType>  -->
+
+		<!-- Desktop Firefox -->
+		<em:targetApplication>
+			<Description>
+				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+				<em:minVersion>10.0</em:minVersion>
+				<em:maxVersion>17.*</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+        <!-- Mobile Native -->
+        <em:targetApplication>
+            <Description>
+                <em:id>{aa3c5121-dab2-40e2-81ca-7ea25febc110}</em:id>
+                <em:minVersion>10.0</em:minVersion>
+                <em:maxVersion>17.*</em:maxVersion>
+            </Description>
+        </em:targetApplication>
+	</Description>      
+</RDF>
