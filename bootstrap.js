@@ -50,7 +50,6 @@ function autorun (evt) {
 	rendering = true;
 	try {
 		run(evt.target);
-//		error(null, "hallo");
 	} catch (e) {
 		if (evt.target.body) {
 			error(e);
@@ -1412,17 +1411,54 @@ function makeTabelle(doc) {
 	var numLines = 4;
 
 	var tbody = newElement(doc, "tbody");
+	var hidden = "visibility:collapse";
+	var shown = "font-size:11pt; font-weight:bold";
 	
-	var tr = newParentElement("tr", newElement(doc, "td", "Kürzlich (Termine laut Ansetzung)", "style", 
-											   "font-size:11pt; font-weight:bold"), "bgcolor", DARK_YELLOW.col);
-	tr.appendChild(newElement(doc, "td", "Demnächst (Termine laut Ansetzung)", 
+	var showHide = function(that) {
+						var name = that.getAttribute("name");
+						if (name == "show") {
+							e = that.nextSibling;
+							while(e) {
+								e.setAttribute("style", shown);
+								e = e.nextSibling;
+							}
+							that.ownerDocument.getElementById("mehr").innerHTML = "&#9660; ";
+							that.setAttribute("name", "hide");
+						}
+						if (name == "hide") {
+							e = that.nextSibling;
+							while(e) {
+								e.setAttribute("style", hidden);
+								e = e.nextSibling;
+							}
+							that.ownerDocument.getElementById("mehr").innerHTML = "&#9658; ";
+							that.setAttribute("name", "show");
+						}
+				   }
+	
+	var head = newElement(doc, "td", null, 			
+								"colspan", 2,
+								"style", "cursor: pointer; font-size:9pt; font-weight:bold",
+								"bgcolor", DARK_YELLOW.col);
+	
+	var font = newElement(doc, "font", null, "id", "mehr");
+	font.innerHTML = "&#9658; ";
+	head.appendChild(font);
+	head.appendChild(newElement(doc, "u", "Aktuelle Termine (laut Ansetzung)"));
+	var tr = newParentElement("tr", head, "name", "show");
+	tr.addEventListener("click", function(){showHide(this);}, false);
+	tbody.appendChild(tr);
+	tr = newParentElement("tr", newElement(doc, "td", "Kürzlich", "style", 
+											   "font-size:11pt; font-weight:bold"), "bgcolor", DARK_YELLOW.col,
+						  "style", hidden);
+	tr.appendChild(newElement(doc, "td", "Demnächst", 
 							  "style", "font-size:11pt; font-weight:bold"));
 	tbody.appendChild(tr);
 
 	// array of new lines
 	tr = new Array(numLines);
 	for (var i=0; i<numLines; i++) {
-		tr[i] = newElement(doc, "tr");
+		tr[i] = newElement(doc, "tr", null, "style", hidden);
 	}
 
 
