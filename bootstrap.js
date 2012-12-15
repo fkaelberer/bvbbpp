@@ -2,44 +2,45 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 // preferences and defaults
-PREFS = [{name:"schonen", def:false}, 
-		 {name:"centering", def:true}, 
-		 {name:"newWindow", def:false}, 
-		 {name:"useIframe", def:true}, 
-		 {name:"newColors", def:true}];
-var STYLE = "select {background-color: #FF9900} "+
+const PREFS = [{name:"schonen", def:false}, 
+			 {name:"centering", def:true}, 
+			 {name:"newWindow", def:false}, 
+			 {name:"useIframe", def:true}, 
+		 	 {name:"newColors", def:true}];
+const STYLE = "select {background-color: #FF9900} "+
 			"a { font-weight:600; }";
 
 // constants
-var WEB = "http://bvbb.net/fileadmin/user_upload/schuch/meisterschaft/";
-var WIDTH = "'300px'";
-var rendering = false;
-var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch("extensions.bvbbpp.");
-var SHORT_NAMES = ["BB", "LL-1", "LL-2", "BZ-1", "BZ-2", "AK-1", "AK-2", "BK-1", "BK-2", "CK-1", 
+const WEB = "http://bvbb.net/fileadmin/user_upload/schuch/meisterschaft/";
+const WIDTH = "'300px'";
+const rendering = false;
+const console = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
+const prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch("extensions.bvbbpp.");
+const SHORT_NAMES = ["BB", "LL-1", "LL-2", "BZ-1", "BZ-2", "AK-1", "AK-2", "BK-1", "BK-2", "CK-1", 
                   "CK-2", "DK-1", "DK-2", "EK-1", "EK-2", "FK-1", "FK-2", "GK-1", "GK-2"];
-var NAMES = ["Berlin-Brandenburg-Liga", "Landesliga I", "Landesliga II", "Bezirksklasse I", "Bezirksklasse II", 
+const NAMES = ["Berlin-Brandenburg-Liga", "Landesliga I", "Landesliga II", "Bezirksklasse I", "Bezirksklasse II", 
              "A-Klasse I", "A-Klasse II", "B-Klasse I", "B-Klasse II", "C-Klasse I", "C-Klasse II", "D-Klasse I",
              "D-Klasse II", "E-Klasse I", "E-Klasse II", "F-Klasse I", "F-Klasse II", "G-Klasse I", "G-Klasse II"];
 
-var OCHRE		= { old: "#CC9933",  newcol:"#A2ADBC", col:"#FFFFFF"};
-var LIGHT_YELLOW= { old: "#FFFFCC",  newcol:"#FAFAF7", col:"#FFFFFF"};
-var YELLOW 		= { old: "#FFFF66",  newcol:"#F6F4DA", col:"#FFFFFF"};
-var MIX_YELLOW  = { old: "#FAFA44",  newcol:"#ECEEDC", col:"#FFFFFF"};
-var DARK_YELLOW = { old: "#F0F000",  newcol:"#D9E2E1", col:"#FFFFFF"};
-var LIGHT_ORANGE= { old: "#FFCC33",  newcol:"#A2ADBC", col:"#FFFFFF"};
-var ORANGE 		= { old: "#FF9900",  newcol:"#A2ADBC", col:"#FFFFFF"};
-var DARK_ORANGE = { old: "#CC9933",  newcol:"#727B84", col:"#FFFFFF"};
-var AUFSTEIGER	= { old: "#00CC00",  newcol:"#89E291", col:"#FFFFFF"};
-var ABSTEIGER	= { old: "#FF6633",  newcol:"#DF9496", col:"#FFFFFF"};
-var ZURUECK		= { old: "#FF0022",  newcol:"#DF9496", col:"#FFFFFF"};
-var WIN			= { old: "#33FF00",  newcol:"#89E291", col:"#FFFFFF"};
-var LOSE		= { old: "#FF0000",  newcol:"#DF9496", col:"#FFFFFF"};
-var FRAME_TOP	= { old: "#D8D8D8",  newcol:"#2F3E3E", col:"#FFFFFF"};
-var FRAME_BOTTOM= { old: "#474747",  newcol:"#2F3E3E", col:"#FFFFFF"};
-var KAMPFLOS	= { old: "#FF6600",  newcol:"#DF9496", col:"#FFFFFF"};
+const OCHRE		= { old: "#CC9933",  newcol:"#A2ADBC", col:"#FFFFFF"};
+const LIGHT_YELLOW= { old: "#FFFFCC",  newcol:"#FAFAF7", col:"#FFFFFF"};
+const YELLOW 		= { old: "#FFFF66",  newcol:"#F6F4DA", col:"#FFFFFF"};
+const MIX_YELLOW  = { old: "#FAFA44",  newcol:"#ECEEDC", col:"#FFFFFF"};
+const DARK_YELLOW = { old: "#F0F000",  newcol:"#D9E2E1", col:"#FFFFFF"};
+const LIGHT_ORANGE= { old: "#FFCC33",  newcol:"#A2ADBC", col:"#FFFFFF"};
+const ORANGE 		= { old: "#FF9900",  newcol:"#A2ADBC", col:"#FFFFFF"};
+const DARK_ORANGE = { old: "#CC9933",  newcol:"#727B84", col:"#FFFFFF"};
+const AUFSTEIGER	= { old: "#00CC00",  newcol:"#89E291", col:"#FFFFFF"};
+const ABSTEIGER	= { old: "#FF6633",  newcol:"#DF9496", col:"#FFFFFF"};
+const ZURUECK		= { old: "#FF0022",  newcol:"#DF9496", col:"#FFFFFF"};
+const WIN			= { old: "#33FF00",  newcol:"#89E291", col:"#FFFFFF"};
+const LOSE		= { old: "#FF0000",  newcol:"#DF9496", col:"#FFFFFF"};
+const FRAME_TOP	= { old: "#D8D8D8",  newcol:"#2F3E3E", col:"#FFFFFF"};
+const FRAME_BOTTOM= { old: "#474747",  newcol:"#2F3E3E", col:"#FFFFFF"};
+const KAMPFLOS	= { old: "#FF6600",  newcol:"#DF9496", col:"#FFFFFF"};
 
 
-var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE, AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+const COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE, AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
 
 function autorun (evt) {
 	if (rendering || !evt.target || !evt.target.URL)
@@ -49,10 +50,10 @@ function autorun (evt) {
 	rendering = true;
 	try {
 		run(evt.target);
-//		error(evt.target, null, "hallo");
+//		error(null, "hallo");
 	} catch (e) {
 		if (evt.target.body) {
-			error(evt.target, e);
+			error(e);
 		}
 	}
 	rendering = false;
@@ -111,31 +112,35 @@ function newParentElement(type, child) {
 	return e;
 }
 
-function alert(doc, msg) {
+function alert(msg) {
 	for (var i=1; i<arguments.length; i++) {
-//		doc.body.insertBefore(newElement(doc, "p", arguments[i]), doc.body.firstChild);
 		doc.body.appendChild(newElement(doc, "p", arguments[i]));
 	}
 };
 
-function error(doc, e, msg) {
-	var text = doc.createTextNode("Error in line " + e.lineNumber + ": " + e.message + " " + (msg?msg:""));
-	var font = newParentElement("font", text, "size", "3");
-	var p = newParentElement("p", font);
-	doc.body.insertBefore(p, doc.body.firstChild);
+function error(e, msg) {
+	var message = e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg?msg:"") : "BVBB++: " + msg;
+	console.logStringMessage(message);
+//	var text = doc.createTextNode("Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg?msg:""));
+	//var font = newParentElement("font", text, "size", "3");
+//	var p = newParentElement("p", font);
+//	doc.body.insertBefore(p, doc.body.firstChild);
 //	doc.defaultView.console.log("e: " + e);
 //	if (msg) doc.defaultView.console.log(msg);
 };
 
-function getPref(doc, name) {
+function getPref(name) {
+	if (!name)
+		return false;
 	try{
 		return prefManager.getBoolPref(name);
 	} catch (err) {
-		error(doc, e, "Kann Einstellung \"" + name + "\" nicht lesen. Benutze Standardeinstellung.");
+		error(err, "Kann Einstellung \"" + name + "\" nicht lesen. Benutze Standardeinstellung.");
 	}
 	for (var i=0; i<PREFS.length; i++) {
 		if (name == PREFS[i].name) {
-			return PREFS.def;
+			prefManager.setBoolPref(PREFS[i].name, PREFS[i].def);
+			return PREFS[i].def;
 		}
 	}
 	return false;
@@ -151,9 +156,11 @@ function makeAufstellung(doc) {
 	var headLine = makeTeamHeadLine(doc, teamNum, data);
 
 	var	h2 = body.getElementsByTagName("h2");
+	if (!h2[0])
+		return;
 	h2[0].parentNode.replaceChild(headLine, h2[0]);
 
-	if (!getPref(doc, "schonen")) {
+	if (!getPref("schonen")) {
 		h2[0].appendChild(doc.createElement("br"));
 		h2[0].appendChild(makeLoadStatsButton(doc));
 	}
@@ -168,7 +175,7 @@ function makeAufstellung(doc) {
 		}
 	}
 	
-	if (!getPref(doc, "schonen"))
+	if (!getPref("schonen"))
 		makePlayerLinks(doc);
 		
 	var f = body.getElementsByTagName("font");
@@ -239,10 +246,10 @@ function makeVerein(doc) {
 					break;
 				}
 			}
+
 		}
 	}
-
-	if (!getPref(doc, "schonen"))
+	if (!getPref("schonen"))
 		replaceHallenschluessel(doc);
 }
 
@@ -250,6 +257,8 @@ function makeVerein(doc) {
 function parseSpielbericht(docu, link) {
 	try {
 		var doc = loadDocument(docu, link);
+		if (!doc)
+			return;
 		var h2 = doc.body.getElementsByTagName("h2")[2];
 		if (!h2) {
 			return;
@@ -294,7 +303,7 @@ function parseSpielbericht(docu, link) {
 			}
 		}
 	} catch (e) {
-		error(docu, e, link);
+		error(e, link);
 		return;
 	}
 	
@@ -366,7 +375,7 @@ function makeGegenueber(doc) {
 	doc.getElementById('selection').selectedIndex = groupNum;
 	
 	
-	if (!getPref(doc, "schonen")) {
+	if (!getPref("schonen")) {
 		var tr = doc.getElementsByTagName("tr");
 		for (var i=0; i<tr.length-1; i++) {
 			var td = tr[i+1].getElementsByTagName("td");
@@ -479,7 +488,7 @@ function makeGegenueberStats(doc, that) {
 			h2.appendChild(newElement(doc, "span", "Fehlende Spiele wurden eventuell nicht gewertet!", 
 									  "style", "font-weight:normal;font-size:8pt"));
 	} catch(err) {
-		error(doc, err)
+		error(err)
 	}
 }
 
@@ -534,6 +543,10 @@ function makeAnsetzung(doc) {
 
 	doc.getElementById('selection').selectedIndex = groupNum;
 
+	if (!getPref("schonen"))
+		replaceHallenschluessel(doc);
+
+
 	var highlight = function (doc, col, that) {
 						var locA = doc.body.getElementsByTagName("a"); 
 						for (var i=0; i<locA.length; i++) {
@@ -577,8 +590,8 @@ function makeAnsetzung(doc) {
 			}
 		}
 	}
-	doc.body.firstChild.appendChild(doc.createTextNode("Spiele der vergangenden und kommenden Woche sind farblich hervorgehoben."))
-	
+	doc.body.firstChild.appendChild(newElement(doc, "p", "Spiele der vergangenen und kommenden Woche sind farblich hervorgehoben."))
+
 	// TeamNummern durch links ersetzen und dabei Teamnummern speichern. 
 	var num1;
 	var num2;
@@ -597,30 +610,34 @@ function makeAnsetzung(doc) {
 		if (/\d\d.\d\d.\d\d\d\d/.test(div[j].innerHTML)) {
 			var t = div[j].innerHTML;
 			var date = new Date(t.substr(6, 4), t.substr(3, 2)-1, t.substr(0,2));
-			if (date < new Date()) {
-				var o1 = teamObj[num1];
-				var o2 = teamObj[num2];
-				var spiel1 = (o1.verein<10? "0" : "") + o1.verein + "-" + (o1.rank<10? "0" : "") + o1.rank + "_";  
-				var spiel2 = (o2.verein<10? "0" : "") + o2.verein + "-" + (o2.rank<10? "0" : "") + o2.rank;  
-				var link = WEB + "" + "spielberichte-vereine/" + spiel1 + spiel2 + ".HTML"
-				// die variablen $1 und $2 sind noch besetzt 
-				replaceChildren(div[j], newElement(doc, "a", t, "href", link));
-			}
 			var nextWeek = new Date();
 			var lastWeek = new Date();
 			nextWeek.setDate(nextWeek.getDate()+7);
 			lastWeek.setDate(lastWeek.getDate()-7);
-			if (lastWeek < date && date < new Date()) {
+			if (date < new Date()) {
+				var o1 = teamObj[num1];
+				var o2 = teamObj[num2];
+				var spiel1 = (o1.verein<10? "0" : "") + o1.verein + "-" + (o1.rank<10? "0" : "") + o1.rank;  
+				var spiel2 = (o2.verein<10? "0" : "") + o2.verein + "-" + (o2.rank<10? "0" : "") + o2.rank;  
+				var link = WEB + "" + "spielberichte-vereine/" + spiel1 + "_" + spiel2 + ".HTML"
+				if (date > lastWeek && !getPref("schonen")) {
+					var linkDoc = loadDocument(doc, link);
+					if (linkDoc && /\d\d-\d\d_\d\d-\d\d/.test(linkDoc.title))  {
+						replaceChildren(div[j], newElement(doc, "a", t, "href", link));
+					}
+				} else {
+					replaceChildren(div[j], newElement(doc, "a", t, "href", link));
+				}
+			}
+			if (date > lastWeek  && date < new Date()) {
 				div[j].parentNode.setAttribute("bgcolor", LIGHT_YELLOW.col);
 			}
-			if (nextWeek > date && date > new Date()) {
+			if (date < nextWeek && date > new Date()) {
 				div[j].parentNode.setAttribute("bgcolor", DARK_YELLOW.col);
 			}
 		}
 	}
 	
-	if (!getPref(doc, "schonen"))
-		replaceHallenschluessel(doc);
 }
 
 // deromanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
@@ -666,9 +683,10 @@ function replaceHallenschluessel(doc) {
 		var d = tr[i].getElementsByTagName("div");
 		if (f && d[1] && d[2] && d[3]) { 
 			halle[found] = {
-					key: 	f.innerHTML,  
-					street: d[3].innerHTML.replace(/^\n|<br>|^\s+|\s+$/g, "").replace(/(&nbsp;){2,}/g, " "),
-					PLZ: 	d[1].innerHTML.replace(/^\s+/,"") + d[2].innerHTML.replace("(", " ").replace(")", "")
+					key: 	f.textContent,  
+					street: d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "").replace(/(&nbsp;){2,}/g, " ")
+										  .replace("-Nydal-", "-Nydahl-"),
+					PLZ: 	d[1].textContent.replace(/^\s+/,"") + d[2].textContent.replace("(", " ").replace(")", "")
 			};
 			found++;
 		}
@@ -680,9 +698,10 @@ function replaceHallenschluessel(doc) {
 		for (var i=1; i<found; i++) {
 			var h = halle[i];
 			if (div[j].innerHTML == h.key) {
-				div[j].title = (h.street + "\n" + h.PLZ).replace(/&nbsp;/g, " ");
-				var href = "http://maps.google.de/maps?q=" + h.street.replace(/\n.*/g, "") + ", " + h.PLZ;
-				var a = newElement(doc, "a", div[j].innerHTML, "href", href, "target", "_blank");
+				div[j].title = (h.street + "\n" + h.PLZ);
+				var href = "http://maps.google.de/maps?q=" + h.street.replace(/\s+\n.*/g, "") + ", " + h.PLZ;
+				
+				var a = newElement(doc, "a", div[j].textContent, "href", href, "target", "_blank");
 				div[j].replaceChild(a, div[j].firstChild);
 			}
 		}
@@ -695,6 +714,10 @@ function makeSpielbericht(doc) {
 		if (!body || !body.firstChild)
 			return;
 		
+		// check if correct web page
+		if (!/\d\d-\d\d_\d\d-\d\d/.test(doc.title)) 
+			return;
+		
 		removeElements(doc, "p");
 		var h2 = doc.getElementsByTagName("h2");
 		removeElement(h2[4]);
@@ -704,7 +727,7 @@ function makeSpielbericht(doc) {
 		removeElement(h2[0]);
 		
 		var tr = doc.getElementsByTagName("tr");
-		if (!getPref(doc, "schonen")) {
+		if (!getPref("schonen")) {
 			tr[0].appendChild(newParentElement("td", makeLoadStatsButton(doc)));
 		}
 		var link = WEB + "aufstellung/aufstellung-";
@@ -728,7 +751,7 @@ function makeSpielbericht(doc) {
 		setElementAttributes(body.getElementsByTagName("table")[2], "td", "style", "padding: 2");
 		setElementAttributes(body, "table", "style", "border:0", /Spielbericht|Klasse und Staffel|kampflos verloren/);
 		
-		if (getPref(doc, "centering") && !getIFrame(doc)) {
+		if (getPref("centering") && !getIFrame(doc)) {
 			var div = newElement(doc, "div", null, "id", "centerstyle", "width", WIDTH);
 			while (body.hasChildNodes())
 				div.appendChild(body.firstChild);
@@ -736,7 +759,7 @@ function makeSpielbericht(doc) {
 		}
 		adjustIFrameHeight(doc);
 	} catch(err) {
-		error(doc, err, "");
+		error(err, "");
 	}
 }
 
@@ -777,6 +800,8 @@ function loadPlayerStats(doc) {
 				var playerDoc = loadDocument(doc, ref);
 				var wins = getWinPercentage(playerDoc);
 				var f = getFestgespielt(doc, playerDoc); // f = [stammmannschaft, festgespielt, vereinsnummer]
+				if (!f)
+					return;
 				var stamm = f[0]>0 ? "Stammmannschaft " + romanize(f[0]) : "Ersatz";
 				var fest = (f[1] > 0 && f[1] != f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
 				// mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
@@ -813,7 +838,7 @@ function loadPlayerStats(doc) {
 		}
 		adjustIFrameHeight(doc);
 	} catch(err) { 
-		error(doc, err);
+		error(err);
 	}
 }
 
@@ -984,11 +1009,13 @@ function makeSpieler(doc) {
 		table[6].style = "border:1px solid #888";
 		table[7].style = "border:1px solid #888";
 	} catch (e) {
-		error(doc, e);
+		error(e);
 	}
 }
 
 function getWinPercentage(doc) {
+	if (!doc)
+		return -1;
 	var table = doc.getElementsByTagName("table");
 	if (!table[10] || !table[11] || !table[12])
 		return;
@@ -1003,6 +1030,8 @@ function getWinPercentage(doc) {
  * return: i>0: Stammspieler in Mannschaft i, i=0: Ersatz, nicht festgespielt, i<0: ersatzspieler, festgespielt in Mannsch. i.
  */
 function getFestgespielt(doc1, doc) {
+	if (!doc || !doc)
+		return;
 	try {
 		var verein = doc.getElementsByTagName("a")[0].href.substr(-7, 2);
 		var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[2].innerHTML;
@@ -1034,18 +1063,22 @@ function getFestgespielt(doc1, doc) {
 			fest = 0;
 		return [stamm, fest, verein];
 	} catch (err) {
-		error(doc1, err);
+		error(err);
 	}
 }
 
 function loadDocument(docu, link) {
-	var doc = docu.implementation.createHTMLDocument("");
-	var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
-    request.open("GET", link, false, null, null);
-	request.overrideMimeType('text/html; charset=iso-8859-1');
-	request.send(null);
-	doc.documentElement.innerHTML = request.responseText;
-	return doc;
+	try {
+		var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
+		request.open("GET", link, false, null, null);
+		request.overrideMimeType('text/html; charset=iso-8859-1');
+		request.send(null);
+		var doc = docu.implementation.createHTMLDocument("");
+		doc.documentElement.innerHTML = request.responseText;
+		return doc;
+	} catch (err) {
+		error(err, " Kann Datei " + link + " nicht laden.");
+	}
 }
 
 function makePlayerLinks(doc) {
@@ -1082,7 +1115,7 @@ function makePlayerLinks(doc) {
 			}
 		}
 	} catch(err) {
-		error(doc, err);
+		error(err);
 	}
 }
 
@@ -1200,9 +1233,10 @@ function removeElement(e) {
 }
 
 function removeParent(e) {
-	while (e.hasChildNodes())
+	while (e && e.hasChildNodes())
 		e.parentNode.insertBefore(e.firstChild, e);			
-	e.parentNode.removeChild(e);
+	if (e && e.parentNode)
+		e.parentNode.removeChild(e);
 }
 
 function removeParents(doc, tag, regex) {
@@ -1286,6 +1320,10 @@ function makeTabelle(doc) {
 	var headLine = makeHeadLine(doc, groupNum);
 				
 	var h2 = body.getElementsByTagName("h2")[0]; // uebersicht
+	if (!h2) {
+		error(null, "Kann die Tabelle nicht richtig laden.");
+		return;
+	}
 	h2.parentNode.replaceChild(headLine, h2);
 	doc.getElementById('selection').selectedIndex = groupNum;
 
@@ -1311,122 +1349,119 @@ function makeTabelle(doc) {
 	
 	removeParents(doc, "b");
 
-	if (!getPref(doc, "schonen")) {
-		var spiele = parseAnsetzung(doc, groupNum);
-		var verein = new Array(10);
-		var gespielt = [new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
-						new Array(10), new Array(10), new Array(10), new Array(10), new Array(10)];
-		//alert(doc, spiele.toSource());
-		var	tr = body.getElementsByTagName("tr");
-		for (var i = 0; i < tr.length-2; i++) {
-			var	td = tr[i+2].getElementsByTagName("td");
-			verein[i] = td[1].textContent;
-			for (var j = 0; j < td.length-6-1; j++) {
-				var cell = td[j+6];
-				var div = cell.getElementsByTagName("div")[0];
-				if (cell.getAttribute("bgcolor") == ORANGE.col || /\d : \d.*\d : \d/.test(div.innerHTML)) { // fällt aus oder beide gespielt
-					if (cell.getAttribute("bgcolor") == ORANGE.col) {
-						gespielt[i][j] = -1;
-						continue;
-					}
-					var a = cell.getElementsByTagName("a")[0];
-					if (a) {
-						gespielt[i][j] = a;
-					} else { 
-						gespielt[i][j] = cell.getElementsByTagName("font")[0];
-					}
-					continue;
-				}
-				
-				var br = div.appendChild(newElement(doc, "br"));
-				
-				if (cell.getAttribute("valign") == "top" || /0 : 8\s*<br>|8 : 0\s*<br>/.test(div.innerHTML)) { // heimspiel gewesen
-					gespielt[i][j] = cell.getElementsByTagName("a")[0];
-					if (!gespielt[i][j])
-						gespielt[i][j] = cell.getElementsByTagName("font")[0];
-					var date = dateFromSpiele(doc, spiele, j, i);
-					if (date) {
-						removeParents(div, "br");
-						div.appendChild(br);
-						div.appendChild(date);
-					}
-					continue;
-				}
-				if (cell.getAttribute("valign") == "bottom" || /<br><font color="#FF6600"/.test(div.innerHTML)) { // auswaerts gewesen
-					var date = dateFromSpiele(doc, spiele, i, j);
-					if (date) {
-						removeParents(div, "br");
-						div.insertBefore(br, div.firstChild);
-						div.insertBefore(date, div.firstChild);
-					}
-					continue;
-				}
-				// nix gewesen
-				var hDate = dateFromSpiele(doc, spiele, i, j);
-				var aDate = dateFromSpiele(doc, spiele, j, i);
-				replaceChildren(div, hDate, br, aDate);
-			}
-		}
-		spiele = spiele.sort(function(spiel1, spiel2) {return spiel1.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1")+spiel1.time > 
-															  spiel2.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1")+spiel2.time; });
-		var bald = spiele.filter(function(s) {return !gespielt[s.t1][s.t2]; });
-		var vorbei = spiele.filter(function(s) {return gespielt[s.t1][s.t2] && gespielt[s.t1][s.t2] != -1; });
-		var numLines = 4;
 
-		// kürzlich
-		var td1 = newElement(doc, "td", null, "style", "padding-right:15");
-		for (var i = Math.max(0, vorbei.length-numLines); i<vorbei.length; i++) {
-			var s = vorbei[i];
-			var p = newElement(doc, "p");
-			var a = gespielt[s.t1][s.t2].cloneNode(true);
-//			if (a.innerHTML.indexOf("br")>=0) {
-//				alert(doc, "a " + a);
-//				removeParents(a, "br");
-//				alert(doc, "a.rem " + a);
-//			}
-			a.textContent = a.textContent.replace(/\s+$/, "");
-//			if (a.innerHTML.indexOf("br")>=0)
-//				alert(doc, a);
-			p.appendChild(doc.createTextNode(s.date.replace(".20",".") + ": "));
-			p.appendChild(newElement(doc, "b", verein[s.t1]));
-			p.appendChild(doc.createTextNode(" spielt "));
-			p.appendChild(a);
-			p.appendChild(doc.createTextNode(" gegen "));
-			p.appendChild(newElement(doc, "b", verein[s.t2]));
-			td1.insertBefore(p, td1.firstChild);
+	var spiele = parseAnsetzung(doc, groupNum);
+	var verein = new Array(10);
+	var gespielt = [new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
+					new Array(10), new Array(10), new Array(10), new Array(10), new Array(10)];
+	//alert(doc, spiele.toSource());
+	var	tr = body.getElementsByTagName("tr");
+	for (var i = 0; i < tr.length-2; i++) {
+		var	td = tr[i+2].getElementsByTagName("td");
+		verein[i] = td[1].textContent;
+		for (var j = 0; j < td.length-6-1; j++) {
+			var cell = td[j+6];
+			var div = cell.getElementsByTagName("div")[0];
+			if (cell.getAttribute("bgcolor") == ORANGE.col || /\d : \d.*\d : \d/.test(div.innerHTML)) { // fällt aus oder beide gespielt
+				if (cell.getAttribute("bgcolor") == ORANGE.col) {
+					gespielt[i][j] = -1;
+					continue;
+				}
+				var a = cell.getElementsByTagName("a")[0];
+				if (a) {
+					gespielt[i][j] = a;
+				} else { 
+					gespielt[i][j] = cell.getElementsByTagName("font")[0];
+				}
+				continue;
+			}
+			
+			var br = div.appendChild(newElement(doc, "br"));
+			
+			if (cell.getAttribute("valign") == "top" || /0 : 8\s*<br>|8 : 0\s*<br>/.test(div.innerHTML)) { // heimspiel gewesen
+				gespielt[i][j] = cell.getElementsByTagName("a")[0];
+				if (!gespielt[i][j])
+					gespielt[i][j] = cell.getElementsByTagName("font")[0];
+				var date = dateFromSpiele(doc, spiele, j, i);
+				if (date) {
+					removeParents(div, "br");
+					div.appendChild(br);
+					div.appendChild(date);
+				}
+				continue;
+			}
+			if (cell.getAttribute("valign") == "bottom" || /<br><font color="#FF6600"/.test(div.innerHTML)) { // auswaerts gewesen
+				var date = dateFromSpiele(doc, spiele, i, j);
+				if (date) {
+					removeParents(div, "br");
+					div.insertBefore(br, div.firstChild);
+					div.insertBefore(date, div.firstChild);
+				}
+				continue;
+			}
+			// nix gewesen
+			var hDate = dateFromSpiele(doc, spiele, i, j);
+			var aDate = dateFromSpiele(doc, spiele, j, i);
+			replaceChildren(div, hDate, br, aDate);
 		}
-		
-		// demnächst
-		var td2 = newElement(doc, "td", null, "style", "padding-right:10");
-		for (var i=0; i < Math.min(numLines, bald.length); i++) {
-			var s = bald[i];
-			var p = newElement(doc, "p");
-			p.appendChild(doc.createTextNode(s.date.replace(".20",".") + ": "));
-			p.appendChild(newElement(doc, "b", verein[s.t2]));
-			p.appendChild(doc.createTextNode(" ist zu Gast bei "));
-			p.appendChild(newElement(doc, "b", verein[s.t1]));
-			td2.appendChild(p);
-		}
-		
-		var table = newParentElement("table", newElement(doc, "tbody"), "cellpadding", 6, "style", "border:0; color:"+FRAME_TOP.col);
-//		// titelzeile 1
-//		var tr = newElement(doc, "tr", newElement(doc, "td", "Termine (laut Ansetzung)", "style",
-//															  "font-size:12pt; font-weight:bold", "colspan", 2));
-//		table.appendChild(tr);
-		// titelzeile 2
-		var tr = newParentElement("tr", newElement(doc, "td", "Kürzlich (Termine laut Ansetzung)", "style", "font-size:11pt; font-weight:bold"), "bgcolor", DARK_YELLOW.col);
-		tr.appendChild(newElement(doc, "td", "Demnächst (Termine laut Ansetzung)", "style", "font-size:11pt; font-weight:bold"));
-		table.appendChild(tr);
+	}
+	spiele = spiele.sort(function(spiel1, spiel2) {return spiel1.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1")+spiel1.time > 
+														  spiel2.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1")+spiel2.time; });
+	var bald = spiele.filter(function(s) {return !gespielt[s.t1][s.t2]; });
+	var vorbei = spiele.filter(function(s) {return gespielt[s.t1][s.t2] && gespielt[s.t1][s.t2] != -1; });
+	var numLines = 4;
+
+	var tbody = newElement(doc, "tbody");
 	
-		tr = newParentElement("tr", td1, "valign", "top");
-		tr.appendChild(td2);
-		table.appendChild(tr);
-		body.firstChild.insertBefore(table, headLine.nextSibling);
+	var tr = newParentElement("tr", newElement(doc, "td", "Kürzlich (Termine laut Ansetzung)", "style", 
+											   "font-size:11pt; font-weight:bold"), "bgcolor", DARK_YELLOW.col);
+	tr.appendChild(newElement(doc, "td", "Demnächst (Termine laut Ansetzung)", 
+							  "style", "font-size:11pt; font-weight:bold"));
+	tbody.appendChild(tr);
+
+	// array of new lines
+	tr = new Array(numLines);
+	for (var i=0; i<numLines; i++) {
+		tr[i] = newElement(doc, "tr");
 	}
 
 
+	// kürzlich
+	for (var i = Math.max(0, vorbei.length-numLines); i<vorbei.length; i++) {
+		var s = vorbei[i];
+		var a = gespielt[s.t1][s.t2].cloneNode(true);
+		var td1 = newElement(doc, "td", null, "style", "padding-right:20; padding-bottom:0");
+		a.textContent = a.textContent.replace(/\s+$/, "");
+		td1.appendChild(doc.createTextNode(s.date.replace(/.20/,".") + ": "));
+		td1.appendChild(newElement(doc, "b", verein[s.t1]));
+		td1.appendChild(doc.createTextNode(" spielt "));
+		td1.appendChild(a);
+		td1.appendChild(doc.createTextNode(" gegen "));
+		td1.appendChild(newElement(doc, "b", verein[s.t2]));
+		tr[i - Math.max(0, vorbei.length-numLines)].appendChild(td1);
+	}
+	
+	// demnächst
+	for (var i=0; i < Math.min(numLines, bald.length); i++) {
+		var s = bald[i];
+		var td2 = newElement(doc, "td", null, "style", "padding-right:10; padding-bottom:0");
+		td2.appendChild(doc.createTextNode(s.date.replace(/.20/,".") + ": "));
+		td2.appendChild(newElement(doc, "b", verein[s.t2]));
+		td2.appendChild(doc.createTextNode(" zu Gast bei "));
+		td2.appendChild(newElement(doc, "b", verein[s.t1]));
+		td2.appendChild(newElement(doc, "br"));
+		tr[i].appendChild(td2);
+	}
+	
+	var table = newParentElement("table", tbody, "cellpadding", 4, "style", "border:0; color:"+FRAME_TOP.col);
+	for (var i=0; i<numLines; i++) {
+		tbody.appendChild(tr[i]);
+	}
+	body.firstChild.insertBefore(table, headLine.nextSibling);
+
+
 	// iFrame hinzufügen
-	if (getPref(doc, "useIframe")) {
+	if (getPref("useIframe")) {
 		var ifrm = newElement(doc, "iframe", null, 
 							  "id", "ifrmErgebnis", "width", 885, "height", 10, "frameborder", 0, "marginwidth", 0,
 							  "border", 1, "marginheight", 0, "name", "Ergebnis");
@@ -1457,11 +1492,11 @@ function makeStyle(doc) {
 		return;
 
 	for (var i=0; i<COLORS.length; i++) {
-		var newcol = getPref(doc, "newColors");
+		var newcol = getPref("newColors");
 		COLORS[i].col = newcol ? COLORS[i].newcol : COLORS[i].old; 
 	}
 
-	if (getPref(doc, "centering") && !/\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL)) {
+	if (getPref("centering") && !/\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL)) {
 		var div = newElement(doc, "div", null, "id", "centerstyle");
 		while (doc.body.hasChildNodes())
 			div.appendChild(doc.body.firstChild);
@@ -1502,7 +1537,7 @@ function makeStyle(doc) {
 		it[i].parentNode.replaceChild(it[i].firstChild, it[i]);
 	}
 	} catch(err) {
-		error(doc, err);
+		error(err);
 	}
 }
 
@@ -1524,7 +1559,7 @@ function run(doc) {
 	removeElements(doc.body, "h2", /Fenster schlie/);
 	removeElements(doc.body, "table", /Fenster schlie/);
 
-	if (!getPref(doc, "newWindow")) {
+	if (!getPref("newWindow")) {
 		if (!getIFrame(doc)) {
 			setElementAttributes(doc.body, "a", "target", "_self", /_blank/);
 		}
@@ -1617,14 +1652,14 @@ function shutdown(aData, aReason) {
 function install(aData, aReason) {
 	startup(aData, aReason);
 	for (var i=0; i<PREFS.length; i++) {
-		if (!prefManager.prefHasUserValue(PREFS.name)) {
-			prefManager.setBoolPref(PREFS.name, PREFS.def);
+		if (!prefManager.prefHasUserValue(PREFS[i].name)) {
+			prefManager.setBoolPref(PREFS[i].name, PREFS[i].def);
 		}
 	}
 }
 function uninstall(aData, aReason) {
 	shutdown(aData, aReason);
 	for (var i=0; i<PREFS.length; i++) {
-		prefManager.clearUserPref(PREFS.name);
+		prefManager.clearUserPref(PREFS[i].name);
 	}
 }
