@@ -642,6 +642,8 @@ function makeSpielbericht(doc) {
 		
 		var tr = doc.getElementsByTagName("tr");
 		if (!getPref("schonen")) {
+			if (!tr || !tr[0]) 
+				return;
 			tr[0].appendChild(newParentElement("td", makeLoadStatsButton(doc)));
 		}
 		var link = WEB + "aufstellung/aufstellung-";
@@ -739,21 +741,16 @@ function loadPlayerStats(doc) {
 					 var tr = newElement(doc, "tr");
 					 tr.appendChild(newElement(doc, "td", null, "bgcolor", WIN.col, "width", ""+wins+"%"));
 					 tr.appendChild(newElement(doc, "td", null, "bgcolor", LOSE.col, "width", ""+(100-wins)+"%"));
-					 e.parentNode.insertBefore(newParentElement("table", tr, "height", 5, "width", 100, "style", "    border-left: 1px solid #888; border-right: 1px solid #444; border-bottom: 1px solid #444; border-top: 1px solid #888;"), e.nextSibling);
-					 
+					 e.parentNode.insertBefore(newParentElement("table", tr, "height", 5, "width", 100, "style", 
+									"border-left: 1px solid #888; border-right: 1px solid #444; "+
+									"border-bottom: 1px solid #444; border-top: 1px solid #888;"), e.nextSibling);
 					 removeElements(e.parentNode, "br");
+					 adjustFrameHeight(doc);
 				};
 //				alert("loadAsync " + i)
 				loadDocumentAsync(doc, a[i].href, processLink, a[i], i);
 			}
 		}			
-		
-		if (doc.contentWindow && doc.contentWindow.document) {
-			var iDoc = doc.contentWindow.document.getElementById("ifrmErgebnis");
-			if (iDoc) {
-				iDoc.style.height = (iDoc.contentWindow.document.documentElement.scrollHeight+1);
-			}
-		}
 		adjustIFrameHeight(doc);
 	} catch(err) { 
 		error(err);
@@ -773,7 +770,7 @@ function adjustIFrameHeight(doc) {
 	var iFrame = getIFrame(doc);
 	// check if this is an iFrame and adjust parent's height
 	if (iFrame) 
-		iFrame.height = (doc.documentElement.scrollHeight+1);
+		iFrame.height = (doc.documentElement.scrollHeight+40); // leave some space for player stats
 }
 
 function makeSpieler(doc) {
@@ -945,7 +942,10 @@ function getFestgespielt(doc1, doc) {
 	if (!doc || !doc)
 		return;
 	try {
-		var verein = doc.getElementsByTagName("a")[0].href.substr(-7, 2);
+		var a = doc.getElementsByTagName("a");
+		if (!a || !a[0])
+			return;
+		var verein = a[0].href.substr(-7, 2);
 		var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[2].innerHTML;
 		if (stamm == "Ersatz") 
 			stamm = 0;
