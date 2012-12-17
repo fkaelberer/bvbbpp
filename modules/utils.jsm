@@ -1,12 +1,10 @@
 var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement", 		
-						"insertParentElement", 
-						"clearElement", "newElement", "replaceChildren", "setElementAttributes", "getPref", "alert",
-						"romanize", "deromanize", "loadDocument", "loadDocumentAsync"];
+						"insertParentElement", "clearElement", "newElement", "replaceChildren", "setElementAttributes", 
+						"alert", "romanize", "deromanize", "loadDocument", "loadDocumentAsync"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const console = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
-const prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch("extensions.bvbbpp.");
 
 
 function alert(msg) {
@@ -24,24 +22,6 @@ function error(e, msg) {
 //	var p = newParentElement("p", font);
 //	doc.body.insertBefore(p, doc.body.firstChild);
 };
-
-// get preference. If it doesn't exist, create the preference with default setting.
-function getPref(name) {
-	if (!name)
-		return false;
-	try{
-		return prefManager.getBoolPref(name);
-	} catch (err) {
-		error(err, "Kann Einstellung \"" + name + "\" nicht lesen. Benutze Standardeinstellung.");
-	}
-	for (var i=0; i<PREFS.length; i++) {
-		if (name == PREFS[i].name) {
-			prefManager.setBoolPref(PREFS[i].name, PREFS[i].def);
-			return PREFS[i].def;
-		}
-	}
-	return false;
-}
 
 function loadDocument(docu, link) {
 	try {

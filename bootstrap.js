@@ -1,5 +1,6 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService);
 
 // preferences and defaults
 const PREFS = [{name:"schonen", def:false}, 
@@ -65,6 +66,23 @@ function error(e, msg) {
 //	doc.body.insertBefore(p, doc.body.firstChild);
 };
 
+// get preference. If it doesn't exist, create the preference with default setting.
+function getPref(name) {
+	if (!name)
+		return false;
+	try{
+		return prefManager.getBranch("extensions.bvbbpp.").getBoolPref(name);
+	} catch (err) {
+		error(err, "Kann Einstellung \"" + name + "\" nicht lesen. Benutze Standardeinstellung.");
+	}
+	for (var i=0; i<PREFS.length; i++) {
+		if (name == PREFS[i].name) {
+			prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
+			return PREFS[i].def;
+		}
+	}
+	return false;
+}
 
 function makeAufstellung(doc) {
 	var body = doc.body;
