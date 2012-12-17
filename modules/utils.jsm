@@ -37,15 +37,15 @@ function loadDocument(docu, link) {
 	}
 }
 
-function loadDocumentAsync(docu, link, callback, arg1, arg2) {
+function loadDocumentAsync(docu, link, callback, arg1, arg2, arg3, arg4) { 
 	try {
 		var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
 		request.onreadystatechange = function(evt) {
 										if (this.readyState == 4) {
-//											alert("read " + i);
+//											alert("read " + arg3);
 											var doc = docu.implementation.createHTMLDocument("");
 											doc.documentElement.innerHTML = request.responseText;
-											callback(doc, arg1, arg2);
+											callback(doc, arg1, arg2, arg3, arg4);
 										}
 									 };
 		request.open("GET", link, true, null, null);
