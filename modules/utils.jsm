@@ -2,25 +2,18 @@ var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "remo
 						"insertParentElement", "clearElement", "newElement", "replaceChildren", "setElementAttributes", 
 						"alert", "romanize", "deromanize", "loadDocument", "loadDocumentAsync"];
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const console = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var console = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
 
 
 function alert(msg) {
 	console.logStringMessage("BVBB++: " + msg);
-//	for (var i=1; i<arguments.length; i++) {
-//		doc.body.appendChild(newElement(doc, "p", arguments[i]));
-//	}
 };
 
 function error(e, msg) {
 	var message = e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg?msg:"") : "BVBB++: " + msg;
 	console.logStringMessage(message);
-//	var text = doc.createTextNode("Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg?msg:""));
-	//var font = newParentElement("font", text, "size", "3");
-//	var p = newParentElement("p", font);
-//	doc.body.insertBefore(p, doc.body.firstChild);
 };
 
 function loadDocument(docu, link) {
@@ -37,18 +30,20 @@ function loadDocument(docu, link) {
 	}
 }
 
-function loadDocumentAsync(docu, link, callback, arg1, arg2, arg3, arg4) { 
+function loadDocumentAsync(link, callback, arg1, arg2, arg3, arg4) { 
 	try {
 		var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
 		request.onreadystatechange = function(evt) {
 										if (this.readyState == 4) {
 //											alert("read " + arg3);
-											var doc = docu.implementation.createHTMLDocument("");
-											doc.documentElement.innerHTML = request.responseText;
+											var doc = request.response;
+											if (!doc)
+												alert("Kann Datei " + link + " nicht laden. Antwort ist 'null'.");
 											callback(doc, arg1, arg2, arg3, arg4);
 										}
 									 };
 		request.open("GET", link, true, null, null);
+		request.responseType = "document";
 		request.overrideMimeType('text/html; charset=iso-8859-1');
 		request.send(null);
 	} catch (err) {
@@ -79,6 +74,11 @@ function removeParent(e) {
 		e.parentNode.removeChild(e);
 }
 
+/**
+ * Remove all elements of the given tag type, but keep their children.
+ * @param tag A tag name (string)
+ * @param regex A regular expression (applied to innerHTML) to filter the tags (optional).  
+ */
 function removeParents(doc, tag, regex) {
 	if (!doc)
 		return;
@@ -90,6 +90,9 @@ function removeParents(doc, tag, regex) {
 	}
 }
 
+/**
+ * remove all children of the element and add the ones passed in arguments 2, 3, ... 
+ */
 function replaceChildren(e) {
 	clearElement(e);
 	for (var i=1; i<arguments.length; i++) {
@@ -131,6 +134,8 @@ function insertParentElement(type, child) {
 }
 
 function newParentElement(type, child) {
+	if (!child)
+		return;
 	var doc = child.ownerDocument;
 	if (!doc)
 		return;
@@ -154,7 +159,7 @@ function setElementAttributes(doc, tag, attribute, value, regex) {
 
 // deromanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
 function deromanize(str) {
-	var	str = str.toUpperCase();
+	str = str.toUpperCase();
     var validator = /^M*(?:D?C{0,3}|C[MD])(?:L?X{0,3}|X[CL])(?:V?I{0,3}|I[XV])$/;
     var token = /[MDLV]|C[MD]?|X[CL]?|I[XV]?/g;
     var key = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
