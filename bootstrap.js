@@ -690,7 +690,7 @@ function loadPlayerStats(doc) {
 									"border-left: 1px solid #888; border-right: 1px solid #444; "+
 									"border-bottom: 1px solid #444; border-top: 1px solid #888;"), e.nextSibling);
 					 removeElements(e.parentNode, "br");
-					 adjustFrameHeight(doc);
+					 adjustIFrameHeight(doc);
 				};
 				loadDocument(a[i].href, processLink, a[i]);
 			}
