@@ -426,8 +426,8 @@ function makeAnsetzung(doc) {
 
 function replaceTeamLinks(tabelle, doc) { 
     try {
-        var highlight = function (docu, col, that) {
-            var locA = docu.body.getElementsByTagName("a"); 
+        var highlight = function (doc_, col, that) {
+            var locA = doc_.body.getElementsByTagName("a"); 
             for (var i=0; i<locA.length; i++) {
                 if (locA[i].getAttribute("href") == that.firstChild.href) {
                     locA[i].parentNode.parentNode.setAttribute("bgcolor", col);
@@ -659,7 +659,6 @@ function loadPlayerStats(doc) {
 		for (var i=0; i<a.length; i++) {
 			if (a[i].href.indexOf("spielerstatistik/P-") >= 0) {
 				var processLink = function(playerDoc, e) {
-//					alert("process: " + playerDoc.URL + " " + e.href)
 					var wins = getWinPercentage(playerDoc);
 					var f = getFestgespielt(doc, playerDoc); // f = [stammmannschaft, festgespielt, vereinsnummer]
 					if (!f)
@@ -693,8 +692,7 @@ function loadPlayerStats(doc) {
 					 removeElements(e.parentNode, "br");
 					 adjustFrameHeight(doc);
 				};
-//				alert("loadAsync " + i)
-				loadDocument(a[i].href, processLink, a[i], i);
+				loadDocument(a[i].href, processLink, a[i]);
 			}
 		}			
 		adjustIFrameHeight(doc);
@@ -721,11 +719,9 @@ function adjustIFrameHeight(doc) {
 
 function makeSpieler(doc) {
 	try {
-		var highlight = function(docu, that) {
-			var document = docu;
+		var highlight = function(doc_, that) {
 			var j = that.j;
-//			alert(doc, that);
-			var table = document.body.getElementsByTagName("table");
+			var table = doc_.body.getElementsByTagName("table");
 			var tr = table[1].getElementsByTagName("tr");
 			var sp = [0,0], sa = [0,0], pu = [0,0];
 			for (var i=2; i<tr.length; i++) {
@@ -752,7 +748,7 @@ function makeSpieler(doc) {
 			}
 			var tr = table[4].getElementsByTagName("tr");
 			var descr = tr[0].getElementsByTagName("td")[0]; 
-			replaceChildren(descr, newElement(docu, "div", (that.name?that.name:""), 
+			replaceChildren(descr, newElement(doc_, "div", (that.name?that.name:""), 
 											  "align", "center", "style", "font-weight:bold"));
 			var erg = [sp, , sa, , pu];
 			for (var i=0; i<tr.length-1; i+=2) {
@@ -784,13 +780,11 @@ function makeSpieler(doc) {
 		setElementAttributes(tr[1], "td", "style", "font-size:10pt");
 		setElementAttributes(table[1], "tr", "valign", "bottom");
 		setElementAttributes(table[1], "td", "width", 0);
-//		removeParents(table[1], "div");
 		// erste Tabelle durch Namen ersetzen
 		table[0].parentNode.replaceChild(newElement(doc, "h1", name), table[0]);
 		
 		//Klasse verlinken
 		var klasse = table[0].getElementsByTagName("div")[3];
-//		alert(doc, klasse.textContent);
 		for (var i=0; i<NAMES.length; i++) {
 			var name1 =  NAMES[i].toLowerCase().replace(/\s+/g, "");
 			var name2 = klasse.textContent.toLowerCase().replace(/\s+/g, "");
@@ -829,18 +823,14 @@ function makeSpieler(doc) {
 			for (var j=0; j<3; j++) {
 				td[j].over = {j:j, name:td[j].textContent, col1:DARK_YELLOW.col, col2:MIX_YELLOW.col};
 				td[j].out = {j:j, col1:YELLOW.col, col2:YELLOW.col};
-//				td[j].setAttribute("onmouseover", "highlight(this.innerHTML, " + j + ", '" + DARK_YELLOW.col + "', '" + MIX_YELLOW.col + "')");
-//				td[j].setAttribute("onmouseout",  "highlight('', " + j + ", '" + YELLOW.col + "', '" + YELLOW.col + "')");
-				td[j].addEventListener("mouseover", function() {highlight(doc, this.over);});
-				td[j].addEventListener("mouseout",  function() {highlight(doc, this.out);});
+				td[j].addEventListener("mouseover", function() { highlight(doc, this.over); });
+				td[j].addEventListener("mouseout",  function() { highlight(doc, this.out); });
 			}
 			var reg = /(DE|GD|DD|HE|HD)/.exec(td[3].innerHTML);
 			td[3].over = {j:3, name:reg[1], col1:DARK_YELLOW.col, col2:MIX_YELLOW.col};
 			td[3].out = {j:3, col1:YELLOW.col, col2:YELLOW.col};
-//			td[3].setAttribute("onmouseover", "highlight('" + reg[1] + "', 3, '" + DARK_YELLOW.col + "', '" + MIX_YELLOW.col + "')");
-//			td[3].setAttribute("onmouseout",  "highlight('', 3, '" + YELLOW.col + "', '" + YELLOW.col + "')");
-			td[3].addEventListener("mouseover", function(){highlight(doc, this.over);});
-			td[3].addEventListener("mouseout",  function(){highlight(doc, this.out);});
+			td[3].addEventListener("mouseover", function(){ highlight(doc, this.over); });
+			td[3].addEventListener("mouseout",  function(){ highlight(doc, this.out); });
 		}
 
 		// table[2], table[3] sind text, table[4] die aeussere Tabelle, table[5] ueberschrift					
