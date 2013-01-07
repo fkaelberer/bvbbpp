@@ -1,6 +1,6 @@
 var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement", 		
 						"insertParentElement", "clearElement", "newElement", "replaceChildren", "setElementAttributes", 
-						"alert", "romanize", "deromanize", "loadDocument", "loadDocumentAsync"];
+						"alert", "romanize", "deromanize", "loadDocument"];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -13,33 +13,21 @@ function alert(msg) {
 
 function error(e, msg) {
 	var message = e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg?msg:"") : "BVBB++: " + msg;
-	console.logStringMessage(message);
+    Components.utils.reportError(message);
 };
 
-function loadDocument(docu, link) {
-	try {
-		var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
-		request.open("GET", link, false, null, null);
-		request.overrideMimeType('text/html; charset=iso-8859-1');
-		request.send(null);
-		var doc = docu.implementation.createHTMLDocument("");
-		doc.documentElement.innerHTML = request.responseText;
-		return doc;
-	} catch (err) {
-		error(err, " Kann Datei " + link + " nicht laden.");
-	}
-}
-
-function loadDocumentAsync(link, callback, arg1, arg2, arg3, arg4) { 
+/**
+ * Load the linked document asynchronously, and pass the loaded document and the four arguments to the
+ * callback function when done.
+ */
+function loadDocument(link, callback, arg1, arg2, arg3, arg4) { 
 	try {
 		var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
 		request.onreadystatechange = function(evt) {
 										if (this.readyState == 4) {
-//											alert("read " + arg3);
-											var doc = request.response;
-											if (!doc)
+											if (!request.response)
 												alert("Kann Datei " + link + " nicht laden. Antwort ist 'null'.");
-											callback(doc, arg1, arg2, arg3, arg4);
+											callback(request.response, arg1, arg2, arg3, arg4);
 										}
 									 };
 		request.open("GET", link, true, null, null);
