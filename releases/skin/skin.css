@@ -23,7 +23,9 @@ p {font-size:8pt; font-weight: normal}
 .navigationSelected {
     color: #000;
 }
-
+a { 
+	font-weight:600;
+}
 a:visited.navigationUnselected {
     color: #A2ADBC;
 }
@@ -59,11 +61,11 @@ a:visited {
     color: #C01018;
 }
 td {
-	font-size:8pt; 
-	font-weight: normal 
+    font-size:8pt; 
+    font-weight: normal 
 }
 table {
-	color:#000;
+    color:#000;
     border-left: 2px solid #BBB;
     border-right: 2px solid #777;
     border-bottom: 2px solid #777;
