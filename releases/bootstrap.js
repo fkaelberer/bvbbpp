@@ -8,7 +8,6 @@ var PREFS = [{name:"schonen", def:false},
              {name:"newWindow", def:false}, 
              {name:"useIframe", def:true}, 
              {name:"newColors", def:true}];
-var STYLE = "select {background-color: #FF9900}";
 
 // constants
 var WEB_SHORT = "bvbb.net/fileadmin/user_upload/schuch/meisterschaft";
@@ -457,8 +456,8 @@ function replaceTeamLinks(tabelle, doc) {
                     var newA = newElement(doc, "a", name, "href", href);
                     team[i].replaceChild(newA, team[i].firstChild);
                     
-                    team[i].addEventListener("mouseover", function() {highlight(doc, DARK_YELLOW.col, this);} );
-                    team[i].addEventListener("mouseout", function() {highlight(doc, YELLOW.col, this);} );
+                    team[i].onmouseover = function() { highlight(doc, DARK_YELLOW.col, this); };
+                    team[i].onmouseout = function() { highlight(doc, YELLOW.col, this); };
     
                     teamObj[teamNumber] = { 
                                             rank: deromanize(name.substring(name.lastIndexOf(" ") + 1)),                            
@@ -717,6 +716,7 @@ function adjustIFrameHeight(doc) {
 		iFrame.height = (doc.documentElement.scrollHeight+40); // leave some space for player stats
 }
 
+
 function makeSpieler(doc) {
 	try {
 		var highlight = function(doc_, that) {
@@ -823,14 +823,14 @@ function makeSpieler(doc) {
 			for (var j=0; j<3; j++) {
 				td[j].over = {j:j, name:td[j].textContent, col1:DARK_YELLOW.col, col2:MIX_YELLOW.col};
 				td[j].out = {j:j, col1:YELLOW.col, col2:YELLOW.col};
-				td[j].addEventListener("mouseover", function() { highlight(doc, this.over); });
-				td[j].addEventListener("mouseout",  function() { highlight(doc, this.out); });
+				td[j].onmouseover = function() { highlight(doc, this.over); };
+				td[j].onmouseout = function() { highlight(doc, this.out); };
 			}
 			var reg = /(DE|GD|DD|HE|HD)/.exec(td[3].innerHTML);
 			td[3].over = {j:3, name:reg[1], col1:DARK_YELLOW.col, col2:MIX_YELLOW.col};
 			td[3].out = {j:3, col1:YELLOW.col, col2:YELLOW.col};
-			td[3].addEventListener("mouseover", function(){ highlight(doc, this.over); });
-			td[3].addEventListener("mouseout",  function(){ highlight(doc, this.out); });
+			td[3].onmouseover = function(){ highlight(doc, this.over); };
+			td[3].onmouseout = function(){ highlight(doc, this.out); };
 		}
 
 		// table[2], table[3] sind text, table[4] die aeussere Tabelle, table[5] ueberschrift					
@@ -976,28 +976,30 @@ function newHeadLine(doc, links, selection, stand) {
 	var form = newParentElement("form", selection, "name", "form1");
 
 	var	td = doc.getElementsByTagName("td");
-	var stand = doc.createTextNode(""); 
+	// FIXED: Don't overwrite argument anymore
 	for (var i = 0; i < td.length; i++) {
 		if (td[i].innerHTML.indexOf("Stand:") > -1) {
 			stand = td[i].firstChild;
 			break;
 		}
 	}
-
+	
 	var h2 = doc.createElement("h2");
 	h2.appendChild(form);
 	// span would be nicer as a spacer, but i'll remove all unnecessary "spans" from the document later
-	h2.appendChild(newElement(doc, "a", null, "style", "padding-left:30"));
+	// FIXED: Get visually same result with fewer DOM elements
 	for (var i=0; i<links.length; i++) {
 	    if (links[i].outerHTML && links[i].href.indexOf(doc.URL.substr(-20)) >= 0) {
-	        h2.appendChild(doc.createTextNode(links[i].innerHTML));
-	    } else {
-	        h2.appendChild(links[i]);
+	        links[i].removeAttribute("href"); // make link to text
+	        links[i].setAttribute("color", FRAME_BOTTOM.col);
 	    }
-	    h2.appendChild(newElement(doc, "a", null, "style", "padding-left:10"));
+	    links[i].setAttribute("style", "padding-left:" + (i==0? "30" : "10"));
+	    h2.appendChild(links[i]);
 	}
-	h2.appendChild(newElement(doc, "a", null, "style", "padding-left:30"));
-	h2.appendChild(stand);
+	if (stand) {
+	    stand.setAttribute("style", "padding-left:30");
+	    h2.appendChild(stand);
+	}
 	return h2;
 }
 
@@ -1163,7 +1165,7 @@ function parseAnsetzung(tabelle, ansetzungen) {
 				t2: teamObj[num2-1].tabellenPlatz,
 				date: div[j].textContent,
 				time: div[j+1].textContent,
-				loc: div[j+2].textContent,
+				loc: div[j+2].textContent
 			};
 		}
 	}
@@ -1297,7 +1299,7 @@ function insertAnsetzungen(ansetzungen, doc) {
 									e.setAttribute("style", shown);
 									e = e.nextSibling;
 								}
-								that.ownerDocument.getElementById("mehr").innerHTML = "&#9660; ";
+								that.ownerDocument.getElementById("mehr").textContent = "\u25BC "; // down-pointing triangle
 								that.setAttribute("name", "hide");
 							}
 							if (name == "hide") {
@@ -1306,7 +1308,7 @@ function insertAnsetzungen(ansetzungen, doc) {
 									e.setAttribute("style", hidden);
 									e = e.nextSibling;
 								}
-								that.ownerDocument.getElementById("mehr").innerHTML = "&#9658; ";
+								that.ownerDocument.getElementById("mehr").textContent = "\u25BA "; // right-pointing triangle
 								that.setAttribute("name", "show");
 							}
 					   };
@@ -1317,7 +1319,7 @@ function insertAnsetzungen(ansetzungen, doc) {
 									"bgcolor", DARK_YELLOW.col);
 		
 		var font = newElement(doc, "font", null, "id", "mehr");
-		font.innerHTML = "&#9658; ";
+		font.textContent = "\u25BA "; // right-pointing triangle
 		head.appendChild(font);
 		head.appendChild(newElement(doc, "u", "Aktuelle Termine (laut Ansetzung)"));
 		var tr = newParentElement("tr", head, "name", "show");
@@ -1392,23 +1394,29 @@ function makeStyle(doc) {
         doc.body.appendChild(div);
     }
 
-	// insert style (with elements whose colors should be replaced)
-	var style = doc.getElementsByTagName("style");
-	if (style[0])
-		style[0].parentNode.replaceChild(newElement(doc, "style", "<!--" + STYLE + "-->", "type", "text/css"), style[0]);
+	// set colors in the COLORS array according to prefs.
+	for (var i=0; i<COLORS.length; i++) {
+	    var newcol = getPref("newColors");
+	    COLORS[i].col = newcol ? COLORS[i].newcol : COLORS[i].old; 
+	}
 
-    // set colors in the COLORS array according to prefs.
-    for (var i=0; i<COLORS.length; i++) {
-        var newcol = getPref("newColors");
-        COLORS[i].col = newcol ? COLORS[i].newcol : COLORS[i].old; 
-    }
+    // insert additional styles whose colors depend on user setting
+    var styleText = "select {background-color: " + ORANGE.col + "}";
+    var style = doc.getElementsByTagName("style");
+    if (style[0])
+        style[0].parentNode.replaceChild(newElement(doc, "style", "<!--" + styleText + "-->", "type", "text/css"), style[0]);
 
-    // replace colors
+
+    // FIX: Replace all color attribute without setting innerHTML.
+    // Replace colors in all element attributes
+    var elem = doc.getElementsByTagName("*");
     for (var i=0; i<COLORS.length; i++) {
-        if (COLORS[i].old != COLORS[i].col) {
-            doc.documentElement.innerHTML = doc.documentElement.innerHTML.replace(new RegExp(
-                                                            COLORS[i].old.substring(1), "g"), 
-                                                            COLORS[i].col.substring(1));
+        var oldCol = COLORS[i].old.substring(1); // must delete leading hash symbol ... 
+        var newCol = COLORS[i].col.substring(1); // since some elements are lacking it.
+        for ( var e = 0; e < elem.length; e++) {
+            for ( var k = 0; k < elem[e].attributes.length; k++) {
+                elem[e].attributes[k].value = elem[e].attributes[k].value.replace(oldCol, newCol);  
+            }
         }
     }
 
@@ -1477,7 +1485,7 @@ function run(evt) {
     	if (/spielerstatistik\/P-/.test(url)) {
     		makeSpieler(doc);
     	}
-    } catch (err) {
+   } catch (err) {
         error(err);
     }
 }
