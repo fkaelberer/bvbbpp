@@ -1,3 +1,10 @@
+// Copyright © 2012-2013 Felix Kaelberer <bvbbpp@gmx-topmail.de>
+//
+// This work is licensed for reuse under an MIT license. Details are
+// given in the LICENSE file included with this file.
+
+"use strict";
+
 var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement", 		
 						"insertParentElement", "clearElement", "newElement", "replaceChildren", "setElementAttributes", 
 						"alert", "romanize", "deromanize", "loadDocument"];
@@ -90,10 +97,10 @@ function replaceChildren(e) {
 }
 
 
-function newElement(doc, type, innerHTML) {
+function newElement(doc, type, textContent) {
 	var e = doc.createElement(type);
-	if (innerHTML && innerHTML != "")
-		e.textContent = innerHTML;
+	if (textContent && textContent != "")
+		e.textContent = textContent;
 	for (var i=3; i+1<arguments.length; i+=2) {
 		e.setAttribute(arguments[i], arguments[i+1]);
 	}
