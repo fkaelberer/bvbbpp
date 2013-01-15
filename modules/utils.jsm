@@ -1,4 +1,4 @@
-// Copyright © 2012-2013 Felix Kaelberer <bvbbpp@gmx-topmail.de>
+// Copyright 2012-2013 Felix Kaelberer <bvbbpp@gmx-topmail.de>
 //
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
@@ -19,7 +19,7 @@ function alert(msg) {
 };
 
 function error(e, msg) {
-	var message = e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg?msg:"") : "BVBB++: " + msg;
+	var message = e ? "BVBB++: Fehler in utils.jsm, Zeile" + e.lineNumber + ": " + e.message + " " + (msg?msg:"") : "BVBB++: " + msg;
     Components.utils.reportError(message);
 };
 
