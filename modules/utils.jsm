@@ -98,13 +98,17 @@ function replaceChildren(e) {
 
 
 function newElement(doc, type, textContent) {
-	var e = doc.createElement(type);
-	if (textContent && textContent != "")
-		e.textContent = textContent;
-	for (var i=3; i+1<arguments.length; i+=2) {
-		e.setAttribute(arguments[i], arguments[i+1]);
+	try {
+		var e = doc.createElement(type);
+		if (textContent && textContent != "")
+			e.textContent = textContent;
+		for (var i=3; i+1<arguments.length; i+=2) {
+			e.setAttribute(arguments[i], arguments[i+1]);
+		}
+		return e;
+	} catch (err){
+		error(err, "doc = " + doc);
 	}
-	return e;
 }
 
 function clearElement(e) {
