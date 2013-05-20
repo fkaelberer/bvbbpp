@@ -89,9 +89,17 @@ function removeParents(doc, tag, regex) {
  * remove all children of the element and add the ones passed in arguments 2, 3, ... 
  */
 function replaceChildren(e) {
+    if (!e || !arguments)
+        return e;
 	clearElement(e);
-	for (var i=1; i<arguments.length; i++) {
-		e.appendChild(arguments[i]);
+	try{
+       	for (var i=1; i<arguments.length; i++) {
+       	    if (arguments[i]) {
+        		e.appendChild(arguments[i]);
+        	}
+	    }
+    } catch (err){
+        error(err, "doc = " + doc);
 	}
 	return e;
 }
