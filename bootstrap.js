@@ -3,7 +3,6 @@
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
 
-// TODO: Tabelle kuerzlich/demnaechst laedt nicht richtig
 // TODO: Screenshots
 // TODO: Verzeichnis mit spielberichten laden und nur bei Ansetzugen nur existierende Spiele verlinken 
 
@@ -51,16 +50,7 @@ var KAMPFLOS	 = "#FF6600";
 var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE, AUFSTEIGER, ABSTEIGER,
               ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
 
-/**
- * Output the error to the Message console. The same method is here and in utils, because we must
- * output an error when loading the utils fails.
- */
 var error = Components.utils.reportError;
-//function error(e, msg) {
-//	var message = e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg ? msg : "")
-//	        : "BVBB++: " + msg;
-//	Components.utils.reportError(message);
-//};
 function errorMsg(e, msg) {
 	return e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg ? msg : "")
 	        : "BVBB++: " + msg;

@@ -10,7 +10,7 @@
 		<em:creator>Felix K&#228;lberer</em:creator>
 		<em:homepageURL>mailto:bvbbpp@gmx-topmail.de</em:homepageURL>
 		<em:bootstrap>true</em:bootstrap>
-		<em:description>Verbessert die Navigation zu Spielergebnissen auf den Webseiten des Badminton-Verband Berlin-Brandenburg (www.bvbb.net)</em:description>
+		<em:description>BVBB++ vereinfacht die Navigation zu Spielergebnissen auf den Webseiten des Badminton-Verband Berlin-Brandenburg (www.bvbb.net)</em:description>
 <!--		<em:optionsURL>chrome://bvbbpp/content/options.xul</em:optionsURL> 
 		<em:optionsType>2</em:optionsType>  -->
 
@@ -19,7 +19,7 @@
 			<Description>
 				<em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
 				<em:minVersion>16.0</em:minVersion>
-				<em:maxVersion>21.*</em:maxVersion>
+				<em:maxVersion>23.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
         <!-- Mobile Native -->
@@ -27,7 +27,7 @@
             <Description>
                 <em:id>{aa3c5121-dab2-40e2-81ca-7ea25febc110}</em:id>
                 <em:minVersion>16.0</em:minVersion>
-                <em:maxVersion>21.*</em:maxVersion>
+                <em:maxVersion>23.*</em:maxVersion>
             </Description>
         </em:targetApplication>
 	</Description>      
