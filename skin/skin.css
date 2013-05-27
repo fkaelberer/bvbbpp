@@ -18,9 +18,9 @@ body {
 	color: #555;
 }
 
-.ifrmErgebnis {
+.ifrmErgebnis {	
 	width: 860px;
-	margin: 20 auto auto auto;
+	margin: 20px -30px 0px;
 	border: none;
 	background-color: #fff;
 	border-bottom-right-radius: 20px;
@@ -28,7 +28,7 @@ body {
 }
 
 div#centerstyle {
-	width: 865px;
+	width: 800px;
 	margin: 60px auto auto auto;
 }
 
