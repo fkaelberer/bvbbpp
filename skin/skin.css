@@ -12,7 +12,7 @@ body.bgFFFFCC {
 
 body {
 	font-family: "Open Sans", sans-serif;
-	margin-left: 10px;
+	margin: auto;
 	background-color: #fff;
 	background-repeat: no-repeat;
 	color: #555;
@@ -73,7 +73,6 @@ p {
 
 a {
 	font-weight: 600;
-	/*	color:#99AADD; */
 	color: #2A5688;
 }
 
@@ -88,23 +87,6 @@ a:visited {
 b {
 	font-weight: 600;
 }
-
-/* select {
-	font-family: Helvetica, sans-serif;
-	font-size: 12pt;
-	font-weight: 600;
-	text-shadow: 1px 0px 1px #333;
-	display: inline-block;
-	padding: 4px 3px 5px 5px;
-	background: linear-gradient(to bottom, #356EAF 0%, #30639C 100%);
-	width: 225px;
-	color: #eee;
-	border: 1px solid #666;
-	border-radius: 3px;
-	box-shadow: 1px 1px 3px 0px #333 inset;
-	background-color: #555;
-	margin-bottom: 10px;
-}*/
 
 td {
 	font-size: 8pt;
@@ -200,17 +182,22 @@ table.stats tr,table.stats td {
 .colFF9900 {
 	color: #a5d1e5;
 } /* Ansetzungen in der Tabelle */
-.headline {
+header {
 	/* Breiter blauer Balken */
 	background: #1E8CBE;
-	position: fixed;
-	width: 100%;
+	height: 43px;
 	top: 0px;
-	left: 0px;
-	box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);
-	/* wordpress:	 */
-	/*	height: 46px;*/
 	box-shadow: 0px -1px 0px rgba(0, 86, 132, 0.8) inset, 0px 1px 3px rgba(0, 86, 132, 0.4);
+}
+header.mobile {
+	margin: auto;
+	font-size: 13pt;
+	width: 740px;
+}
+header.desktop {
+	width: 100%;
+	left: 0px;
+	position: fixed;
 }
 
 font.stand {
@@ -218,8 +205,19 @@ font.stand {
 	float:right;
 	top: 14px;
 	right:5px;
-	font-size: 11px;
+	font-size: 8pt;
 	color:rgba(255, 255, 255, 0.7);
+}
+font.standMobile {
+	float:right;
+	top: 16px;
+	right:5px;
+	font-size: 8pt;
+	color: #1E8CBE;
+}
+div.standMobile {
+	width: 740px;
+	margin: 2px auto auto;
 }
 
 a.navigationSelected {
@@ -240,12 +238,8 @@ nav {
 }
 
 nav ul {
-	list-style: none;
-	position: relative;
 	margin: auto;
-	width: 700px;
-	border-left: 1px solid rgba(255, 255, 255, 0.1);
-	border-right: 1px solid rgba(255, 255, 255, 0.1);
+	width: 760px;
 }
 
 nav ul li {
@@ -261,7 +255,7 @@ nav ul li a {
 	text-decoration: none;
 }
 nav ul li:hover a {
-	/** gewählte menuepunkte in der headline und in der DropDown-Auswahl. */
+	/** gewählte menuepunkte in der headline und in der Drop-Down-Auswahl. */
 	background: rgba(0, 0, 0, 0.1);
 	color: #fff;
 }
@@ -275,6 +269,8 @@ nav ul ul {
 nav ul li:hover>ul {
 	visibility: visible;
 	opacity: 1;
+}
+nav ul li:hover>ul.desktop {
 	transition-delay: 250ms;
 }
 
@@ -283,7 +279,7 @@ nav ul ul {
 	width:220px;
 	padding: 0;
 	position: absolute;
-	max-height: 600px;
+	max-height: 500px;
 	overflow: auto;
 	border-left: 1px solid rgba(0,0,0, 0.2);
 	border-right: 1px solid rgba(0,0,0, 0.2);

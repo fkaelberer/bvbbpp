@@ -82,7 +82,7 @@ function getPref(name) {
 	} catch (err) {
 		error(errorMsg(err, "Kann Einstellung \"" + name + "\" nicht lesen. Benutze Standardeinstellung."));
 	}
-	for ( var i = 0; i < PREFS.length; i++) {
+	for (var i = 0; i < PREFS.length; i++) {
 		if (name == PREFS[i].name) {
 			prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
 			return PREFS[i].def;
@@ -110,7 +110,7 @@ function makeAufstellung(doc) {
 	makePlayerLinks(doc);
 
 	var f = body.getElementsByTagName("font");
-	for ( var i = 0; i < f.length; i++) {
+	for (var i = 0; i < f.length; i++) {
 		var link = linkToKlasse(doc, f[i].innerHTML);
 		if (link) {
 			f[i].replaceChild(link, f[i].firstChild);
@@ -135,7 +135,7 @@ function makeVerein(doc) {
 	}
 
 	var span = body.getElementsByTagName("span");
-	for ( var i = span.length - 1; i >= 0; i--) {
+	for (var i = span.length - 1; i >= 0; i--) {
 		if (span[i].id == "headline")
 			continue;
 		var font = newElement(doc, "font", null, "size", 2);
@@ -147,7 +147,7 @@ function makeVerein(doc) {
 
 	// trim links to klasse
 	var b = body.getElementsByTagName("b");
-	for ( var i = 0; i < b.length; i++) {
+	for (var i = 0; i < b.length; i++) {
 		b[i].textContent = b[i].textContent.replace(/^\s+|\s+$/g, "");
 	}
 
@@ -156,11 +156,11 @@ function makeVerein(doc) {
 		try {
 			var vereine = parseVereine(loadedDoc);
 			var td = body.getElementsByTagName("td");
-			for ( var i = 0; i < td.length; i++) {
+			for (var i = 0; i < td.length; i++) {
 				if (/\d\d.\d\d.\d\d\d\d/.test(td[i].innerHTML) && /<a/.test(td[i].innerHTML))
 					removeParents(td[i], "b");
 				if (!/<|\d\d:\d\d|^\w$/.test(td[i].innerHTML)) {
-					for ( var j = 0; j < vereine.length; j++) {
+					for (var j = 0; j < vereine.length; j++) {
 						var shortName = vereine[j].link.firstChild.innerHTML;
 						if (td[i].innerHTML.indexOf(shortName) >= 0) {
 							var num = / [IVX]+$/.exec(td[i].innerHTML)[0];
@@ -210,7 +210,7 @@ function makeLoadStatsButton(doc) {
 
 function getGroupNum(url) {
 	var groupName = url.substr(-9, 4);
-	for ( var i = 0; i < SHORT_NAMES.length; i++) {
+	for (var i = 0; i < SHORT_NAMES.length; i++) {
 		if (SHORT_NAMES[i] == groupName)
 			return i;
 	}
@@ -231,9 +231,9 @@ function makeGegenueber(doc) {
 
 
 	var tr = doc.getElementsByTagName("tr");
-	for ( var i = 0; i < tr.length - 1; i++) {
+	for (var i = 0; i < tr.length - 1; i++) {
 		var td = tr[i + 1].getElementsByTagName("td");
-		for ( var j = 0; j < td.length - 1; j++) {
+		for (var j = 0; j < td.length - 1; j++) {
 			var reg = /(\d+):(\d+)/.exec(td[j].innerHTML);
 			if (reg) {
 				var font = newElement(doc, "font", reg[1] + ":" + reg[2]);
@@ -306,7 +306,7 @@ function makeGegenueberStats(doc, that) {
 		        "font-weight:normal;font-size:8pt"));
 		h2.appendChild(newElement(doc, "br"));
 
-		for ( var j = 0; j < tr.length - 1; j++) {
+		for (var j = 0; j < tr.length - 1; j++) {
 			teamLink[j] = /<b>(.*)\s+<\/b>/.exec(tr[(j + 1)].innerHTML)[1];
 			if (j == teamRow)
 				continue;
@@ -395,7 +395,7 @@ function parseSpielbericht(link, fillTr, tr, heim, typ, teamLink) {
 			var datum = /(\d\d.\d\d.\d\d\d\d)/.exec(doc.body.innerHTML)[1];
 			var tr = h2.getElementsByTagName("tr");
 			var spiele = new Array(8);
-			for ( var i = 0; i < tr.length; i++) {
+			for (var i = 0; i < tr.length; i++) {
 				var td = tr[i].getElementsByTagName("td");
 				var typ = />(.{2}|.{4})<\/div>/.exec(td[0].innerHTML);
 
@@ -423,7 +423,7 @@ function parseSpielbericht(link, fillTr, tr, heim, typ, teamLink) {
 			}
 			var sa = [0, 0];
 			var si = [0, 0];
-			for ( var i = 0; i < spiele.length; i++) {
+			for (var i = 0; i < spiele.length; i++) {
 				if (spiele[i]) {
 					sa[0] += spiele[i].saetze[0];
 					sa[1] += spiele[i].saetze[1];
@@ -495,7 +495,7 @@ function replaceTeamLinks(tabelle, doc) {
 	try {
 		var highlight = function(doc_, col, that) {
 			var locA = doc_.getElementById("centerstyle").getElementsByTagName("a");
-			for ( var i = 0; i < locA.length; i++) {
+			for (var i = 0; i < locA.length; i++) {
 				if (locA[i].getAttribute("href") == that.firstChild.href) {
 					locA[i].parentNode.parentNode.setAttribute("class", "bg" + col.substring(1));
 				}
@@ -509,14 +509,14 @@ function replaceTeamLinks(tabelle, doc) {
 		var a = tabelle.getElementsByTagName("a");
 
 		var teamNumber = 0;// kurznummer in dieser Tabelle
-		for ( var i = 0; i < team.length; i++) {
+		for (var i = 0; i < team.length; i++) {
 			// leerzeichen alle entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
 			var teamname = team[i].innerHTML.replace(/<b>|&nbsp;|\s*<\/b>\s*/g, " ").replace(/^\s+|\s+$/g, "");
 			if (teamname.length > 0 && teamname.length < 3) {
 				teamNumber = parseInt(teamname, 10);
 			}
 
-			for ( var j = 0; j < a.length; j++) {
+			for (var j = 0; j < a.length; j++) {
 				var name = a[j].innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, "");
 				if (name.length < 6)
 					continue;
@@ -545,7 +545,7 @@ function replaceTeamLinks(tabelle, doc) {
 		var num1;
 		var num2;
 		var div = doc.getElementById("centerstyle").getElementsByTagName("div");
-		for ( var j = 2; j < div.length; j++) { // start counting at 2 to skip body centering div
+		for (var j = 2; j < div.length; j++) { // start counting at 2 to skip body centering div
 			// and headline
 			if (/ \/ /.test(div[j].innerHTML)) {
 				// Ausdruck durch irgendwas ersetzen. Die ersetzen Werte in den klammern () werden
@@ -609,7 +609,7 @@ function replaceHallenschluesselCallback(hallenDoc, doc) {
 
 		// speichere hallenschluessel in arrays
 		var found = 0;
-		for ( var i = 0; i < tr.length; i++) {
+		for (var i = 0; i < tr.length; i++) {
 			var f = tr[i].getElementsByTagName("font")[0];
 			var d = tr[i].getElementsByTagName("div");
 			if (f && d[1] && d[2] && d[3]) {
@@ -623,10 +623,10 @@ function replaceHallenschluesselCallback(hallenDoc, doc) {
 			}
 		}
 
-		for ( var j = 0; j < div.length; j++) {
+		for (var j = 0; j < div.length; j++) {
 			if (div[j].innerHTML.length != 2)
 				continue;
-			for ( var i = 1; i < found; i++) {
+			for (var i = 1; i < found; i++) {
 				var h = halle[i];
 				if (div[j].innerHTML == h.key) {
 					div[j].title = (h.street + "\n" + h.PLZ);
@@ -709,7 +709,7 @@ function makeSpielbericht(doc) {
 function linkToKlasse(doc, klasse, target) {
 	klasse = klasse.replace(/&nbsp;| /g, "").toLowerCase();
 	var name, href;
-	for ( var i = 0; i < NAMES.length; i++) {
+	for (var i = 0; i < NAMES.length; i++) {
 		if (klasse == NAMES[i].replace(/ /g, "").toLowerCase()) {
 			name = NAMES[i];
 			href = WEB + "tabellen/uebersicht-" + (i < 9 ? "0" : "") + (i + 1) + ".HTML";
@@ -730,7 +730,7 @@ function loadPlayerStats(doc) {
 		var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
 
 		var a = doc.body.getElementsByTagName("a");
-		for ( var i = 0; i < a.length; i++) {
+		for (var i = 0; i < a.length; i++) {
 			if (/spielerstatistik\/P-/.test(a[i].href)) {
 				var processLink = function(playerDoc, e) {
 					var wins = getWinPercentage(playerDoc);
@@ -799,7 +799,7 @@ function makeSpieler(doc) {
 	makeHeadLine(doc, -1, -1);
 	try {
 		var h2 = doc.body.getElementsByTagName("h2");
-		for ( var i = 0; i < h2.length; i++) {
+		for (var i = 0; i < h2.length; i++) {
 			if (/vor dem Namen/.test(h2[i].textContent)) {
 				h2[i].replaceChild(newElement(doc, "h2", "Statistik", "style", "margin:20px auto 10px auto; width:780px"), 
 				        					  h2[i].getElementsByTagName("table")[1]);
@@ -815,7 +815,7 @@ function makeSpieler(doc) {
 			var table = doc_.body.getElementsByTagName("table");
 			var tr = table[1].getElementsByTagName("tr");
 			var sp = [0, 0], sa = [0, 0], pu = [0, 0];
-			for ( var i = 2; i < tr.length; i++) {
+			for (var i = 2; i < tr.length; i++) {
 				var td = tr[i].getElementsByTagName("td");
 				if (!that.name || td[j].textContent.indexOf(that.name) >= 0) {
 					if (!that.name) {
@@ -842,14 +842,14 @@ function makeSpieler(doc) {
 			replaceChildren(descr, newElement(doc_, "div", (that.name ? that.name : ""), "align", "center", "style",
 			        "font-weight:bold; font-size:12"));
 			var erg = [sp, , sa, , pu];
-			for ( var i = 0; i < tr.length - 1; i += 2) {
+			for (var i = 0; i < tr.length - 1; i += 2) {
 				var td = tr[i + 1].getElementsByTagName("td");
 				td[1].firstChild.textContent = (erg[i][0] + erg[i][1]);
 				td[2].firstChild.textContent = erg[i][0];
 				td[3].firstChild.textContent = Math.round(1000 * erg[i][0] / (erg[i][0] + erg[i][1])) / 10 + "%";
 				td[4].firstChild.textContent = erg[i][1];
 				td[5].firstChild.textContent = Math.round(1000 * erg[i][1] / (erg[i][0] + erg[i][1])) / 10 + "%";
-				for ( var j = 0; j < td.length; j++) {
+				for (var j = 0; j < td.length; j++) {
 					if (td[j].getAttribute("bgcolor") == WIN) {
 						var w = Math.round(100 * erg[i][0] / (erg[i][0] + erg[i][1]));
 						td[j].setAttribute("width", " " + (w == 0 ? 1 : w) + "%");
@@ -876,7 +876,7 @@ function makeSpieler(doc) {
 
 		// Klasse verlinken
 		var klasse = table[0].getElementsByTagName("div")[3];
-		for ( var i = 0; i < NAMES.length; i++) {
+		for (var i = 0; i < NAMES.length; i++) {
 			var name1 = NAMES[i].toLowerCase().replace(/\s+/g, "");
 			var name2 = klasse.textContent.toLowerCase().replace(/\s+/g, "");
 			if (name1 == name2) {
@@ -902,7 +902,7 @@ function makeSpieler(doc) {
 
 		// Satzsiege/verluste farbig
 		var td = table[1].getElementsByTagName("td");
-		for ( var i = 0; i < td.length; i++) {
+		for (var i = 0; i < td.length; i++) {
 			var reg = /(\d) : (\d)/.exec(td[i].innerHTML);
 			if (reg) {
 				td[i].setAttribute("class", "bg" + (reg[1] > reg[2] ? WIN.substr(1) : LOSE.substr(1)));
@@ -910,9 +910,9 @@ function makeSpieler(doc) {
 			}
 		}
 		tr = table[1].getElementsByTagName("tr");
-		for ( var i = 2; i < tr.length; i++) {
+		for (var i = 2; i < tr.length; i++) {
 			var td = tr[i].getElementsByTagName("td");
-			for ( var j = 0; j < 3; j++) {
+			for (var j = 0; j < 3; j++) {
 				td[j].over = {
 				    j : j,
 				    name : td[j].textContent,
@@ -1008,7 +1008,7 @@ function getFestgespielt(doc1, doc) {
 		var s = doc.getElementsByTagName("span");
 		var mannschaft = new Array(100);
 		var num = 0;
-		for ( var i = 0; i < s.length - 2; i++) {
+		for (var i = 0; i < s.length - 2; i++) {
 			if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i + 2].innerHTML)) {
 				var d = s[i].innerHTML;
 				var m = parseInt(s[i + 2].innerHTML, 10);
@@ -1024,7 +1024,7 @@ function getFestgespielt(doc1, doc) {
 		if (num < 3)
 			return [stamm, 0, verein];
 		var ms = Array(num);
-		for ( var i = 0; i < num; i++) {
+		for (var i = 0; i < num; i++) {
 			ms[i] = mannschaft[i].mann;
 		}
 		ms.sort();
@@ -1054,12 +1054,12 @@ function makePlayerLinksCallback(playerDoc, doc) {
 			};
 		});
 		// loop over player names in the document
-		for ( var i = 0; d && i < d.length; i++) {
+		for (var i = 0; d && i < d.length; i++) {
 			var name = d[i].innerHTML.replace(/^\s+|\s+$|(\s\(\d\))/g, "");
 			var ext = RegExp.$1 ? RegExp.$1 : "";
 			if (!name || name.length < 5 || /</.test(name) || /Additionsregeln/.test(name))
 				continue;
-			for ( var j = 0; j < p.length; j++) {
+			for (var j = 0; j < p.length; j++) {
 				// does player name from players list match player name in document?
 				if (p[j].name == name) {
 					// is player name unique in list?
@@ -1100,7 +1100,7 @@ function parseVereine(vereine) {
 	var td = vereine.getElementsByTagName("td");
 	var data = new Array(100); // max 100 vereine, sonst auf drei ziffern testen
 	var numSets = 0;
-	for ( var i = 0; i < td.length; i++) {
+	for (var i = 0; i < td.length; i++) {
 		if (/>\d\d<|>\d\d\d<$/.test(td[i].innerHTML) && /<div/.test(td[i].innerHTML)) {
 			var el = td[i].getElementsByTagName("div")[0];
 			var l = td[i + 1].getElementsByTagName("a")[0];
@@ -1126,7 +1126,7 @@ function loadVereineCallback(loadedDoc, doc, teamNum, ulAuf, ulSpi) {
 	try {
 		var vereine = parseVereine(loadedDoc);
 		// Fill menu with the loaded team list.
-		for ( var i = 0; i < vereine.length; i++) {
+		for (var i = 0; i < vereine.length; i++) {
 			var ver = vereine[i];
 			if (!ver)
 				continue;
@@ -1161,7 +1161,7 @@ function makeHeadLine(doc, groupNum, teamNum) {
 	var ulAuf = newElement(doc, "ul", null, "style", "min-width:200px");
 
 	// fill group menues;
-	for ( var i = 0; i < NAMES.length; i++) {
+	for (var i = 0; i < NAMES.length; i++) {
 		var l = "tabellen/uebersicht-" + (i < 9 ? "0" : "") + (i + 1);
 		ulTab.appendChild(newParentElement("li", newElement(doc, "a", NAMES[i], "href", WEB + l + ".HTML")));
 		l = "staffel-" + SHORT_NAMES[i];
@@ -1200,10 +1200,14 @@ function makeHeadLine(doc, groupNum, teamNum) {
 	var uls = [ulTab, ulAns, ulGeg, ulAuf, ulSpi];
 
 	var nav = newElement(doc, "ul", null, "role", "menubar");
-	for ( var i = 0; i < as.length; i++) {
+	for (var i = 0; i < as.length; i++) {
 		var li = newParentElement("li", as[i]);
 		li.appendChild(uls[i]);
 		nav.appendChild(li);
+		
+		if (!MOBILE) {
+			uls[i].setAttribute("class", "desktop");
+		}
 	}
 	// nav.insertBefore(newElement(doc, "i", "Mannschaft:"),
 	// nav.firstChild.nextSibling.nextSibling.nextSibling);
@@ -1222,26 +1226,30 @@ function makeHeadLine(doc, groupNum, teamNum) {
 function newHeadLine(doc, links, menu) {
 	var td = doc.getElementsByTagName("td");
 
-	var div = newElement(doc, "div", "", "class", "headline", "id", "headline");
-	div.appendChild(menu);
-	// span would be nicer as a spacer, but i'll remove all unnecessary "spans" from the document
-	// later
-	for ( var i = 0; i < links.length; i++) {
+	var header = newParentElement("header", menu, "id", "headline");
+	header.setAttribute("class", MOBILE ? "mobile" : "desktop");
+	for (var i = 0; i < links.length; i++) {
 		if (links[i].outerHTML && links[i].href.indexOf(doc.URL.substr(-20)) >= 0) {
 			links[i].setAttribute("class", "navigationSelected");
 		}
 	}
 
-	for ( var i = 0; i < td.length; i++) {
+	for (var i = 0; i < td.length; i++) {
 		if (/Stand:/.test(td[i].innerHTML)) {
 			var stand = td[i].firstChild;
-			stand.setAttribute("class", "stand");
-			div.appendChild(stand);
+			stand.setAttribute("class", MOBILE ? "standMobile" : "stand");
+			if (MOBILE) {
+				stand = newParentElement("div", stand, "class", "standMobile");
+				doc.body.insertBefore(stand, doc.body.firstChild);
+			} else {
+				header.appendChild(stand);
+			}
+			break;
 		}
 	}
 
-	doc.body.insertBefore(div, doc.body.firstChild);
-	return div;
+	doc.body.insertBefore(header, doc.body.firstChild);
+	return header;
 }
 
 function parseAnsetzung(tabelle, ansetzungen) {
@@ -1254,14 +1262,14 @@ function parseAnsetzung(tabelle, ansetzungen) {
 									// globale nummer, link: link zu ansetzungen
 
 	var teamNumber = 0;// kurznummer in dieser Tabelle
-	for ( var i = 0; i < div.length; i++) {
+	for (var i = 0; i < div.length; i++) {
 		// leerzeichen alle entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
 		var nameI = div[i].innerHTML.replace(/<b>|<i>|&nbsp;|<\/b>|<\/i>/g, " ").replace(/^\s+|\s+$/g, "");
 		if (nameI.length > 0 && nameI.length < 3) {
 			teamNumber = parseInt(nameI, 10);
 			continue;
 		}
-		for ( var j = 2; j < tr.length; j++) {
+		for (var j = 2; j < tr.length; j++) {
 			var a = tr[j].getElementsByTagName("a")[0];
 			var nameJ = a.innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, "");
 			if (nameJ.length < 6)
@@ -1286,7 +1294,7 @@ function parseAnsetzung(tabelle, ansetzungen) {
 	var ansetzung = new Array(200);
 	var numAns = 0;
 	var div = ansetzungen.body.getElementsByTagName("div");
-	for ( var j = 0; j < div.length; j++) {
+	for (var j = 0; j < div.length; j++) {
 		var ex = /^(\d+) \/ (\d+)$/.exec(div[j].innerHTML);
 		if (ex) {
 			num1 = ex[1];
@@ -1330,7 +1338,7 @@ function makeTabelle(doc) {
 
 	var td = body.getElementsByTagName("td");
 	var kampflos = false; // erschien "kampflos schon in einer Zelle?"
-	for ( var i = 0; i < td.length; i++) {
+	for (var i = 0; i < td.length; i++) {
 		if (td[i].width && td[i].width == 30) {
 			td[i].width = 40;
 		}
@@ -1350,7 +1358,7 @@ function makeTabelle(doc) {
 
 		// setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
 		var links = body.getElementsByTagName("a");
-		for ( var i = 0; i < links.length; i++) {
+		for (var i = 0; i < links.length; i++) {
 			if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href))
 				links[i].target = "Ergebnis";
 		}
@@ -1369,10 +1377,10 @@ function insertAnsetzungen(ansetzungen, doc) {
 			                new Array(10), new Array(10), new Array(10), new Array(10)];
 			// alert(doc, spiele.toSource());
 			var tr = doc.body.getElementsByTagName("tr");
-			for ( var i = 0; i < tr.length - 2; i++) {
+			for (var i = 0; i < tr.length - 2; i++) {
 				var td = tr[i + 2].getElementsByTagName("td");
 				verein[i] = td[1].textContent;
-				for ( var j = 0; j < td.length - 6 - 1; j++) {
+				for (var j = 0; j < td.length - 6 - 1; j++) {
 					var cell = td[j + 6];
 					var div = cell.getElementsByTagName("div")[0];
 					if (cell.getAttribute("bgcolor") == ORANGE || /\d : \d.*\d : \d/.test(div.innerHTML)) { // faellt
@@ -1476,12 +1484,12 @@ function insertAnsetzungen(ansetzungen, doc) {
 
 			// array of new lines
 			tr = new Array(numLines);
-			for ( var i = 0; i < numLines; i++) {
+			for (var i = 0; i < numLines; i++) {
 				tr[i] = newElement(doc, "tr", null, "style", hidden);
 			}
 
 			// kuerzlich
-			for ( var i = Math.max(0, vorbei.length - numLines); i < vorbei.length; i++) {
+			for (var i = Math.max(0, vorbei.length - numLines); i < vorbei.length; i++) {
 				var s = vorbei[i];
 				var a = gespielt[s.t1][s.t2].cloneNode(true);
 				var td1 = newElement(doc, "td", null, "style", "padding-right:20; padding-bottom:0");
@@ -1496,7 +1504,7 @@ function insertAnsetzungen(ansetzungen, doc) {
 			}
 
 			// demnaechst
-			for ( var i = 0; i < Math.min(numLines, bald.length); i++) {
+			for (var i = 0; i < Math.min(numLines, bald.length); i++) {
 				var s = bald[i];
 				var td2 = newElement(doc, "td", null, "style", "padding-right:10; padding-bottom:0");
 				td2.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
@@ -1507,7 +1515,7 @@ function insertAnsetzungen(ansetzungen, doc) {
 				tr[i].appendChild(td2);
 			}
 			var table = newParentElement("table", tbody, "cellpadding", 4, "class", "borderless");
-			for ( var i = 0; i < numLines; i++) {
+			for (var i = 0; i < numLines; i++) {
 				tbody.appendChild(tr[i]);
 			}
 			doc.getElementById("centerstyle").insertBefore(newParentElement("p", table),
@@ -1544,9 +1552,9 @@ function makeStyle(doc) {
 	// FIX: Replace all color attribute without setting innerHTML.
 	// Replace colors in all element attributes
 	var elem = doc.getElementsByTagName("*");
-	for ( var i = 0; i < COLORS.length; i++) {
+	for (var i = 0; i < COLORS.length; i++) {
 		var oldCol = COLORS[i].substring(1); // must delete leading hash symbol ...
-		for ( var e = 0; e < elem.length; e++) {
+		for (var e = 0; e < elem.length; e++) {
 			if (elem[e].getAttribute("bgcolor") == COLORS[i])
 				elem[e].setAttribute("class", "bg" + oldCol);
 			if (elem[e].getAttribute("color") == COLORS[i])
@@ -1668,7 +1676,7 @@ function startup(aData, aReason) {
 function reloadTabs(window) {
 	if (window.gBrowser && window.gBrowser.browsers) {
 		var num = window.gBrowser.browsers.length;
-		for ( var i = 0; i < num; i++) {
+		for (var i = 0; i < num; i++) {
 			var tab = window.gBrowser.getBrowserAtIndex(i);
 			var uri = tab.currentURI.spec;
 			if (uri.indexOf(WEB_SHORT) >= 0) {
@@ -1700,7 +1708,7 @@ function shutdown(aData, aReason) {
 
 function install(aData, aReason) {
 	prefManager.removeBranch
-	for ( var i = 0; i < PREFS.length; i++) {
+	for (var i = 0; i < PREFS.length; i++) {
 		if (!prefManager.getBranch("extensions.bvbbpp.").prefHasUserValue(PREFS[i].name)) {
 			prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
 		}
@@ -1708,7 +1716,7 @@ function install(aData, aReason) {
 }
 function uninstall(aData, aReason) {
 	shutdown(aData, aReason);
-	for ( var i = 0; i < PREFS.length; i++) {
+	for (var i = 0; i < PREFS.length; i++) {
 		prefManager.getBranch("extensions.bvbbpp.").clearUserPref(PREFS[i].name);
 	}
 }
