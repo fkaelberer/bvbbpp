@@ -7,7 +7,7 @@
 
 var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement", 		
 						"insertParentElement", "clearElement", "newElement", "replaceChildren", "setElementAttributes", 
-						"alert", "romanize", "deromanize", "loadDocument"];
+						"alert", "romanize", "deromanize", "loadDocument", "addDocumentMenthods"];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -47,17 +47,6 @@ function loadDocument(link, callback, arg1, arg2, arg3, arg4) {
 	}
 }
 
-function removeElements(doc, tag, regex) {
-	if (!doc)
-		return;
-	var	e = doc.getElementsByTagName(tag);
-	for (var i = e.length-1; i >= 0; i--) {
-		if (!regex || regex.test(e[i].innerHTML)) {
-			removeElement(e[i]);
-		}
-	}
-}
-
 function removeElement(e) {
 	if (e) 
 		e.parentNode.removeChild(e); 
@@ -69,6 +58,7 @@ function removeParent(e) {
 	if (e && e.parentNode)
 		e.parentNode.removeChild(e);
 }
+
 
 /**
  * Remove all elements of the given tag type, but keep their children.
@@ -104,6 +94,37 @@ function replaceChildren(e) {
 	}
 	return e;
 }
+function clearElement(e) {
+	while (e.hasChildNodes()) {
+		e.removeChild(e.firstChild);
+	}
+	return e;
+}
+
+function newParentElement(type, e) {
+	if (!e)
+		return;
+	var doc = e.ownerDocument;
+	if (!doc)
+		return;
+	var parent = doc.createElement(type);
+	parent.appendChild(e);
+	for (var i=2; i+1<arguments.length; i+=2) {
+		parent.setAttribute(arguments[i], arguments[i+1]);
+	}
+	return parent;
+}
+
+function removeElements(doc, tag, regex) {
+	if (!doc)
+		return;
+	var	e = doc.getElementsByTagName(tag);
+	for (var i = e.length-1; i >= 0; i--) {
+		if (!regex || regex.test(e[i].innerHTML)) {
+			removeElement(e[i]);
+		}
+	}
+}
 
 
 function newElement(doc, type, textContent) {
@@ -118,42 +139,6 @@ function newElement(doc, type, textContent) {
 	} catch (err){
 		error(err, "doc = " + doc);
 	}
-}
-
-function clearElement(e) {
-	while (e.hasChildNodes()) {
-		e.removeChild(e.firstChild);
-	}
-	return e;
-}
-
-function insertParentElement(type, child) {
-	var doc = child.ownerDocument;
-	if (!doc || !child)
-		return;
-	var p = child.parentNode;
-	var e = doc.createElement(type);
-	for (var i=2; i+1<arguments.length; i+=2) {
-		e.setAttribute(arguments[i], arguments[i+1]);
-	}
-	e.appendChild(child);
-	p.append(e);
-	return e;
-}
-
-function newParentElement(type, child) {
-	if (!child)
-		return;
-	var doc = child.ownerDocument;
-	if (!doc)
-		return;
-	var e = doc.createElement(type);
-	if (child)
-		e.appendChild(child);
-	for (var i=2; i+1<arguments.length; i+=2) {
-		e.setAttribute(arguments[i], arguments[i+1]);
-	}
-	return e;
 }
 
 function setElementAttributes(doc, tag, attribute, value, regex) {

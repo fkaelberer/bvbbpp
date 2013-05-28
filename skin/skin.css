@@ -1,5 +1,4 @@
 @page {
-	size: 29.71cm 21.0cm;
 	margin-top: 0.5cm;
 	margin-bottom: 0.5cm;
 	margin-left: 1.5cm;
@@ -106,7 +105,7 @@ table.borderless td {
 
 table {
 	border-spacing: 0px;
-	margin: 25 auto 2 auto;
+	margin: 25px auto 2px auto;
 	background-color: #D7E6F3;
 	box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2);
 	border-collapse: collapse;
@@ -114,7 +113,7 @@ table {
 }
 
 table.borderless {
-	margin: 2 auto 2 auto;
+	margin: 2px auto 2px auto;
 	box-shadow: none;
 	border: none;
 	background: none;
