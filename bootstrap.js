@@ -3,10 +3,6 @@
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
 
-// TODO: Screenshots
-// TODO: Verzeichnis mit spielberichten laden und nur bei Ansetzugen nur existierende Spiele verlinken 
-
-
 "use strict";
 
 var Cc = Components.classes;

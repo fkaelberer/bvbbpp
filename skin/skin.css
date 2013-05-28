@@ -238,7 +238,7 @@ nav {
 }
 
 nav ul {
-	margin: auto;
+	list-style: none;	margin: auto;
 	width: 760px;
 }
 

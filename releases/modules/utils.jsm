@@ -19,8 +19,9 @@ function alert(msg) {
 };
 
 function error(e, msg) {
-	var message = e ? "BVBB++: Fehler in utils.jsm, Zeile" + e.lineNumber + ": " + e.message + " " + (msg?msg:"") : "BVBB++: " + msg;
-    Components.utils.reportError(message);
+	var message = e ? "BVBB++: Fehler in utils.jsm, Zeile" + e.lineNumber + ": " + e.message + " " + (msg ? msg : "")
+	        : "BVBB++: " + msg;
+	Components.utils.reportError(message);
 };
 
 /**
@@ -89,22 +90,34 @@ function removeParents(doc, tag, regex) {
  * remove all children of the element and add the ones passed in arguments 2, 3, ... 
  */
 function replaceChildren(e) {
+	if (!e || !arguments)
+		return e;
 	clearElement(e);
-	for (var i=1; i<arguments.length; i++) {
-		e.appendChild(arguments[i]);
+	try {
+		for ( var i = 1; i < arguments.length; i++) {
+			if (arguments[i]) {
+				e.appendChild(arguments[i]);
+			}
+		}
+	} catch (err) {
+		error(err, "doc = " + doc);
 	}
 	return e;
 }
 
 
 function newElement(doc, type, textContent) {
-	var e = doc.createElement(type);
-	if (textContent && textContent != "")
-		e.textContent = textContent;
-	for (var i=3; i+1<arguments.length; i+=2) {
-		e.setAttribute(arguments[i], arguments[i+1]);
+	try {
+		var e = doc.createElement(type);
+		if (textContent && textContent != "")
+			e.textContent = textContent;
+		for (var i=3; i+1<arguments.length; i+=2) {
+			e.setAttribute(arguments[i], arguments[i+1]);
+		}
+		return e;
+	} catch (err){
+		error(err, "doc = " + doc);
 	}
-	return e;
 }
 
 function clearElement(e) {
@@ -155,11 +168,11 @@ function setElementAttributes(doc, tag, attribute, value, regex) {
 // deromanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
 function deromanize(str) {
 	str = str.toUpperCase();
-    var validator = /^M*(?:D?C{0,3}|C[MD])(?:L?X{0,3}|X[CL])(?:V?I{0,3}|I[XV])$/;
-    var token = /[MDLV]|C[MD]?|X[CL]?|I[XV]?/g;
-    var key = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
-    var num = 0;
-    var m;
+	var validator = /^M*(?:D?C{0,3}|C[MD])(?:L?X{0,3}|X[CL])(?:V?I{0,3}|I[XV])$/;
+	var token = /[MDLV]|C[MD]?|X[CL]?|I[XV]?/g;
+	var key = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
+	var num = 0;
+	var m;
 	if (!(str && validator.test(str)))
 		return false;
 	while (m = token.exec(str))
@@ -172,9 +185,8 @@ function romanize(num) {
 	if (!+num)
 		return false;
 	var	digits = String(+num).split(""),
-		key = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM",
-		       "","X","XX","XXX","XL","L","LX","LXX","LXXX","XC",
-		       "","I","II","III","IV","V","VI","VII","VIII","IX"],
+	key = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM", "", "X", "XX", "XXX", "XL", "L", "LX", "LXX",
+		   "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"],
 		roman = "",
 		i = 3;
 	while (i--)

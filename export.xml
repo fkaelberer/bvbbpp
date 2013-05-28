@@ -6,7 +6,7 @@
 	-->
 	<target name="export">
 		<codepro.initExport/>
-		<codepro.exportToZipFile destinationFilename="bvbb++.xpi" createLeadupStructure="false">
+		<codepro.exportToZipFile destinationFilename="BVBB++/bvbb++.xpi" createLeadupStructure="false">
 			<Resources>
 				/BVBB++/LICENSE
 				/BVBB++/bootstrap.js
