@@ -558,7 +558,9 @@ function replaceTeamLinks(tabelle) {
 				Cu.reportError(errorMsg(err));
 			}
 		};
-		loadDocument(WEB + "spielberichte-vereine/", makeGameLinks, nums1, nums2);
+		// get directory listing, Format=0; Pattern=*-??_??-??.HTML
+		var link = WEB + "spielberichte-vereine/?F=0;P=*-??_??-??.HTML";
+		loadDocument(link, makeGameLinks, nums1, nums2);
 	} catch (err) {
 		Cu.reportError(errorMsg(err));
 	}
@@ -598,7 +600,6 @@ function replaceHallenschluesselCallback(hallenDoc) {
 				if (div[j].innerHTML == h.key) {
 					div[j].title = (h.street + "\n" + h.PLZ);
 					var href = "http://maps.google.de/maps?q=" + h.street.replace(/\s*\n.+/g, "") + ", " + h.PLZ;
-
 					var a = create("a", div[j].textContent, "href", href, "target", "_blank");
 					div[j].replaceChild(a, div[j].firstChild);
 				}
@@ -1207,8 +1208,9 @@ function makeHeadLine(groupNum, teamNum) {
 	return header;
 }
 
-function parseAnsetzung(ansetzungen) {
-	var tr = DOC.getElementsByTagName("h2")[0].getElementsByTagName("tr");
+function parseAnsetzung(doc, ansetzungen) {
+	alert(doc + "   " + doc.URL);
+	var tr = doc.getElementsByTagName("h2")[0].getElementsByTagName("tr");
 	if (!ansetzungen)
 		return;
 	// team-Tabelle parsen und die Teamlinks speichern
@@ -1315,17 +1317,17 @@ function makeTabelle() {
 		}
 	}
 	var urlAns = URL.replace(/tabellen\/uebersicht-\d\d/, "staffel-" + SHORT_NAMES[groupNum]);
-	loadDocument(urlAns, insertAnsetzungen);
+	loadDocument(urlAns, insertAnsetzungen, DOC);
 }
 
-function insertAnsetzungen(ansetzungen) {
+function insertAnsetzungen(ansetzungen, doc) {
 	try {
-		var spiele = parseAnsetzung(ansetzungen);
+		var spiele = parseAnsetzung(doc, ansetzungen);
 		if (spiele) {
 			var verein = new Array(10);
 			var gespielt = [new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
 			                new Array(10), new Array(10), new Array(10), new Array(10), new Array(10)];
-			var tr = BODY.getElementsByTagName("tr");
+			var tr = doc.body.getElementsByTagName("tr");
 			for (var i = 0; i < tr.length - 2; i++) {
 				var td = tr[i + 2].getElementsByTagName("td");
 				verein[i] = td[1].textContent;
@@ -1440,11 +1442,11 @@ function insertAnsetzungen(ansetzungen) {
 				var a = gespielt[s.t1][s.t2].cloneNode(true);
 				var td1 = create("td", null, "style", "padding-right:20; padding-bottom:0");
 				a.textContent = a.textContent.replace(/\s+$/, "");
-				td1.appendChild(DOC.createTextNode(s.date.replace(/.20/, ".") + ": "));
+				td1.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
 				td1.appendChild(create("b", verein[s.t1]));
-				td1.appendChild(DOC.createTextNode(" spielt "));
+				td1.appendChild(doc.createTextNode(" spielt "));
 				td1.appendChild(a);
-				td1.appendChild(DOC.createTextNode(" gegen "));
+				td1.appendChild(doc.createTextNode(" gegen "));
 				td1.appendChild(create("b", verein[s.t2]));
 				tr[i - Math.max(0, vorbei.length - numLines)].appendChild(td1);
 			}
@@ -1453,9 +1455,9 @@ function insertAnsetzungen(ansetzungen) {
 			for (var i = 0; i < Math.min(numLines, bald.length); i++) {
 				var s = bald[i];
 				var td2 = create("td", null, "style", "padding-right:10; padding-bottom:0");
-				td2.appendChild(DOC.createTextNode(s.date.replace(/.20/, ".") + ": "));
+				td2.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
 				td2.appendChild(create("b", verein[s.t2]));
-				td2.appendChild(DOC.createTextNode(" zu Gast bei "));
+				td2.appendChild(doc.createTextNode(" zu Gast bei "));
 				td2.appendChild(create("b", verein[s.t1]));
 				td2.appendChild(create("br"));
 				tr[i].appendChild(td2);
@@ -1464,8 +1466,8 @@ function insertAnsetzungen(ansetzungen) {
 			for (var i = 0; i < numLines; i++) {
 				tbody.appendChild(tr[i]);
 			}
-			DOC.getElementById("centerstyle").insertBefore(newParentElement("p", table),
-			        BODY.getElementsByTagName("table")[0].parentNode);
+			doc.getElementById("centerstyle").insertBefore(newParentElement("p", table),
+			        doc.body.getElementsByTagName("table")[0].parentNode);
 		}
 	} catch (err) {
 		Cu.reportError(errorMsg(err));
