@@ -5,9 +5,9 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement", 		
-						"insertParentElement", "clearElement", "newElement", "replaceChildren", "setElementAttributes", 
-						"alert", "romanize", "deromanize", "loadDocument", "addDocumentMenthods"];
+var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement",
+                        "clearElement", "newElement", "replaceChildren", "setElementAttributes", "alert", "romanize",
+                        "deromanize", "loadDocument"];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -125,7 +125,6 @@ function removeElements(doc, tag, regex) {
 		}
 	}
 }
-
 
 function newElement(doc, type, textContent) {
 	try {
