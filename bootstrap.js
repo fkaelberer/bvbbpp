@@ -10,6 +10,7 @@ var Ci = Components.interfaces;
 var Cu = Components.utils;
 var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService);
 var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase().indexOf("android") >= 0;
+var consoleService = Cc["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
 
 // preferences and defaults
 var PREFS = [{
@@ -18,8 +19,12 @@ var PREFS = [{
 }];
 
 // constants
+// TODO: Hallenschluessel mittels array an Saison anpassen.
 var HALLENSCHLUESSEL_URL = "http://bvbb.net/Hallen.706.0.html";
+var PAGE_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison1213|saison1112)\/meisterschaft/;
 var WEB_SHORT = "bvbb.net/fileadmin/user_upload/schuch/meisterschaft";
+var SEASON_NAMES = ["2013/14", "2012/13", "2011/12"];
+var SEASON_WEB = ["schuch", "saison1213", "saison1112"];
 var WEB = "http://" + WEB_SHORT + "/";
 var SHORT_NAMES = ["BB", "LL-1", "LL-2", "BZ-1", "BZ-2", "AK-1", "AK-2", "BK-1", "BK-2", "CK-1", "CK-2", "DK-1",
                    "DK-2", "EK-1", "EK-2", "FK-1", "FK-2", "GK-1", "GK-2", "GK-3"];
@@ -200,6 +205,16 @@ function getGroupNum() {
 			return i;
 	}
 	// wenn nix trifft, dann wars wohl BB (hat nur 2 Buchstaben)
+	return 0;
+}
+
+function getSeasonID() {
+	var seasonString = /user_upload\/(\w*)\//i.exec(URL)[1];
+	for (var i = 0; i < SEASON_WEB.length; i++) {
+		if (SEASON_WEB[i] == seasonString)
+			return i;
+	}
+	// wenn nix trifft, dann nimm die aktuelle Saison
 	return 0;
 }
 
@@ -449,7 +464,10 @@ function makeGroupTitle(title, isTabelle) {
 	var style = "text-decoration: none; color: #ccc";
 	if (num > 0)
 		titleLine.insertBefore(create("a", "\u25C0 ", "href", urlBack, "style", style), titleLine.firstChild);
-	if (num < SHORT_NAMES.length-1)
+	var numNames = NAMES.length;
+	if (getSeasonID() > 0)
+		numNames--;
+	if (num < numNames-1)
 		titleLine.appendChild(create("a", " \u25B6", "href", urlForth, "style", style));
 	return titleLine;
 }
@@ -1122,18 +1140,33 @@ function loadVereineCallback(loadedDoc, doc, teamNum, ulAuf, ulSpi) {
 }
 
 function makeHeadLine(groupNum, teamNum) {
+	var seasonID = getSeasonID();
+	Cu.reportError("MH: " + seasonID );
+
 	if (MOBILE) {
 		groupNum = -1;
 		teamNum = -1;
 	}
+	var ulSeason = create("ul", null);
 	var ulTab = create("ul", null);
 	var ulAns = create("ul", null);
 	var ulGeg = create("ul", null);
 	var ulSpi = create("ul", null, "style", "min-width:200px");
 	var ulAuf = create("ul", null, "style", "min-width:200px");
 
+	var numNames = NAMES.length;
+	if (seasonID > 0)
+		numNames--; // keine GKIII vor 2013/14
+
+	var aSeason = create("a", SEASON_NAMES[seasonID], "class", "navigationSelected", "style", "font-weight:600");
+	for (var i = 0; i < SEASON_NAMES.length; i++) {
+		var target = URL.replace(SEASON_WEB[seasonID], SEASON_WEB[i]);
+		ulSeason.appendChild(newParentElement("li", create("a", "Saison " + SEASON_NAMES[i], "href", target)));
+	}
+
+	
 	// fill group menues;
-	for (var i = 0; i < NAMES.length; i++) {
+	for (var i = 0; i < numNames; i++) {
 		var l = "tabellen/uebersicht-" + (i < 9 ? "0" : "") + (i + 1);
 		ulTab.appendChild(newParentElement("li", create("a", NAMES[i], "href", WEB + l + ".HTML")));
 		l = "staffel-" + SHORT_NAMES[i];
@@ -1146,7 +1179,7 @@ function makeHeadLine(groupNum, teamNum) {
 	loadDocument(WEB + "spielberichte-vereine/spielbericht-vereine.HTML", loadVereineCallback, DOC, teamNum, ulAuf,
 	        ulSpi);
 
-	var aTab = create("a", "Tabelle", "class", "navigationUnselected")
+	var aTab = create("a", "Tabelle", "class", "navigationUnselected");
 	var aAns = create("a", "Ansetzungen", "class", "navigationUnselected");
 	var aGeg = create("a", "Gegen\u00FCberstellung", "class", "navigationUnselected");
 	var aSpi = create("a", "Spieltermine", "class", "navigationUnselected");
@@ -1168,8 +1201,8 @@ function makeHeadLine(groupNum, teamNum) {
 		aAuf.setAttribute("style", "text-decoration: underline");
 	}
 
-	var as = [aTab, aAns, aGeg, aAuf, aSpi];
-	var uls = [ulTab, ulAns, ulGeg, ulAuf, ulSpi];
+	var as = [aSeason, aTab, aAns, aGeg, aAuf, aSpi];
+	var uls = [ulSeason, ulTab, ulAns, ulGeg, ulAuf, ulSpi];
 
 	var nav = create("ul", null, "role", "menubar");
 	for (var i = 0; i < as.length; i++) {
@@ -1549,15 +1582,17 @@ function makeStyle() {
 function run(evt) {
 	if (!evt || !evt.target || !evt.target.URL || !evt.target.body)
 		return;
-	DOC = evt.target;
-	URL = DOC.URL;
-	BODY = DOC.body;
-
 	try {
-		if (URL.indexOf(WEB_SHORT) < 0 || URL.indexOf("view-source:") >= 0)
+		DOC = evt.target;
+		URL = DOC.URL;
+		BODY = DOC.body;
+		if (!PAGE_TEST.test(URL) || URL.indexOf("view-source:") >= 0)
 			return;
 		if (!BODY.firstChild || DOC.getElementById("bvbbBody"))
 			return;
+
+		WEB_SHORT = "bvbb.net/fileadmin/user_upload/" + SEASON_WEB[getSeasonID()] + "/meisterschaft";
+		WEB = "http://" + WEB_SHORT + "/";
 
 		// avoid processing the same file twice (for example, when embedded in an iframe)
 		BODY.id = "bvbbBody";
