@@ -18,13 +18,15 @@ var PREFS = [{
 }];
 
 // constants
+var HALLENSCHLUESSEL_URL = "http://bvbb.net/Hallen.706.0.html";
 var WEB_SHORT = "bvbb.net/fileadmin/user_upload/schuch/meisterschaft";
 var WEB = "http://" + WEB_SHORT + "/";
 var SHORT_NAMES = ["BB", "LL-1", "LL-2", "BZ-1", "BZ-2", "AK-1", "AK-2", "BK-1", "BK-2", "CK-1", "CK-2", "DK-1",
-                   "DK-2", "EK-1", "EK-2", "FK-1", "FK-2", "GK-1", "GK-2"];
+                   "DK-2", "EK-1", "EK-2", "FK-1", "FK-2", "GK-1", "GK-2", "GK-3"];
 var NAMES = ["Berlin-Brandenburg-Liga", "Landesliga I", "Landesliga II", "Bezirksklasse I", "Bezirksklasse II",
              "A-Klasse I", "A-Klasse II", "B-Klasse I", "B-Klasse II", "C-Klasse I", "C-Klasse II", "D-Klasse I",
-             "D-Klasse II", "E-Klasse I", "E-Klasse II", "F-Klasse I", "F-Klasse II", "G-Klasse I", "G-Klasse II"];
+             "D-Klasse II", "E-Klasse I", "E-Klasse II", "F-Klasse I", "F-Klasse II", "G-Klasse I", "G-Klasse II",
+             "G-Klasse III"];
 
 var LIGHT_YELLOW = "#FFFFCC";
 var YELLOW 		 = "#FFFF66";
@@ -567,7 +569,7 @@ function replaceTeamLinks(tabelle) {
 }
 
 function replaceHallenschluessel() {
-	loadDocument("http://bvbb.net/Hallen.687.0.html", replaceHallenschluesselCallback);
+	loadDocument(HALLENSCHLUESSEL_URL, replaceHallenschluesselCallback);
 }
 
 function replaceHallenschluesselCallback(hallenDoc) {
@@ -593,14 +595,15 @@ function replaceHallenschluesselCallback(hallenDoc) {
 		}
 
 		for (var j = 0; j < div.length; j++) {
-			if (div[j].innerHTML.length != 2)
+			var key = div[j].textContent;
+			if (key.length != 2)
 				continue;
 			for (var i = 1; i < found; i++) {
 				var h = halle[i];
-				if (div[j].innerHTML == h.key) {
+				if (key == h.key) {
 					div[j].title = (h.street + "\n" + h.PLZ);
 					var href = "http://maps.google.de/maps?q=" + h.street.replace(/\s*\n.+/g, "") + ", " + h.PLZ;
-					var a = create("a", div[j].textContent, "href", href, "target", "_blank");
+					var a = create("a", key, "href", href, "target", "_blank");
 					div[j].replaceChild(a, div[j].firstChild);
 				}
 			}
@@ -1533,7 +1536,7 @@ function makeStyle() {
 		link.media = "all";
 		link.type = "text/css";
 		link.rel = "stylesheet";
-		link.href = "http://fonts.googleapis.com/css?family=Open+Sans:400,600,400b,600b,400i,600i|subset=latin,latin-ext";
+		link.href = "http://fonts.googleapis.com/css?family=Open+Sans:400,600|subset=latin,latin-ext";
 		DOC.head.appendChild(link);
 	}
 	var icon = DOC.createElement("link");
