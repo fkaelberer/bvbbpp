@@ -10,7 +10,6 @@ var Ci = Components.interfaces;
 var Cu = Components.utils;
 var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService);
 var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase().indexOf("android") >= 0;
-var consoleService = Cc["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
 
 // preferences and defaults
 var PREFS = [{
@@ -192,8 +191,9 @@ function makeLoadStatsButton() {
 	input.type = "button";
 	input.id = "loadStats";
 	input.value = "Spielerstatistik laden";
+	input.doc = DOC;
 	input.onclick = function() {
-		loadPlayerStats(DOC);
+		loadPlayerStats(input.doc);
 	};
 	return input;
 }
@@ -219,6 +219,10 @@ function getSeasonID() {
 }
 
 function makeGegenueber() {
+	// HACK: The links might be overwritten in the run method by other sites.
+	WEB_SHORT = "bvbb.net/fileadmin/user_upload/" + SEASON_WEB[getSeasonID()] + "/meisterschaft";
+	WEB = "http://" + WEB_SHORT + "/";
+	
 	var groupNum = getGroupNum();
 	makeHeadLine(groupNum, -1);
 
@@ -643,7 +647,10 @@ function makeSpielbericht() {
 
 		removeElements(DOC, "p");
 		var h2 = DOC.getElementsByTagName("h2");
-		removeElement(h2[4]);
+		if (h2[5] && h2[5].textContent == "")
+			removeElement(h2[5]);
+		if (h2[4] && h2[4].textContent == "")
+			removeElement(h2[4]);
 		removeParent(h2[3]);
 		removeParents(h2[2], "b");
 		removeParent(h2[1]);
@@ -1141,7 +1148,6 @@ function loadVereineCallback(loadedDoc, doc, teamNum, ulAuf, ulSpi) {
 
 function makeHeadLine(groupNum, teamNum) {
 	var seasonID = getSeasonID();
-	Cu.reportError("MH: " + seasonID );
 
 	if (MOBILE) {
 		groupNum = -1;
@@ -1240,6 +1246,10 @@ function makeHeadLine(groupNum, teamNum) {
 		}
 	}
 
+	if (seasonID != 0) { 
+		var c = DOC.getElementById("centerstyle"); 
+		c.insertBefore(newElement(DOC, "h1", "Saison " + SEASON_NAMES[seasonID], "class", "title", "style", "color:#C55"), c.firstChild);
+	}
 	BODY.insertBefore(header, BODY.firstChild);
 	return header;
 }
@@ -1444,8 +1454,8 @@ function insertAnsetzungen(ansetzungen, doc) {
 						e = e.nextSibling;
 					}
 					that.setAttribute("name", show ? "hide" : "show");
-				} catch (err) {
-					Cu.reportError(errorMsg(err));
+				} catch (err2) {
+					Cu.reportError(errorMsg(err2));
 				}
 			};
 

@@ -191,7 +191,7 @@ header {
 header.mobile {
 	margin: auto;
 	font-size: 13pt;
-	width: 740px;
+	width: 820px;
 }
 header.desktop {
 	width: 100%;
@@ -215,7 +215,7 @@ font.standMobile {
 	color: #1E8CBE;
 }
 div.standMobile {
-	width: 740px;
+	width: 800px;
 	margin: 2px auto auto;
 }
 
@@ -238,7 +238,7 @@ nav {
 
 nav ul {
 	list-style: none;	margin: auto;
-	width: 760px;
+	width: 840px;
 }
 
 nav ul li {

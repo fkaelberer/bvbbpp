@@ -17,7 +17,7 @@
 				/BVBB++/skin
 			</Resources>
 		</codepro.exportToZipFile>
-		<codepro.exportToZipFile destinationFilename="Z:/ftp/bvbb++.xpi" createLeadupStructure="false">
+		<codepro.exportToZipFile destinationFilename="Z:/bvbb++.xpi" createLeadupStructure="false">
 			<Resources>
 				/BVBB++/LICENSE
 				/BVBB++/bootstrap.js
