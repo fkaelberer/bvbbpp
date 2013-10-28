@@ -1502,9 +1502,9 @@ function insertAnsetzungen(ansetzungen, doc) {
 				var s = bald[i];
 				var td2 = create("td", null, "style", "padding-right:10; padding-bottom:0");
 				td2.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
-				td2.appendChild(create("b", verein[s.t2]));
-				td2.appendChild(doc.createTextNode(" zu Gast bei "));
 				td2.appendChild(create("b", verein[s.t1]));
+				td2.appendChild(doc.createTextNode(" empf\u00E4ngt "));
+				td2.appendChild(create("b", verein[s.t2]));
 				td2.appendChild(create("br"));
 				tr[i].appendChild(td2);
 			}
