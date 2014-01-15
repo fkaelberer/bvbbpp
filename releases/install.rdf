@@ -5,7 +5,7 @@
 	<Description about="urn:mozilla:install-manifest">
 		<em:id>bvbbpp@felixkaelberer.de</em:id>
 		<em:name>BVBB++</em:name>
-		<em:version>1.0.1</em:version>
+		<em:version>1.1</em:version>
 		<em:type>2</em:type>
 		<em:creator>Felix K&#228;lberer</em:creator>
 		<em:homepageURL>mailto:bvbbpp@gmx-topmail.de</em:homepageURL>

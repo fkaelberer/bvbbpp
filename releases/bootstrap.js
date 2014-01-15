@@ -155,7 +155,7 @@ function makeVerein() {
 				if (!/<|\d\d:\d\d|^\w$/.test(td[i].innerHTML)) {
 					for (var j = 0; j < vereine.length; j++) {
 						var v = vereine[j];
-						var shortName = v.link.firstChild.innerHTML;
+						var shortName = v.link.firstChild.textContent; 
 						if (td[i].innerHTML.indexOf(shortName) >= 0) {
 							var num = / [IVX]+$/.exec(td[i].innerHTML)[0];
 							var l = create("a", shortName + num, "href", v.link.href, "title", v.name + num);
@@ -165,6 +165,8 @@ function makeVerein() {
 					}
 				}
 			}
+			// Spieltermine werden erst eingefügt, wenn Vereine verlinkt sind.
+			makeCurrentSpieltermine(DOC, vereine);
 		} catch (err) {
 			Cu.reportError(errorMsg(err));
 		}
@@ -182,6 +184,168 @@ function makeVerein() {
 	
 	replaceHallenschluessel();
 }
+
+
+function makeCurrentSpieltermine(doc, vereine) {
+	var spiele = [];
+	var tables = doc.getElementsByTagName("table");
+	for (var i=0; i<tables.length; i += 2) {
+		var zurueckgezogen = /ckgezogen/.test(tables[i].textContent);
+		// even table contains the number of the team "x. Mannschaft"
+		var teamName = tables[i].textContent.match(/\d+/);
+		var verein = vereine.filter( function (v) { 
+						 return v.link.href.substr(-14) == URL.substr(-14)
+					 } );
+		var shortName = verein[0].link.textContent;
+		teamName = shortName + " " + romanize(teamName);
+		
+		// odd tables contains game dates
+		var table = tables[i+1];
+		var trs = table.getElementsByTagName("tr");
+		for (var t = 0; t < trs.length; t++) {
+			var tds = trs[t].getElementsByTagName("td");
+			// left and right side of table
+			for (var offset = 0; offset < 7; offset += 6) {
+				var heimSpieler = create("b", teamName);
+				var gast = tds[offset + 2].firstChild.cloneNode(true);
+				if (tds[offset].textContent == 'A') {
+					heimSpieler = gast;
+					gast = create("b", teamName);
+				}
+				spiele.push({
+				    name1 : heimSpieler,
+				    name2 : gast,
+				    date : tds[offset + 1].textContent,
+				    dateNode : tds[offset + 1].firstChild.cloneNode(true),
+				    time : tds[offset + 3].textContent,
+				    loc : tds[offset + 4].firstChild.cloneNode(true),
+				    zurueck: zurueckgezogen
+				});
+			}
+		}
+	}
+	
+
+	function toDate(spiel) {
+		var d = spiel.date;
+		var t = spiel.time;
+		// new Date(year, month [, day, hour, minute, second, millisecond]);
+		return new Date(d.substr(6,4), d.substr(3,2), d.substr(0,2), 
+				 		t.substr(0, 2), t.substr(3, 2));
+	}
+	function compareDates(spiel1, spiel2) {
+		if (toDate(spiel1) < toDate(spiel2)) 
+			return -1;
+		if (toDate(spiel1) > toDate(spiel2)) 
+			return 1;
+		return 0;
+	}
+	
+	spiele.sort(compareDates);
+	
+	
+	var gleich = new Date();
+	gleich.setHours(gleich.getHours()+6);
+	var bald = spiele.filter(function(s) {
+		return !/href/.test(s.dateNode.innerHTML) && !s.zurueck && (toDate(s) > gleich); // doesn't contain link.
+	});
+	
+	var vorbei = spiele.filter(function(s) {
+		return /href/.test(s.dateNode.innerHTML) || (toDate(s) < gleich); // contains link or is outdated.
+	});
+	var numLines = 5;
+
+	var tbody = create("tbody");
+	var tr = newParentElement("tr", 
+					create("td", "K\u00FCrzlich", "colspan", "2", "style", "font-size:11pt; font-weight:bold; padding: 3 8"), 
+				"class", "bg" + DARK_YELLOW.substr(1), "style", "font-size:11pt; font-weight:bold");
+	tr.appendChild(create("td", "Demn\u00E4chst", "colspan", "4", "style", "font-size:11pt; font-weight:bold; padding: 3 160 3 8"));
+	tbody.appendChild(tr);
+
+	// array of new lines
+	tr = new Array(numLines);
+	for (var i = 0; i < numLines; i++) {
+		tr[i] = create("tr", null, "style", "font-size:11pt; font-weight:bold");
+	}
+
+	// kuerzlich
+	var resultsToLoad = [];
+	for (var i = Math.max(0, vorbei.length - numLines); i < vorbei.length; i++) {
+		var currTr = tr[i - Math.max(0, vorbei.length - numLines)];
+		var s = vorbei[i];
+		
+		var td = create("td", null, "style", "padding: 3 8");
+		td.appendChild(s.dateNode);
+		currTr.appendChild(td);
+
+		td = create("td", null, "style", "padding: 3 50 3 8");
+		td.appendChild(s.name1);
+		td.appendChild(create("b", " / "));
+		td.appendChild(s.name2);
+		var b = create("b", "\u00A0\u00A0\u00A0---");
+		td.appendChild(b);
+		currTr.appendChild(td);
+		var url = s.dateNode.firstChild;
+		if (/\.HTML/.test(url)) {
+			b.id = "result" + ("" + url).substr(-16);
+			resultsToLoad.push("" + s.dateNode.firstChild);
+		}
+	}
+	
+	// demnaechst
+	for (var i = 0; i < Math.min(numLines, bald.length); i++) {
+		var currTr = tr[i];
+		var s = bald[i];
+		
+		var td = create("td", null, "style", "padding: 3 8");
+		td.appendChild(s.dateNode);
+		currTr.appendChild(td);
+
+		td = create("td", null, "style", "padding: 3 14 3 8");
+		td.appendChild(s.name1);
+		td.appendChild(create("b", " / "));
+		td.appendChild(s.name2);
+		currTr.appendChild(td);
+
+		td = create("td", null, "style", "padding: 3 8");
+		td.appendChild(doc.createTextNode(s.time));
+		currTr.appendChild(td);
+
+		td = create("td", null, "style", "padding: 3 8");
+		td.appendChild(s.loc);
+		currTr.appendChild(td);
+	}
+	var table = newParentElement("table", tbody, "cellpadding", 4, "style", "background-color: #FFFFFF;");
+	for (var i = 0; i < numLines; i++) {
+		tbody.appendChild(tr[i]);
+	}
+	var p = create("br", null);
+	doc.getElementById("centerstyle").insertBefore(p, doc.body.getElementsByTagName("table")[0].parentNode);
+	doc.getElementById("centerstyle").insertBefore(newParentElement("p", table), p);
+	doc.getElementById("centerstyle").insertBefore(create("h2", "Aktuelle Termine", "style", "width:420px; margin: 25px auto 2px;"), doc.body.getElementsByTagName("table")[0].parentNode);
+	
+	function loadResultsCallback(loadedDoc, doc_) {
+		var tds = loadedDoc.body.getElementsByTagName("td");
+		if (!tds || tds.length < 4)
+			return;
+		var resultName = "result" + loadedDoc.URL.substr(-16);
+		var result = "";
+		// test last 3 cells if they contain result
+		for (var i=1; i<=3; i++) {
+			if (/\d : \d/.test(tds[tds.length-i].textContent)) { 
+				result = tds[tds.length-i].textContent;
+				break;
+			}
+		}
+		if (result != "")
+			doc_.getElementById(resultName).textContent = "\u00A0\u00A0\u00A0(" + result + ")";
+	}
+	
+	for (i = 0; i<resultsToLoad.length; i++) {
+		loadDocument(resultsToLoad[i], loadResultsCallback, doc);
+	}
+}
+
 
 /**
  * Get HTML-String to a loadStats button
@@ -261,10 +425,10 @@ function makeGegenueberStats(that) {
 		var sum = that.sum;
 
 		// schon vorhandene Elemente aufraeumen
-		removeElement(DOC.getElementById("h2stats"));
-		var div = DOC.getElementById('centerstyle');
+		removeElement(that.doc.getElementById("h2stats"));
+		var div = that.doc.getElementById('centerstyle');
 
-		var tr = DOC.getElementsByTagName("table")[0].getElementsByTagName("tr");
+		var tr = that.doc.getElementsByTagName("table")[0].getElementsByTagName("tr");
 		var td = tr[(teamRow + 1)].getElementsByTagName("td");
 
 		var teamI = /-(\d\d).HTML/.exec(td[1].innerHTML)[1];
@@ -329,8 +493,8 @@ function makeGegenueberStats(that) {
 			}
 		}
 		var type = ["1. HE", "2. HE", "3. HE", "DE", "1. HD", "2. HD", "DD", "GD"][game];
-		DOC.getElementById('linkAndType').appendChild(
-		        DOC.createTextNode(teamLink[teamRow].replace(/\s+</, "<") + ", " + type));
+		that.doc.getElementById('linkAndType').appendChild(
+		        that.doc.createTextNode(teamLink[teamRow].replace(/\s+</, "<") + ", " + type));
 		if (sum > rows)
 			h2.appendChild(create("span", "Fehlende Spiele wurden eventuell nicht gewertet!", "style",
 			        "font-weight:normal;font-size:8pt"));
@@ -1255,7 +1419,6 @@ function makeHeadLine(groupNum, teamNum) {
 }
 
 function parseAnsetzung(doc, ansetzungen) {
-	alert(doc + "   " + doc.URL);
 	var tr = doc.getElementsByTagName("h2")[0].getElementsByTagName("tr");
 	if (!ansetzungen)
 		return;
@@ -1363,12 +1526,20 @@ function makeTabelle() {
 		}
 	}
 	var urlAns = URL.replace(/tabellen\/uebersicht-\d\d/, "staffel-" + SHORT_NAMES[groupNum]);
-	loadDocument(urlAns, insertAnsetzungen, DOC);
+	loadDocument(urlAns, parseAnsetzungAndInsert, DOC);
 }
 
-function insertAnsetzungen(ansetzungen, doc) {
+function parseAnsetzungAndInsert(ansetzungen, doc) {
 	try {
 		var spiele = parseAnsetzung(doc, ansetzungen);
+		insertAnsetzungen(spiele, doc)
+	} catch (err) {
+		Cu.reportError(errorMsg(err));
+	}
+}
+
+function insertAnsetzungen(spiele, doc) {
+	try {
 		if (spiele) {
 			var verein = new Array(10);
 			var gespielt = [new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
@@ -1579,7 +1750,7 @@ function makeStyle() {
 		link.media = "all";
 		link.type = "text/css";
 		link.rel = "stylesheet";
-		link.href = "http://fonts.googleapis.com/css?family=Open+Sans:400,600|subset=latin,latin-ext";
+		link.href = "http://fonts.googleapis.com/css?family=Open+Sans:400,600|subset=latin";
 		DOC.head.appendChild(link);
 	}
 	var icon = DOC.createElement("link");
@@ -1700,8 +1871,10 @@ function shutdown(aData, aReason) {
 
 	// Stop listening for new windows
 	wm.removeListener(windowListener);
-	if (typeof romanize != "undefined")
-		Cu.unload("chrome://bvbbpp/content/utils.jsm");
+
+	// TODO: apparently this code below throws an exeption upon uninstall.
+	// if (typeof romanize != "undefined")
+    //	   Cu.unload("chrome://bvbbpp/content/utils.jsm");
 }
 
 function install(aData, aReason) {
