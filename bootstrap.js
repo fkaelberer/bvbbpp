@@ -2,7 +2,7 @@
 //
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
-// 
+//
 // TAB SIZE = 4
 "use strict";
 
@@ -16,6 +16,9 @@ var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.t
 var PREFS = [{
     name : "useIframe",
     def : true
+},{
+    name : "hideDoodle",
+    def : false
 }];
 
 // constants
@@ -120,13 +123,12 @@ Bvbbpp.prototype = {
 };
 
 function getYear(url) {
-	Cu.reportError("get year: " + url);
 	var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
 	if (seasonString === "schuch") {
 		return CURRENT_SEASON;
 	}
 	if (seasonString.contains("saison")) {
-		return parseInt(seasonString.substr("saison".length, 2), 10); 
+		return parseInt(seasonString.substr("saison".length, 2), 10);
 	}
 	return CURRENT_SEASON;
 }
@@ -134,13 +136,13 @@ function getYear(url) {
 
 
 function toSeasonName(year) {
-	return "20" + (year < 10 ? "0" : "") + year + "/" + (year + 1 < 10 ? "0" : "") + (year + 1);
+	return "20" + twoDigits(year) + "/" + twoDigits(year + 1);
 }
 
 function toWebName(year) {
 	if (year === CURRENT_SEASON)
 		return "schuch";
-	return "saison" + (year < 10 ? "0" : "") + year + (year + 1 < 10 ? "0" : "") + (year + 1);
+	return "saison" + twoDigits(year) + twoDigits(year + 1);
 }
 
 function toLongName(shortName) {
@@ -176,13 +178,13 @@ function create() {
 
 function errorMsg(e, msg) {
 	return e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg ? msg : "")
-	        : "BVBB++: " + msg;
+	         : "BVBB++: " + msg;
 };
 
 /**
  * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, create the preference
  * with default setting.
- * 
+ *
  * @param name
  *            pref name
  * @returns pref value
@@ -204,6 +206,16 @@ function getPref(name) {
 	}
 	return false;
 }
+function setPref(name, value) {
+	if (!name) {
+		return false;
+	}
+	try {
+		prefManager.getBranch("extensions.bvbbpp.").setBoolPref(name, value);
+	} catch (err) {
+		Cu.reportError(errorMsg(err, "Kann Einstellung \"" + name + "\" nicht aendern."));
+	}
+}
 
 function makeAufstellung() {
 	var teamNum = parseInt(URL.substr(-7, 2), 10);
@@ -219,7 +231,9 @@ function makeAufstellung() {
 	if (!h2[0]) {
 		return;
 	}
-	h2[0].parentNode.replaceChild(makeTitle(h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung")), h2[0]);
+	var title = h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung");
+	h2[0].parentNode.replaceChild(makeTitle(title), h2[0]);
+	BVBBPP.doc.title = title.replace("(R\u00FCckrunde)", "");
 	var button = makeLoadStatsButton();
 	button.setAttribute("style", "margin: auto 320px"); // wie geht's besser?
 	h2[0].parentNode.appendChild(button);
@@ -236,12 +250,12 @@ function makeAufstellung() {
 				link.setAttribute("style", "letter-spacing:2px; font-weight:600");
 			}
 		}
-	}	
+	}
 }
 
 function makeVerein() {
 	makeHeadLine(-1, parseInt(URL.substr(-7, 2), 10));
-	
+
 	var dueText = "Eventuell spielt der Verein in der Saison " + BVBBPP.season.name + " nicht.";
 	var futureText = "Eventuell ist diese Webseite f\u00FCr die Saison " + BVBBPP.season.name + " noch nicht online.";
 	if (onNotFound(dueText, futureText)) {
@@ -251,6 +265,7 @@ function makeVerein() {
 	var h2 = BODY.getElementsByTagName("h2");
 	if (h2[0]) {
 		var title = "Spieltermine " + h2[0].getElementsByTagName("b")[0].textContent;
+		BVBBPP.doc.title = title.replace("Spieltermine", "Termine");
 		h2[0].parentNode.replaceChild(makeTitle(title), h2[0]);
 	}
 
@@ -274,6 +289,7 @@ function makeVerein() {
 
 	// Vereine Verlinken
 	var vereineVerlinkenCallback = function(loadedDoc) {
+		var doc = this.bvbbpp.doc;
 		try {
 			var vereine = parseVereine(loadedDoc);
 			var td = BODY.getElementsByTagName("td");
@@ -284,10 +300,15 @@ function makeVerein() {
 				if (!/<|\d\d:\d\d|^\w$/.test(td[i].innerHTML)) {
 					for (var j = 0; j < vereine.length; j++) {
 						var v = vereine[j];
-						var shortName = v.link.firstChild.textContent; 
+						var shortName = v.link.firstChild.textContent;
 						if (td[i].innerHTML.indexOf(shortName) >= 0) {
 							var num = / [IVX]+$/.exec(td[i].innerHTML)[0];
-							var l = create("a", shortName + num, "href", v.link.href, "title", v.name + num);
+							var href = v.link.href;
+							if (BVBBPP.year === 14) {
+								// HACK: Links are wrong in the source document for 14/15, but this may change.
+								href = href.replace("/spielberichte-vereine/", "/");
+							}
+							var l = create("a", shortName + num, "href", href, "title", v.name + num);
 							replaceChildren(td[i], l);
 							break;
 						}
@@ -295,12 +316,26 @@ function makeVerein() {
 				}
 			}
 			// Spieltermine werden erst eingefuegt, wenn Vereine verlinkt sind.
-			makeCurrentSpieltermine(DOC, vereine);
+			var spiele = parseSpieltermine(doc, vereine);
+			if (!getPref("hideDoodle")) {
+				(makeDoodleLinks.bind(this))(doc, spiele);
+			}
+			makeCurrentSpieltermine(doc, spiele);
 		} catch (err) {
 			Cu.reportError(errorMsg(err));
 		}
-	}
-	loadDocument(BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML", vereineVerlinkenCallback);
+	}.bind({ bvbbpp: BVBBPP });
+
+
+	var vereineURL = BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML";
+
+	Promise.all([ensureHallenschluessel(), getDocument(vereineURL)]).then(function(loadedDocs) {
+		replaceHallenschluessel(loadedDocs[0]);
+		vereineVerlinkenCallback(loadedDocs[1]);
+// disable catch because it doesn't compile in eclipse
+//	}).catch(function(error) {
+//		log(error);
+	});
 
 	var tables = BODY.getElementsByTagName("table");
 	for (var i = 0; i < tables.length; i++) {
@@ -310,24 +345,30 @@ function makeVerein() {
 	for (var i = 8; i < cols.length; i += 14) {
 		cols[i].setAttribute("width", "20px");
 	}
-	
-	replaceHallenschluessel();
 }
 
 
-function makeCurrentSpieltermine(doc, vereine) {
+
+function toDate(spiel) {
+	var d = spiel.date;
+	var t = spiel.time;
+	// new Date(year, month [, day, hour, minute, second, millisecond]);
+	return new Date(d.substr(6,4), d.substr(3,2), d.substr(0,2), t.substr(0, 2), t.substr(3, 2));
+}
+
+function parseSpieltermine(doc, vereine) {
 	var spiele = [];
 	var tables = doc.getElementsByTagName("table");
 	for (var i=0; i<tables.length; i += 2) {
 		var zurueckgezogen = /ckgezogen/.test(tables[i].textContent);
 		// even table contains the number of the team "x. Mannschaft"
 		var teamName = tables[i].textContent.match(/\d+/);
-		var verein = vereine.filter( function (v) { 
+		var verein = vereine.filter( function (v) {
 						 return v.link.href.substr(-14) == URL.substr(-14)
 					 } );
 		var shortName = verein[0].link.textContent;
 		teamName = shortName + " " + romanize(teamName);
-		
+
 		// odd tables contains game dates
 		var table = tables[i + 1];
 		var trs = table.getElementsByTagName("tr");
@@ -335,32 +376,29 @@ function makeCurrentSpieltermine(doc, vereine) {
 			var tds = trs[t].getElementsByTagName("td");
 			// left and right side of table
 			for (var offset = 0; offset < 7; offset += 6) {
+				var heimspiel = tds[offset].textContent === "H";
 				var heimSpieler = create("b", teamName);
 				var gast = tds[offset + 2].firstChild.cloneNode(true);
 				if (tds[offset].textContent == 'A') {
 					heimSpieler = gast;
 					gast = create("b", teamName);
 				}
+
 				spiele.push({
-				    name1 : heimSpieler,
-				    name2 : gast,
-				    date : tds[offset + 1].textContent,
-				    dateNode : tds[offset + 1].firstChild.cloneNode(true),
-				    time : tds[offset + 3].textContent,
-				    loc : tds[offset + 4].firstChild.cloneNode(true),
+					heimspiel: heimspiel,
+					tableIndex: i,
+				    name1: heimSpieler,
+				    name2: gast,
+				    date: tds[offset + 1].textContent,
+				    dateNode: tds[offset + 1].firstChild.cloneNode(true),
+				    time: tds[offset + 3].textContent,
+				    loc: tds[offset + 4].firstChild.cloneNode(true),
 				    zurueck: zurueckgezogen
 				});
 			}
 		}
 	}
-	
 
-	function toDate(spiel) {
-		var d = spiel.date;
-		var t = spiel.time;
-		// new Date(year, month [, day, hour, minute, second, millisecond]);
-		return new Date(d.substr(6,4), d.substr(3,2), d.substr(0,2), t.substr(0, 2), t.substr(3, 2));
-	}
 	function compareDates(spiel1, spiel2) {
 		if (toDate(spiel1) < toDate(spiel2)) {
 			return -1;
@@ -370,27 +408,90 @@ function makeCurrentSpieltermine(doc, vereine) {
 		}
 		return 0;
 	}
-	
+
 	spiele.sort(compareDates);
-	
-	
-	var gleich = new Date();
-	gleich.setHours(gleich.getHours() + 6);
-	
-	var bald = spiele.filter(function(s) {
+	return spiele;
+}
+
+function makeDoodleLinks(doc, spiele) {
+	var tables = doc.getElementsByTagName("table");
+	for (var i = 0; i < tables.length; i += 2) {
+		var table = tables[i+1]; // odd tables contain dates;
+		var h5 = newElement(doc, "h5", null, "style", "width: 580px; margin: auto; text-align: right", "id",
+				"doodle-link" + (i / 2));
+		var href = "http://doodle.com/create?";
+		href += "locale=de";
+		href += "&type=text";
+		href += "&title=" + encodeURIComponent("Spieltermine der " + tables[i].getElementsByTagName("font")[1].textContent);
+		href += "&levels=3"; // ja-nein-vielleicht
+		var description = escape("Auswärtige Spielstätten:\n");
+		var numOptions = 0;
+		for (var j = 0; j < spiele.length; j++) {
+			if (spiele[j].tableIndex !== i) {
+				continue;
+			}
+			var spiel = spiele[j];
+			var d = spiel.date;
+			var t = spiel.time;
+			// new Date(year, month [, day, hour, minute, second, millisecond]);
+			var opponent = spiel.heimspiel ? spiel.name2.textContent : spiel.name1.textContent;
+			var option = encodeURIComponent(d + " " + t + " " + spiel.loc.textContent + " " + opponent);
+			href += "&option" + (++numOptions) + "=" + option;
+			var key = spiel.loc.firstChild.textContent;
+			var halle = BVBBPP.hallenschluessel[key];
+			var descr = key + ": " + unescape(halle.shortStreet + ", " + halle.PLZ) + "\n";
+			if (!spiel.heimspiel) {
+				description += encodeURIComponent(descr);
+			}
+		}
+		href += "&description=" + description;
+		var a = newElement(doc, "a", null, "href", href, "target", "_blank");
+		a.appendChild(newElement(doc, "span", "Eine ", "style", "font-weight: 400"));
+		a.appendChild(newElement(doc, "span", "Doodle", "style", "font-weight: 600"));
+		a.appendChild(newElement(doc, "span", "-Umfrage mit diesen Terminen erstellen", "style", "font-weight: 400"));
+		h5.appendChild(a);
+		var removal = newElement(doc, "b", " X ", "style", "color: #C00; font-size: 8pt; cursor: pointer");
+		removal.title = "Ich brauche Doodle nicht (mehr)";
+		removal.onclick = function() {
+			setPref("hideDoodle", true);
+			var link = null;
+			var doc = this.bvbbpp.doc;
+			if (doc) {
+				for (var i = 0; (link = doc.getElementById("doodle-link" + i)); i++) {
+					clearElement(link);
+					if (i === this.index) {
+						var hint = "Zum wiederherstellen: Neuinstallation von BVBB++ oder Men\u00FC\u2192Einstellungen\u2192Extras\u2192BVBB++\u2192Einstellungen.";
+						link.appendChild(newElement(doc, "span", hint, "style", "font-weight: 400"));
+					}
+				}
+			}
+		}.bind({ index: i, bvbbpp: this.bvbbpp });
+		h5.appendChild(removal);
+		table.parentNode.appendChild(h5, table.nextSibling);
+	}
+}
+
+function makeCurrentSpieltermine(doc, spiele) {
+	var tables = doc.getElementsByTagName("table");
+
+
+	var in6hours = new Date();
+	in6hours.setHours(in6hours.getHours() + 6);
+
+	var soon = spiele.filter(function(s) {
 		// doesn't contain link and is in the future
-		return !/href/.test(s.dateNode.innerHTML) && !s.zurueck && (toDate(s) > gleich); 
+		return !/href/.test(s.dateNode.innerHTML) && !s.zurueck && (toDate(s) > in6hours);
 	});
-	
-	var vorbei = spiele.filter(function(s) {
+
+	var past = spiele.filter(function(s) {
 		// doesn't contain link and is in the future
-		return /href/.test(s.dateNode.innerHTML) || (toDate(s) < gleich); // contains link or is outdated.
+		return /href/.test(s.dateNode.innerHTML) || (toDate(s) < in6hours); // contains link or is outdated.
 	});
 	var numLines = Math.max(4, tables.length / 2 + 1);
 
 	var tbody = create("tbody");
-	var tr = newParentElement("tr", 
-					          create("td", "K\u00FCrzlich", "colspan", "2", "style", "font-size:11pt; font-weight:bold; padding: 3 8"), 
+	var tr = newParentElement("tr",
+					          create("td", "K\u00FCrzlich", "colspan", "2", "style", "font-size:11pt; font-weight:bold; padding: 3 8"),
 				              "class", "bg" + DARK_YELLOW.substr(1), "style", "font-size:11pt; font-weight:bold");
 	tr.appendChild(create("td", "Demn\u00E4chst", "colspan", "4", "style", "font-size:11pt; font-weight:bold; padding: 3 160 3 8"));
 	tbody.appendChild(tr);
@@ -403,10 +504,10 @@ function makeCurrentSpieltermine(doc, vereine) {
 
 	// kuerzlich
 	var resultsToLoad = [];
-	for (var i = Math.max(0, vorbei.length - numLines); i < vorbei.length; i++) {
-		var currTr = tr[i - Math.max(0, vorbei.length - numLines)];
-		var s = vorbei[i];
-		
+	for (var i = Math.max(0, past.length - numLines); i < past.length; i++) {
+		var currTr = tr[i - Math.max(0, past.length - numLines)];
+		var s = past[i];
+
 		var td = create("td", null, "style", "padding: 3 8");
 		td.appendChild(s.dateNode);
 		currTr.appendChild(td);
@@ -424,12 +525,22 @@ function makeCurrentSpieltermine(doc, vereine) {
 			resultsToLoad.push("" + s.dateNode.firstChild);
 		}
 	}
-	
-	// demnaechst
-	for (var i = 0; i < Math.min(numLines, bald.length); i++) {
+	// fill empty cells
+	for (; i < numLines; i++) {
 		var currTr = tr[i];
-		var s = bald[i];
-		
+		var td = create("td", null, "style", "padding: 3 8");
+		td.appendChild(create("b", null));
+		currTr.appendChild(td);
+		td = create("td", null, "style", "padding: 3 8");
+		td.appendChild(create("b", null));
+		currTr.appendChild(td);
+	}
+
+	// demnaechst
+	for (var i = 0; i < Math.min(numLines, soon.length); i++) {
+		var currTr = tr[i];
+		var s = soon[i];
+
 		var td = create("td", null, "style", "padding: 3 8");
 		td.appendChild(s.dateNode);
 		currTr.appendChild(td);
@@ -457,7 +568,7 @@ function makeCurrentSpieltermine(doc, vereine) {
 	doc.getElementById("centerstyle").insertBefore(newParentElement("p", table), p);
 	doc.getElementById("centerstyle").insertBefore(create("h2", "Aktuelle Termine", "style", "width:420px; margin: 25px auto 2px;"),
 			                                       doc.body.getElementsByTagName("table")[0].parentNode);
-	
+
 	function loadResultsCallback(loadedDoc, doc_) {
 		var tds = loadedDoc.body.getElementsByTagName("td");
 		if (!tds || tds.length < 4)
@@ -466,7 +577,7 @@ function makeCurrentSpieltermine(doc, vereine) {
 		var result = "";
 		// test last 3 cells if they contain result
 		for (var i=1; i<=3; i++) {
-			if (/\d : \d/.test(tds[tds.length-i].textContent)) { 
+			if (/\d : \d/.test(tds[tds.length-i].textContent)) {
 				result = tds[tds.length-i].textContent;
 				break;
 			}
@@ -475,7 +586,7 @@ function makeCurrentSpieltermine(doc, vereine) {
 			doc_.getElementById(resultName).textContent = "\u00A0\u00A0\u00A0(" + result + ")";
 		}
 	}
-	
+
 	for (i = 0; i<resultsToLoad.length; i++) {
 		loadDocument(resultsToLoad[i], loadResultsCallback, doc);
 	}
@@ -509,13 +620,13 @@ function getGroupNum() {
 }
 
 function onNotFound(dueText, futureText) {
-	var notFound = getNotFoundElement(); 
+	var notFound = getNotFoundElement();
 	if (notFound) {
 		var parent = notFound.parentNode;
 		notFound.textContent = "Webseite nicht gefunden."
 		parent.insertBefore(create("h2", isDue() ? dueText : futureText), notFound.nextSibling);
 		return notFound;
-		
+
 	}
 }
 
@@ -562,7 +673,7 @@ function makeGegenueberStats(that) {
 		// HACK: The BVBBPP object might be overwritten in the run method by other sites.
 		var webSpielberichte = BVBBPP.webSpielberichteVereine;
 
-		
+
 		var teamRow = that.i;
 		var game = that.j;
 		var sum = that.sum;
@@ -576,13 +687,11 @@ function makeGegenueberStats(that) {
 
 		var teamI = /-(\d\d).HTML/.exec(td[1].innerHTML)[1];
 		var teamNumI = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(td[1].innerHTML)[1]);
-		var teamStrI = teamI + "-" + (teamNumI < 10 ? "0" : "") + teamNumI;
+		var teamStrI = teamI + "-" + twoDigits(teamNumI);
 
 		var teamLink = Array(tr.length - 1);
 		var rows = 0;
 
-		Cu.reportError(BVBBPP.URL);
-		
 		// there's a left-over h2 element that we will fill with stats
 		var h2 = div.getElementsByTagName("h2")[2];
 		if (!h2) {
@@ -624,7 +733,7 @@ function makeGegenueberStats(that) {
 			var innerJ = tr[(j + 1)].getElementsByTagName("td")[1].innerHTML;
 			var teamJ = /-(\d\d).HTML/.exec(innerJ)[1];
 			var teamNumJ = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(innerJ)[1]);
-			var teamStrJ = teamJ + "-" + (teamNumJ < 10 ? "0" : "") + teamNumJ;
+			var teamStrJ = teamJ + "-" + twoDigits(teamNumJ);
 			var link = webSpielberichte + teamStrI + "_" + teamStrJ + ".HTML";
 			var row = makeTrFromBericht(link, 0, game, teamLink[j]);
 			if (row) {
@@ -772,12 +881,12 @@ function makeGroupTitle(title, isTabelle) {
 	var num;
 	if (!isTabelle) {
 		num = getGroupNum(URL);
-		urlBack = URL.substr(0, URL.length-9) + BVBBPP.divisions.shortNames[num - 1] + ".HTML";
-		urlForth = URL.substr(0, URL.length-(num==0 ? 7 : 9)) + BVBBPP.divisions.shortNames[num + 1] + ".HTML";
+		urlBack = URL.substr(0, URL.length - 9) + BVBBPP.divisions.shortNames[num - 1] + ".HTML";
+		urlForth = URL.substr(0, URL.length - (num == 0 ? 7 : 9)) + BVBBPP.divisions.shortNames[num + 1] + ".HTML";
 	} else {
 		num = parseInt(URL.substr(-7, 2), 10) - 1;
-		urlBack = URL.substr(0, URL.length-7) + (num <= 9 ? "0" : "") + num + ".HTML";
-		urlForth = URL.substr(0, URL.length-7) + ((num + 2) <= 9 ? "0" : "") + (num + 2) + ".HTML";
+		urlBack = URL.substr(0, URL.length - 7) + twoDigits(num) + ".HTML";
+		urlForth = URL.substr(0, URL.length - 7) + towDigits(num + 2) + ".HTML";
 	}
 	var style = "text-decoration: none; color: #ccc";
 	if (num > 0) {
@@ -804,7 +913,7 @@ function makeAnsetzung() {
 	var h2_0 = BODY.getElementsByTagName("h2")[0];
 	h2_0.parentNode.replaceChild(makeGroupTitle("Ansetzungen " + BVBBPP.divisions.names[groupNum]), h2_0);
 
-	replaceHallenschluessel();
+	ensureHallenschluessel().then(replaceHallenschluessel);
 
 	loadDocument(URL.replace("staffel-", "gegenueber/gegenueber-"), replaceTeamLinks);
 }
@@ -866,7 +975,7 @@ function replaceTeamLinks(tabelle) {
 		var nums2 = new Array(div.length);
 		var found = 0;
 		// start counting at 2 to skip body centering div and headline
-		for (var j = 2; j < div.length; j++) { 
+		for (var j = 2; j < div.length; j++) {
 			if (/ \/ /.test(div[j].textContent)) {
 				// Ausdruck durch irgendwas ersetzen. Die ersetzen Werte in den klammern () werden
 				// dann in $1 und $2 gespeichert
@@ -890,8 +999,8 @@ function replaceTeamLinks(tabelle) {
 						var t = div[j].textContent;
 						var o1 = nums1_[found];
 						var o2 = nums2_[found++];
-						var spiel1 = (o1.verein < 10 ? "0" : "") + o1.verein + "-" + (o1.rank < 10 ? "0" : "") + o1.rank;
-						var spiel2 = (o2.verein < 10 ? "0" : "") + o2.verein + "-" + (o2.rank < 10 ? "0" : "") + o2.rank;
+						var spiel1 = twoDigits(o1.verein) + "-" + twoDigits(o1.rank);
+						var spiel2 = twoDigits(o2.verein) + "-" + twoDigits(o2.rank);
 						var link = spiel1 + "_" + spiel2 + ".HTML";
 						if (directory && directory.indexOf(link) >= 0) {
 							replaceChildren(div[j], create("a", t, "href", BVBBPP.webSpielberichteVereine + link));
@@ -910,44 +1019,59 @@ function replaceTeamLinks(tabelle) {
 	}
 }
 
-function replaceHallenschluessel() {
-	loadDocument(BVBBPP.webHallen, replaceHallenschluesselCallback);
+function ensureHallenschluessel() {
+	if (BVBBPP.hallenschluessel) {
+		return new Promise(function(resolve, reject) {
+			resolve(this.bvbbpp.hallenschluessel);
+		}.bind({ bvbbpp: BVBBPP }));
+	} else {
+		return new Promise(function(resolve, reject) {
+			getDocument(this.bvbbpp.webHallen).then(function(hallenDoc) {
+				var tr = hallenDoc.getElementsByTagName("tr");
+				var hallenschluessel = [];
+
+				// speichere hallenschluessel in arrays
+				for (var i = 0; i < tr.length; i++) {
+					var f = tr[i].getElementsByTagName("font")[0];
+					var d = tr[i].getElementsByTagName("div");
+					if (f && d[1] && d[2] && d[3]) {
+						var key = f.textContent;
+						if (key.length !== 2) {
+							continue;
+						}
+						var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
+									 .replace(/(&nbsp;){2,}/g, " ")
+		                			 .replace("-Nydal-", "-Nydahl-");
+						var shortStreet = street.replace(/\s*\n.+/g, "");
+						var PLZ = d[1].textContent.replace(/^\s+/, "") + d[2].textContent.replace("(", " ").replace(")", "");
+						var URL = street.contains("Giebelseehalle")
+							        ? "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+15370+Petershagen" +
+									   "/@52.5288403,13.7847762,17z/data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US"
+							        : "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
+						hallenschluessel[key] = {
+						    street: street,
+						    PLZ: PLZ,
+						    shortStreet: shortStreet,
+						    URL: URL
+						};
+					}
+				}
+				this.bvbbpp.hallenschluessel = hallenschluessel;
+				resolve(this.bvbbpp.hallenschluessel);
+			}.bind({ bvbbpp: this.bvbbpp }));
+		}.bind({ bvbbpp: BVBBPP }));
+	}
 }
 
-function replaceHallenschluesselCallback(hallenDoc) {
+function replaceHallenschluessel(halle) {
 	try {
 		var div = BODY.getElementsByTagName("div");
-		var tr = hallenDoc.getElementsByTagName("tr");
-		var halle = Array(100);
-
-		// speichere hallenschluessel in arrays
-		var found = 0;
-		for (var i = 0; i < tr.length; i++) {
-			var f = tr[i].getElementsByTagName("font")[0];
-			var d = tr[i].getElementsByTagName("div");
-			if (f && d[1] && d[2] && d[3]) {
-				halle[found] = {
-				    key : f.textContent,
-				    street : d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "").replace(/(&nbsp;){2,}/g, " ").replace(
-				            "-Nydal-", "-Nydahl-"),
-				    PLZ : d[1].textContent.replace(/^\s+/, "") + d[2].textContent.replace("(", " ").replace(")", "")
-				};
-				found++;
-			}
-		}
-
 		for (var j = 0; j < div.length; j++) {
 			var key = div[j].textContent;
-			if (key.length != 2)
-				continue;
-			for (var i = 1; i < found; i++) {
-				var h = halle[i];
-				if (key == h.key) {
-					div[j].title = (h.street + "\n" + h.PLZ);
-					var href = "http://maps.google.de/maps?q=" + h.street.replace(/\s*\n.+/g, "") + ", " + h.PLZ;
-					var a = create("a", key, "href", href, "target", "_blank");
-					div[j].replaceChild(a, div[j].firstChild);
-				}
+			if (halle[key]) {
+				div[j].title = (halle[key].street + "\n" + halle[key].PLZ);
+				var a = create("a", key, "href", halle[key].URL, "target", "_blank");
+				div[j].replaceChild(a, div[j].firstChild);
 			}
 		}
 	} catch (err) {
@@ -962,25 +1086,29 @@ function makeSpielbericht() {
 	}
 	try {
 		// check if correct web page
-		if (!/\d\d-\d\d_\d\d-\d\d/.test(DOC.title))
+		if (!/\d\d-\d\d_\d\d-\d\d/.test(DOC.title)) {
 			return;
+		}
 
 		removeElements(DOC, "p");
 		var h2 = DOC.getElementsByTagName("h2");
-		if (h2[5] && h2[5].textContent == "")
+		if (h2[5] && h2[5].textContent == "") {
 			removeElement(h2[5]);
-		if (h2[4] && h2[4].textContent == "")
+		}
+		if (h2[4] && h2[4].textContent == "") {
 			removeElement(h2[4]);
+		}
 		removeParent(h2[3]);
 		removeParents(h2[2], "b");
 		removeParent(h2[1]);
 		removeElement(h2[0]);
 
 		var tr = DOC.getElementsByTagName("tr");
-		if (!tr || !tr[0])
+		if (!tr || !tr[0]) {
 			return;
+		}
 		tr[0].appendChild(newParentElement("td", makeLoadStatsButton()));
-		var link = BVBBPP.webaufstellung + "aufstellung-";
+		var link = BVBBPP.webAufstellung + "aufstellung-";
 		var heim = URL.substr(URL.length - 16, 2);
 		var gast = URL.substr(URL.length - 10, 2);
 		var fonts = tr[2].getElementsByTagName("font");
@@ -1026,7 +1154,7 @@ function linkToKlasse(klasse, target) {
 	for (var i = 0; i < BVBBPP.divisions.names.length; i++) {
 		if (klasse == BVBBPP.divisions.names[i].replace(/ /g, "").toLowerCase()) {
 			name = BVBBPP.divisions.names[i];
-			href = BVBBPP.web + "tabellen/uebersicht-" + (i < 9 ? "0" : "") + (i + 1) + ".HTML";
+			href = BVBBPP.web + "tabellen/uebersicht-" + twoDigits(i + 1) + ".HTML";
 		}
 	}
 	if (!name) {
@@ -1049,7 +1177,7 @@ function loadPlayerStats(doc) {
 			if (/spielerstatistik\/P-/.test(a[i].href)) {
 				var processLink = function(playerDoc, e) {
 					var wins = getWinPercentage(playerDoc);
-					var f = getFestgespielt(doc, playerDoc); 
+					var f = getFestgespielt(doc, playerDoc);
 					// f = [stammmannschaft, festgespielt, vereinsnummer]
 					if (!f) {
 						return;
@@ -1164,18 +1292,18 @@ function highlight (doc_, that) {
 
 function makeSpieler() {
 	makeHeadLine(-1, -1);
-	
+
 	var dueText = "Eventuell hat dieser Spieler in Saison " + BVBBPP.season.name + " (noch) nicht gespielt.";
 	var futureText = dueText;
 	if (onNotFound(dueText, futureText)) {
 		return;
 	}
-	
+
 	try {
 		var h2 = BODY.getElementsByTagName("h2");
 		for (var i = 0; i < h2.length; i++) {
 			if (/vor dem Namen/.test(h2[i].textContent)) {
-				h2[i].replaceChild(create("h2", "Statistik", "style", "margin:20px auto 10px auto; width:780px"), 
+				h2[i].replaceChild(create("h2", "Statistik", "style", "margin:20px auto 10px auto; width:780px"),
 				        					  h2[i].getElementsByTagName("table")[1]);
 				h2[i].replaceChild(create("div",
 								"vor dem Namen steht immer die Stamm-Mannschaft (E = Ersatz)", "style",
@@ -1190,6 +1318,7 @@ function makeSpieler() {
 		var stand = table[0].getElementsByTagName("td")[1];
 		var tr = table[1].getElementsByTagName("tr");
 		var name = "" + tr[1].getElementsByTagName("td")[0].textContent;
+		BVBBPP.doc.title = name;
 		// erste spalte "Name" loeschen, und stand hinten anfuegen.
 		tr[0].removeChild(tr[0].getElementsByTagName("td")[0]);
 		tr[1].removeChild(tr[1].getElementsByTagName("td")[0]);
@@ -1208,7 +1337,7 @@ function makeSpieler() {
 			var name2 = klasse.textContent.toLowerCase().replace(/\s+/g, "");
 			if (name1 == name2) {
 				var a = create("a", klasse.textContent, "href", BVBBPP.web + "tabellen/uebersicht-"
-				        + (i < 9 ? "0" : "") + (i + 1) + ".HTML");
+				        + twoDigits(i + 1) + ".HTML");
 				klasse.replaceChild(a, klasse.firstChild);
 				break;
 			}
@@ -1451,23 +1580,24 @@ function parseVereine(vereine) {
 	return data;
 }
 
-function loadVereineCallback(loadedDoc, doc, teamNum, ulAuf, ulSpi) {
+function loadVereineCallback(loadedDoc, bvbbpp, teamNum, ulAuf, ulSpi) {
 	try {
+		var doc = bvbbpp.doc;
 		var vereine = parseVereine(loadedDoc);
 		// Fill menu with the loaded team list.
 		for (var i = 0; i < vereine.length; i++) {
 			var ver = vereine[i];
 			if (!ver)
 				continue;
-			var a = newElement(doc, "a", ver.name, "href", BVBBPP.webAufstellung + "aufstellung-"
-					+ ((ver.nr < 9 ? "0" : "") + (ver.nr)) + ".HTML");
+			var a = newElement(doc, "a", ver.name, "href", bvbbpp.webAufstellung + "aufstellung-"
+					+ twoDigits(ver.nr) + ".HTML");
 			ulAuf.appendChild(newParentElement("li", a));
 			if (ver.nr == teamNum) {
 				a.setAttribute("class", "selected");
 			}
 
-			a = newElement(doc, "a", ver.name, "href", BVBBPP.webSpielberichteVereine + "verein-"
-			        + ((ver.nr < 9 ? "0" : "") + (ver.nr)) + ".HTML");
+			a = newElement(doc, "a", ver.name, "href", bvbbpp.webSpielberichteVereine + "verein-"
+			        + twoDigits(ver.nr) + ".HTML");
 			ulSpi.appendChild(newParentElement("li", a));
 			if (ver.nr == teamNum) {
 				a.setAttribute("class", "selected");
@@ -1483,7 +1613,6 @@ function makeHeadLine(groupNum, teamNum) {
 	var web = BVBBPP.web;
 	var webAufstellung = BVBBPP.webAufstellung;
 	var webVereine = BVBBPP.webSpielberichteVereine;
-	
 	if (MOBILE) {
 		groupNum = -1;
 		teamNum = -1;
@@ -1501,10 +1630,10 @@ function makeHeadLine(groupNum, teamNum) {
 		var link = create("a", "Saison " + toSeasonName(SEASONS[i]), "href", target);
 		ulSeason.appendChild(newParentElement("li", link));
 	}
-	
+
 	// fill group menues;
 	for (var i = 0; i < BVBBPP.divisions.names.length; i++) {
-		var l = "tabellen/uebersicht-" + (i < 9 ? "0" : "") + (i + 1);
+		var l = "tabellen/uebersicht-" + twoDigits(i + 1);
 		ulTab.appendChild(newParentElement("li", create("a", BVBBPP.divisions.names[i], "href", web + l + ".HTML")));
 		l = "staffel-" + BVBBPP.divisions.shortNames[i];
 		ulAns.appendChild(newParentElement("li", create("a", BVBBPP.divisions.names[i], "href", web + l + ".HTML")));
@@ -1513,7 +1642,7 @@ function makeHeadLine(groupNum, teamNum) {
 	}
 
 	// load teams and fill team menues
-	loadDocument(webVereine + "spielbericht-vereine.HTML", loadVereineCallback, DOC, teamNum, ulAuf, ulSpi);
+	loadDocument(webVereine + "spielbericht-vereine.HTML", loadVereineCallback, BVBBPP, teamNum, ulAuf, ulSpi);
 
 	var aTab = create("a", "Tabelle", "class", "navigationUnselected");
 	var aAns = create("a", "Ansetzungen", "class", "navigationUnselected");
@@ -1521,7 +1650,7 @@ function makeHeadLine(groupNum, teamNum) {
 	var aSpi = create("a", "Spieltermine", "class", "navigationUnselected");
 	var aAuf = create("a", "Aufstellung", "class", "navigationUnselected");
 	if (groupNum >= 0) {
-		aTab.setAttribute("href", web + "tabellen/uebersicht-" + (groupNum < 9 ? "0" : "") + (1 + groupNum) + ".HTML");
+		aTab.setAttribute("href", web + "tabellen/uebersicht-" + twoDigits(1 + groupNum) + ".HTML");
 		aTab.setAttribute("style", "text-decoration: underline");
 		aAns.setAttribute("href", web + "staffel-" + BVBBPP.divisions.shortNames[groupNum] + ".HTML");
 		aAns.setAttribute("style", "text-decoration: underline");
@@ -1529,10 +1658,9 @@ function makeHeadLine(groupNum, teamNum) {
 		aGeg.setAttribute("style", "text-decoration: underline");
 	}
 	if (teamNum >= 0) {
-		aSpi.setAttribute("href", webVereine + "verein-" + ((teamNum < 9 ? "0" : "") + teamNum)
-		        + ".HTML");
+		aSpi.setAttribute("href", webVereine + "verein-" + (twoDigits(teamNum)) + ".HTML");
 		aSpi.setAttribute("style", "text-decoration: underline");
-		var aufRef = webAufstellung + "aufstellung-" + ((teamNum < 9 ? "0" : "") + teamNum) + ".HTML";
+		var aufRef = webAufstellung + "aufstellung-" + (twoDigits(teamNum)) + ".HTML";
 		aAuf.setAttribute("href", aufRef);
 		aAuf.setAttribute("style", "text-decoration: underline");
 	}
@@ -1545,7 +1673,7 @@ function makeHeadLine(groupNum, teamNum) {
 		var li = newParentElement("li", as[i]);
 		li.appendChild(uls[i]);
 		nav.appendChild(li);
-		
+
 		if (!MOBILE) {
 			uls[i].setAttribute("class", "desktop");
 		}
@@ -1576,10 +1704,11 @@ function makeHeadLine(groupNum, teamNum) {
 		}
 	}
 
-	if (year !== CURRENT_SEASON) { 
-		var c = DOC.getElementById("centerstyle"); 
+	if (year !== CURRENT_SEASON) {
+		var c = DOC.getElementById("centerstyle");
 		if (c) {
-			c.insertBefore(newElement(DOC, "h1", "Saison " + toSeasonName(year), "class", "title", "style", "color:#C55"), c.firstChild);
+			var h1 = newElement(DOC, "h1", "Saison " + toSeasonName(year), "class", "title", "style", "color:#C55");
+			c.insertBefore(h1, c.firstChild);
 		}
 	}
 	BODY.insertBefore(header, BODY.firstChild);
@@ -1594,7 +1723,7 @@ function parseAnsetzung(doc, ansetzungen) {
 	var div = ansetzungen.body.getElementsByTagName("h2")[1].getElementsByTagName("div");
 
 	// rank: nummer innerhalb des vereins (I,II, ...), verein: globale nummer, link: link zu ansetzungen
-	var teamObj = new Array(20); 
+	var teamObj = new Array(20);
 
 	var teamNumber = 0;// kurznummer in dieser Tabelle
 	for (var i = 0; i < div.length; i++) {
@@ -1700,10 +1829,10 @@ function makeTabelle() {
 		}
 	}
 	var urlAns = URL.replace(/tabellen\/uebersicht-\d\d/, "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
-	loadDocument(urlAns, parseAnsetzungAndInsert, DOC);
+	loadDocument(urlAns, parseAnsetzungAndInsert, BVBBPP);
 }
 
-function parseAnsetzungAndInsert(ansetzungen, doc) {
+function parseAnsetzungAndInsert(ansetzungen, bvbbpp) {
 	try {
 		var spiele = parseAnsetzung(doc, ansetzungen);
 		insertAnsetzungen(spiele, doc)
@@ -1725,7 +1854,7 @@ function insertAnsetzungen(spiele, doc) {
 				for (var j = 0; j < td.length - 6 - 1; j++) {
 					var cell = td[j + 6];
 					var div = cell.getElementsByTagName("div")[0];
-					if (cell.getAttribute("bgcolor") == ORANGE || /\d : \d.*\d : \d/.test(div.innerHTML)) { 
+					if (cell.getAttribute("bgcolor") == ORANGE || /\d : \d.*\d : \d/.test(div.innerHTML)) {
 						// faellt aus oder beide gespielt
 						if (cell.getAttribute("bgcolor") == ORANGE) {
 							gespielt[i][j] = -1;
@@ -1755,7 +1884,7 @@ function insertAnsetzungen(spiele, doc) {
 						}
 						continue;
 					}
-					if (cell.getAttribute("valign") == "bottom" || /<br><font color="#FF6600"/.test(div.innerHTML)) { 
+					if (cell.getAttribute("valign") == "bottom" || /<br><font color="#FF6600"/.test(div.innerHTML)) {
 						// auswaerts gewesen
 						var date = dateFromSpiele(spiele, i, j);
 						if (date) {
@@ -1903,7 +2032,7 @@ function makeStyle() {
 		var e = elem[j];
 		if (e.getAttribute("border") == "0" || e.getAttribute("style") == "border:0")
 			e.setAttribute("class", "borderless");
-		var bgcol = e.getAttribute("bgcolor");	
+		var bgcol = e.getAttribute("bgcolor");
 		var fgcol = e.getAttribute("color");
 		for (var i = 0; i < COLORS.length; i++) {
 			if (bgcol == COLORS[i])
@@ -1937,18 +2066,20 @@ function makeStyle() {
 }
 
 function run(evt) {
-	if (!evt || !evt.target || !evt.target.URL || !evt.target.body)
+	if (!evt || !evt.target || !evt.target.URL || !evt.target.body) {
 		return;
+	}
 	try {
 		DOC = evt.target;
 		URL = DOC.URL;
 		BODY = DOC.body;
 		BVBBPP = new Bvbbpp(DOC);
-		if (!BVBBPP.valid)
+		if (!BVBBPP.valid) {
 			return;
-		if (!BVBBPP.body.firstChild || BVBBPP.doc.getElementById("bvbbBody"))
+		}
+		if (!BVBBPP.body.firstChild || BVBBPP.doc.getElementById("bvbbBody")) {
 			return;
-
+		}
 		WEB = "http://bvbb.net/fileadmin/user_upload/" + BVBBPP.season.webName + "/meisterschaft/";
 
 		// avoid processing the same file twice (for example, when embedded in an iframe)
@@ -1980,6 +2111,9 @@ function run(evt) {
 		}
 		if (/spielerstatistik\/P-/.test(URL)) {
 			makeSpieler();
+		}
+		if (/meisterschaft\/Hallen.HTML/.test(URL)) {
+			ensureHallenschluessel().then(replaceHallenschluessel);
 		}
 	} catch (err) {
 		Cu.reportError(errorMsg(err));
@@ -2034,8 +2168,9 @@ function reloadTabs(window) {
 function shutdown(aData, aReason) {
 	// When the application is shutting down we normally don't have to clean
 	// up any UI changes made
-	if (aReason == APP_SHUTDOWN)
+	if (aReason === APP_SHUTDOWN) {
 		return;
+	}
 	var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 	// stop listening to any existing windows
 	var windows = wm.getEnumerator("navigator:browser");
@@ -2048,9 +2183,9 @@ function shutdown(aData, aReason) {
 	// Stop listening for new windows
 	wm.removeListener(windowListener);
 
-	// TODO: apparently this code below throws an exeption upon uninstall.
-	// if (romanize !== undefined)
-    //	   Cu.unload("chrome://bvbbpp/content/utils.jsm");
+	if (aReason === ADDON_DISABLE) { // somehow throws exceptions upon uninstall.
+		Cu.unload("chrome://bvbbpp/content/utils.jsm");
+	}
 }
 
 function install(aData, aReason) {

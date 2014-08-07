@@ -1,4 +1,4 @@
-// Copyright 2012-2013 Felix Kaelberer <bvbbpp@gmx-topmail.de>
+// Copyright 2012-2014 Felix Kaelberer <bvbbpp@gmx-topmail.de>
 //
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
@@ -6,57 +6,84 @@
 "use strict";
 
 var EXPORTED_SYMBOLS = ["removeElement", "removeElements", "removeParent", "removeParents", "newParentElement",
-                        "clearElement", "newElement", "replaceChildren", "setElementAttributes", "alert", "romanize",
-                        "deromanize", "loadDocument"];
+                        "clearElement", "newElement", "replaceChildren", "setElementAttributes", "log", "romanize",
+                        "deromanize", "loadDocument", "getDocument", "twoDigits"];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var console = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
 
-
-function alert(msg) {
+function log(msg) {
 	console.logStringMessage("BVBB++: " + msg);
 };
 
+function twoDigits(num) {
+	return (num < 10 ? "0" : "") + num;
+}
+
 function error(e, msg) {
-	var message = e ? "BVBB++: Fehler in utils.jsm, Zeile" + e.lineNumber + ": " + e.message + " " + (msg ? msg : "")
-	        : "BVBB++: " + msg;
-	Components.utils.reportError(message);
+	var err = e ? "Fehler in utils.jsm, Zeile" + e.lineNumber + ": " + e.message + " " : "";
+	Components.utils.reportError("BVPP++: " + err + (msg ? msg : ""));
 };
+
+function getDocument(url) {
+	return new Promise(function(resolve, reject) {
+		var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
+		req.open('GET', url);
+		req.responseType = "document";
+		req.overrideMimeType('text/html; charset=iso-8859-1');
+		
+		req.onload = function() {
+			if (req.status === 200) {
+				resolve(req.response);
+			}
+		};
+		
+		req.onerror = function() {
+			reject("Kann Datei " + url + " nicht laden. Antwort ist 'null'.");
+		};
+
+		req.send();
+	});
+}
 
 /**
  * Load the linked document asynchronously, and pass the loaded document and the four arguments to the
  * callback function when done.
  */
-function loadDocument(link, callback, arg1, arg2, arg3, arg4) { 
+function loadDocument(url, callback, arg1, arg2, arg3, arg4) { 
 	try {
 		var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
 		request.onreadystatechange = function(evt) {
-										if (this.readyState == 4) {
-											if (!request.response)
-												alert("Kann Datei " + link + " nicht laden. Antwort ist 'null'.");
-											callback(request.response, arg1, arg2, arg3, arg4);
-										}
-									 };
-		request.open("GET", link, true, null, null);
+			if (this.readyState == 4) {
+				if (!request.response) {
+					log("Kann Datei " + url + " nicht laden. Antwort ist 'null'.");
+				}
+				callback(request.response, arg1, arg2, arg3, arg4);
+			}
+		};
+		request.open("GET", url, true, null, null);
 		request.responseType = "document";
 		request.overrideMimeType('text/html; charset=iso-8859-1');
 		request.send(null);
 	} catch (err) {
-		error(err, " Kann Datei " + link + " nicht laden.");
+		error(err, " Kann Datei " + url + " nicht laden.");
 	}
 }
 
 function removeElement(e) {
-	if (e) 
+	if (e) {
 		e.parentNode.removeChild(e); 
+	} 
 }
 
 function removeParent(e) {
-	while (e && e.hasChildNodes())
+	while (e && e.hasChildNodes()) {
 		e.parentNode.insertBefore(e.firstChild, e);			
-	if (e && e.parentNode)
+	}
+	if (e && e.parentNode) {
 		e.parentNode.removeChild(e);
+	}
 }
 
 
@@ -66,8 +93,9 @@ function removeParent(e) {
  * @param regex A regular expression (applied to innerHTML) to filter the tags (optional).  
  */
 function removeParents(doc, tag, regex) {
-	if (!doc)
+	if (!doc) {
 		return;
+	}
 	var	e = doc.getElementsByTagName(tag);
 	for (var i = e.length-1; i >= 0; i--) {
 		if (!regex || regex.test(e[i].innerHTML)) {
@@ -157,24 +185,27 @@ function deromanize(str) {
 	var key = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
 	var num = 0;
 	var m;
-	if (!(str && validator.test(str)))
+	if (!(str && validator.test(str))) {
 		return false;
-	while (m = token.exec(str))
+	}
+	while (m = token.exec(str)) {
 		num += key[m[0]];
+	}
 	return num;
 }
 
 // romanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
 function romanize(num) {
-	if (!+num)
+	if (!+num) {
 		return false;
-	var	digits = String(+num).split(""),
-	key = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM", "", "X", "XX", "XXX", "XL", "L", "LX", "LXX",
-		   "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"],
-		roman = "",
-		i = 3;
-	while (i--)
+	}
+	var	digits = String(+num).split("");
+	var key = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM", "", "X", "XX", "XXX", "XL", "L", "LX", "LXX",
+	           "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
+	var roman = "", i = 3;
+	while (i--) {
 		roman = (key[+digits.pop() + (i * 10)] || "") + roman;
+	}
 	var r = Array(+digits.join("") + 1).join("M") + roman;
 	return r;
 }
