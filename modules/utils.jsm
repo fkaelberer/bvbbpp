@@ -50,6 +50,7 @@ function getDocument(url) {
 /**
  * Load the linked document asynchronously, and pass the loaded document and the four arguments to the
  * callback function when done.
+ * @deprecated use getDocument instead
  */
 function loadDocument(url, callback, arg1, arg2, arg3, arg4) { 
 	try {
@@ -108,8 +109,9 @@ function removeParents(doc, tag, regex) {
  * remove all children of the element and add the ones passed in arguments 2, 3, ... 
  */
 function replaceChildren(e) {
-	if (!e || !arguments)
+	if (!e || !arguments) {
 		return e;
+	}
 	clearElement(e);
 	try {
 		for ( var i = 1; i < arguments.length; i++) {
@@ -130,11 +132,13 @@ function clearElement(e) {
 }
 
 function newParentElement(type, e) {
-	if (!e)
+	if (!e) {
 		return;
+	}
 	var doc = e.ownerDocument;
-	if (!doc)
+	if (!doc) {
 		return;
+	}
 	var parent = doc.createElement(type);
 	parent.appendChild(e);
 	for (var i=2; i+1<arguments.length; i+=2) {
@@ -144,8 +148,9 @@ function newParentElement(type, e) {
 }
 
 function removeElements(doc, tag, regex) {
-	if (!doc)
+	if (!doc) {
 		return;
+	}
 	var	e = doc.getElementsByTagName(tag);
 	for (var i = e.length-1; i >= 0; i--) {
 		if (!regex || regex.test(e[i].innerHTML)) {
@@ -157,8 +162,9 @@ function removeElements(doc, tag, regex) {
 function newElement(doc, type, textContent) {
 	try {
 		var e = doc.createElement(type);
-		if (textContent && textContent != "")
+		if (textContent && textContent != ""){
 			e.textContent = textContent;
+		}
 		for (var i=3; i+1<arguments.length; i+=2) {
 			e.setAttribute(arguments[i], arguments[i+1]);
 		}
