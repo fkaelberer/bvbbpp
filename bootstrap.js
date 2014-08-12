@@ -22,8 +22,6 @@ var PREFS = [{
 }];
 
 // constants
-// TODO: Hallenschluessel mittels array an Saison anpassen.
-var HALLENSCHLUESSEL_URL = "http://bvbb.net/Hallen.706.0.html";
 var PAGE_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
 var WEB = "http://bvbb.net/fileadmin/user_upload/schuch/meisterschaft/";
 
@@ -106,19 +104,6 @@ function Bvbbpp(document) {
 
 Bvbbpp.prototype = {
 	otherYearURL: function bvbbpp_otherSeasonURL(otherYear) {
-		// correct the fact that files are in different directories in 2014
-		if (this.year !== 14 && otherYear === 14) {
-			var otherURL = URL.replace(BVBBPP.season.webName, toWebName(otherYear))
-							  .replace("aufstellung/", "aufstellung/")
-							  .replace("spielberichte-vereine/", "spielberichte-vereine/");
-			return otherURL;
-		}
-		if (this.year === 14 && otherYear !== 14) {
-			var otherURL = URL.replace(BVBBPP.season.webName, toWebName(otherYear))
-							  .replace("aufstellung/aufstellung-", "aufstellung/aufstellung-")
-							  .replace("spielberichte-vereine/verein-", "spielberichte-vereine/verein-");
-			return otherURL;
-		}
 		return URL.replace(BVBBPP.season.webName, toWebName(otherYear));
 	}
 };
@@ -1185,7 +1170,6 @@ function ensureHallenschluessel() {
 							shortStreet = "Kuno-Fischer-Stra\u00DFe 27";
 						}
 						if (/L.tzowstra.e.83-85/.test(shortStreet)) {
-							log("YO");
 							shortStreet = shortStreet.replace(/,..ber.Parkplatzeinf./, "");
 						}
 						var URL = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
