@@ -29,8 +29,8 @@ function error(e, msg) {
 
 function getDocument(url) {
   return new Promise(function(resolve, reject) {
-        var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                  .createInstance(Components.interfaces.nsIXMLHttpRequest);
+    var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+              .createInstance(Components.interfaces.nsIXMLHttpRequest);
     req.open('GET', url);
     req.responseType = "document";
     req.overrideMimeType('text/html; charset=iso-8859-1');
@@ -49,37 +49,13 @@ function getDocument(url) {
   });
 }
 
-/**
- * Load the linked document asynchronously, and pass the loaded document and the four arguments to
- * the callback function when done.
- * @deprecated use getDocument instead
- */
-function loadDocument(url, callback, arg1, arg2, arg3, arg4) {
-  try {
-    var request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                  .createInstance(Components.interfaces.nsIXMLHttpRequest);
-    request.onreadystatechange = function(evt) {
-      if (this.readyState == 4) {
-        if (!request.response) {
-          log("Kann Datei " + url + " nicht laden. Antwort ist 'null'.");
-        }
-        callback(request.response, arg1, arg2, arg3, arg4);
-      }
-    };
-    request.open("GET", url, true, null, null);
-    request.responseType = "document";
-    request.overrideMimeType('text/html; charset=iso-8859-1');
-    request.send(null);
-  } catch (err) {
-    error(err, " Kann Datei " + url + " nicht laden.");
-  }
-}
 
 function removeElement(e) {
   if (e) {
     e.parentNode.removeChild(e);
   }
 }
+
 
 function removeParent(e) {
   while (e && e.hasChildNodes()) {
