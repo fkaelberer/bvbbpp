@@ -2379,7 +2379,7 @@ var windowListener = {
 };
 
 function startup(aData, aReason) {
-  Cu.import("chrome://bvbbpp/content/utils.jsm");
+  Cu.import("chrome://bvbbpp/content/utils.js");
 
   var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
