@@ -164,7 +164,7 @@ function isDue() { // Websites should be online by now.
  * newElement(DOC, type, textContent, arg2, arg3, ...)
  */
 function create() {
-  return newElement.apply(this, [ DOC ].concat([].slice.call(arguments)));
+  return newElement.apply(this, [DOC].concat([].slice.call(arguments)));
 }
 
 function errorMsg(e, msg) {
@@ -226,7 +226,7 @@ function makeAufstellung() {
     return;
   }
   var title = h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung");
-  h2[0].parentNode.replaceChild(makeTitle(title), h2[0]);
+  h2[0].parentNode.replaceChild(create("h1", title, "class", "title"), h2[0]);
   BVBBPP.doc.title = title.replace("(R\u00FCckrunde)", "");
   var button = makeLoadStatsButton();
   button.setAttribute("style", "margin: auto 320px"); // wie geht's besser?
@@ -237,7 +237,7 @@ function makeAufstellung() {
 
   var f = BODY.getElementsByTagName("font");
   for (var i = 0; i < f.length; i++) {
-    var link = linkToKlasse(f[i].innerHTML);
+    var link = linkToKlasse(f[i].textContent);
     if (link) {
       f[i].replaceChild(link, f[i].firstChild);
       link.textContent = link.textContent.toUpperCase();
@@ -262,7 +262,7 @@ function makeVerein() {
   if (h2[0]) {
     var title = "Spieltermine " + h2[0].getElementsByTagName("b")[0].textContent;
     BVBBPP.doc.title = title.replace("Spieltermine", "Termine");
-    h2[0].parentNode.replaceChild(makeTitle(title), h2[0]);
+    h2[0].parentNode.replaceChild(create("h1", title, "class", "title"), h2[0]);
   }
 
   var span = BODY.getElementsByTagName("span");
@@ -802,8 +802,9 @@ function makeGegenueberStats() {
     var tr = doc.getElementsByTagName("table")[0].getElementsByTagName("tr");
     var td = tr[(teamRow + 1)].getElementsByTagName("td");
 
-    var teamI = /-(\d\d).HTML/.exec(td[1].innerHTML)[1];
-    var teamNumI = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(td[1].innerHTML)[1]);
+    var innerHTML = td[1].innerHTML;
+    var teamI = /-(\d\d).HTML/.exec(innerHTML)[1];
+    var teamNumI = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(innerHTML)[1]);
     var teamStrI = teamI + "-" + twoDigits(teamNumI);
 
     var teamLink = new Array(tr.length - 1);
@@ -1005,9 +1006,6 @@ function loadSpielbericht(link) {
   });
 }
 
-function makeTitle(title) {
-  return create("h1", title, "class", "title");
-}
 function makeGroupTitle(title, isTabelle) {
   var titleLine = create("h1", title, "class", "title");
   var urlBack;
@@ -1321,7 +1319,7 @@ function makeSpielbericht() {
       }
       replaceChildren(fonts[0], a0);
       replaceChildren(fonts[1], a1);
-      replaceChildren(fonts[2], linkToKlasse(fonts[2].innerHTML, hasFrame ? "_blank" : null));
+      replaceChildren(fonts[2], linkToKlasse(fonts[2].textContent, hasFrame ? "_blank" : null));
     }
 
     setElementAttributes(BODY, "table", "width", 820);
@@ -1350,12 +1348,14 @@ function makeSpielbericht() {
  * @return HTML-Link zu der Klasse
  */
 function linkToKlasse(klasse, target) {
-  klasse = klasse.replace(/&nbsp;| /g, "").toLowerCase();
+  klasse = klasse.replace(/\s/g, "").toLowerCase();
   var name, href;
   for (var i = 0; i < BVBBPP.divisions.names.length; i++) {
-    if (klasse == BVBBPP.divisions.names[i].replace(/ /g, "").toLowerCase()) {
-      name = BVBBPP.divisions.names[i];
+    var name_i = BVBBPP.divisions.names[i];
+    if (klasse === name_i.replace(/\s/g, "").toLowerCase()) {
+      name = name_i;
       href = BVBBPP.web + "tabellen/uebersicht-" + twoDigits(i + 1) + ".HTML";
+      break;
     }
   }
   if (!name) {
@@ -1463,13 +1463,13 @@ function highlightPlayerStats() {
         td[j].setAttribute("style", this.col1);
       }
       tr[i].setAttribute("style", this.col2);
-      var spi = />(\d)</.exec(td[5].innerHTML);
+      var spi = /(\d)/.exec(td[5].textContent);
       sp[1 - parseInt(spi[1])]++;
-      var sae = /(\d)\s:\s(\d)/.exec(td[6].innerHTML);
+      var sae = /(\d)\s:\s(\d)/.exec(td[6].textContent);
       sa = [sa[0] + parseInt(sae[1]), sa[1] + parseInt(sae[2])];
       var reg = /(\d\d):(\d\d)/g;
       var pun;
-      var str = td[7].innerHTML;
+      var str = td[7].textContent;
       while ((pun = reg.exec(str)) !== null) {
         pu[0] += parseInt(pun[1], 10);
         pu[1] += parseInt(pun[2], 10);
@@ -1484,14 +1484,17 @@ function highlightPlayerStats() {
   var erg = [sp, , sa, , pu];
   for (var i = 0; i < tr.length - 1; i += 2) {
     var td = tr[i + 1].getElementsByTagName("td");
-    td[1].firstChild.textContent = (erg[i][0] + erg[i][1]);
-    td[2].firstChild.textContent = erg[i][0];
-    td[3].firstChild.textContent = Math.round(1000 * erg[i][0] / (erg[i][0] + erg[i][1])) / 10 +"%";
-    td[4].firstChild.textContent = erg[i][1];
-    td[5].firstChild.textContent = Math.round(1000 * erg[i][1] / (erg[i][0] + erg[i][1])) / 10 +"%";
+    var win = erg[i][0];
+    var lose = erg[i][1];
+    var sum = win + lose;
+    td[1].firstChild.textContent = sum;
+    td[2].firstChild.textContent = win;
+    td[3].firstChild.textContent = (100 * win / sum).toFixed(1).replace(".", ",") + "%";
+    td[4].firstChild.textContent = lose;
+    td[5].firstChild.textContent = (100 * lose / sum).toFixed(1).replace(".", ",") + "%";
     for (var j = 0; j < td.length; j++) {
       if (td[j].getAttribute("bgcolor") == WIN.css) {
-        var w = Math.round(100 * erg[i][0] / (erg[i][0] + erg[i][1]));
+        var w = Math.round(100 * win / sum);
         td[j].setAttribute("width", " " + (w === 0 ? 1 : w) + "%");
       }
     }
@@ -1513,13 +1516,14 @@ function makeSpieler() {
   try {
     var h2 = BODY.getElementsByTagName("h2");
     for (var i = 0; i < h2.length; i++) {
-      if (/vor dem Namen/.test(h2[i].textContent)) {
+      var h2i = h2[i];
+      if (/vor dem Namen/.test(h2i.textContent)) {
         var newH2 = create("h2", "Statistik",
                            "style", "margin:20px auto 10px auto; width:780px");
-        h2[i].replaceChild(newH2, h2[i].getElementsByTagName("table")[1]);
+        h2i.replaceChild(newH2, h2i.getElementsByTagName("table")[1]);
         var newDiv = create("div", "vor dem Namen steht immer die Stamm-Mannschaft (E = Ersatz)",
                             "style", "margin:-10px auto 0 auto; width:780px; font-size: 12");
-        h2[i].replaceChild(newDiv, h2[i].getElementsByTagName("table")[0]);
+        h2i.replaceChild(newDiv, h2i.getElementsByTagName("table")[0]);
       }
     }
 
@@ -1570,7 +1574,7 @@ function makeSpieler() {
     // Satzsiege/verluste farbig
     var td = table[1].getElementsByTagName("td");
     for (var i = 0; i < td.length; i++) {
-      var reg = /(\d) : (\d)/.exec(td[i].innerHTML);
+      var reg = /(\d) : (\d)/.exec(td[i].textContent);
       if (reg) {
         td[i].setAttribute("class", (reg[1] > reg[2] ? WIN.bg : LOSE.bg));
         td[i].id = reg[1] > reg[2] ? "win" : "lose";
@@ -1596,14 +1600,14 @@ function makeSpieler() {
               col1 : "",
               col2 : ""
           };
-          td[j].onmouseover = highlightPlayerStats.bind( overArgs );
-          td[j].onmouseout = highlightPlayerStats.bind( outArgs );
+          td[j].onmouseover = highlightPlayerStats.bind(overArgs);
+          td[j].onmouseout = highlightPlayerStats.bind(outArgs);
         }
 
         overArgs = {
             doc: DOC,
             j : 3,
-            name : /(DE|GD|DD|HE|HD)/.exec(td[3].innerHTML)[1],
+            name : /(DE|GD|DD|HE|HD)/.exec(td[3].textContent)[1],
             col1 : "background-color:rgba(15, 70, 95, 0.12)",
             col2 : "background-color:rgba(15, 70, 95, 0.06)"
         };
@@ -1613,8 +1617,8 @@ function makeSpieler() {
             col1 : "",
             col2 : ""
         };
-        td[3].onmouseover = highlightPlayerStats.bind( overArgs );
-        td[3].onmouseout = highlightPlayerStats.bind( outArgs );
+        td[3].onmouseover = highlightPlayerStats.bind(overArgs);
+        td[3].onmouseout = highlightPlayerStats.bind(outArgs);
       }
     }
 
@@ -1686,7 +1690,7 @@ function getFestgespielt(doc1, doc) {
       if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i + 2].innerHTML)) {
         var d = s[i].innerHTML;
         var m = parseInt(s[i + 2].innerHTML, 10);
-        if (num === 0 || mannschaft[num - 1].day != d || mannschaft[num - 1].mann != m) {
+        if (num === 0 || mannschaft[num - 1].day !== d || mannschaft[num - 1].mann !== m) {
           mannschaft[num] = {
               day : d,
               mann : m
@@ -1780,12 +1784,12 @@ function parseVereine(vereineURL) {
     var vereine = new Array(100); // max 100 vereine, sonst auf drei ziffern testen
     var numSets = 0;
     for (var i = 0; i < td.length; i++) {
-      if (/>\d\d<|>\d\d\d<$/.test(td[i].innerHTML) && /<div/.test(td[i].innerHTML)) {
-        var el = td[i].getElementsByTagName("div")[0];
+      var textContent = td[i].textContent;
+      if (/^\d{2,3}$/.test(textContent)) {
         var l = td[i + 1].getElementsByTagName("a")[0];
         l.href = "http://bvbb.net/" + l.href.substring(l.href.lastIndexOf("fileadmin"));
         vereine[numSets] = {
-          nr : parseInt(el.textContent, 10),
+          nr : parseInt(textContent, 10),
           link : l,
           name : td[i + 2].textContent
         };
@@ -2434,6 +2438,7 @@ function install(aData, aReason) {
     }
   }
 }
+
 function uninstall(aData, aReason) {
   shutdown(aData, aReason);
   for (var i = 0; i < PREFS.length; i++) {
