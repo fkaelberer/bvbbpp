@@ -325,7 +325,7 @@ function makeVerein() {
     vereineVerlinken(vereine);
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
-    if (!getPref("hideDoodle") && this.year === CURRENT_SEASON) {
+    if (!getPref("hideDoodle") && BVBBPP.year === CURRENT_SEASON) {
       (makeDoodleLinks.bind(this))(doc, spiele);
     }
     makeCurrentSpieltermine(doc, spiele);
