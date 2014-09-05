@@ -52,25 +52,25 @@ DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1,
 var CURRENT_SEASON = 14;
 var SEASONS = [9, 10, 11, 12, 13, 14];
 
-function toColorElement(color) {
+function toColorObject(color) {
   return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
 }
 
-var LIGHT_YELLOW = toColorElement("FFFFCC");
-var YELLOW       = toColorElement("FFFF66");
-var MIX_YELLOW   = toColorElement("FAFA44");
-var DARK_YELLOW  = toColorElement("F0F000");
-var LIGHT_ORANGE = toColorElement("FFCC33");
-var ORANGE       = toColorElement("FF9900");
-var DARK_ORANGE  = toColorElement("CC9933");
-var AUFSTEIGER   = toColorElement("00CC00");
-var ABSTEIGER    = toColorElement("FF6633");
-var ZURUECK      = toColorElement("FF0022");
-var WIN          = toColorElement("33FF00");
-var LOSE         = toColorElement("FF0000");
-var FRAME_TOP    = toColorElement("D8D8D8");
-var FRAME_BOTTOM = toColorElement("474747");
-var KAMPFLOS     = toColorElement("FF6600");
+var LIGHT_YELLOW = toColorObject("FFFFCC");
+var YELLOW       = toColorObject("FFFF66");
+var MIX_YELLOW   = toColorObject("FAFA44");
+var DARK_YELLOW  = toColorObject("F0F000");
+var LIGHT_ORANGE = toColorObject("FFCC33");
+var ORANGE       = toColorObject("FF9900");
+var DARK_ORANGE  = toColorObject("CC9933");
+var AUFSTEIGER   = toColorObject("00CC00");
+var ABSTEIGER    = toColorObject("FF6633");
+var ZURUECK      = toColorObject("FF0022");
+var WIN          = toColorObject("33FF00");
+var LOSE         = toColorObject("FF0000");
+var FRAME_TOP    = toColorObject("D8D8D8");
+var FRAME_BOTTOM = toColorObject("474747");
+var KAMPFLOS     = toColorObject("FF6600");
 
 var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
               AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
@@ -291,15 +291,17 @@ function makeVerein() {
       var tds = doc.body.getElementsByTagName("td");
       for (var i = 0; i < tds.length; i++) {
         var td = tds[i];
-        if (/\d\d.\d\d.\d\d\d\d/.test(td.innerHTML) && /<a/.test(td.innerHTML)) {
+        var HTML = td.innerHTML;
+        var text = td.textContent;
+        if (/\d\d.\d\d.\d\d\d\d/.test(text) && /<a/.test(HTML)) {
           removeParents(td, "b");
         }
-        if (!/<|\d\d:\d\d|^\w$/.test(td.innerHTML)) {
+        if (!/<|\d\d:\d\d|^\w$/.test(HTML)) {
           for (var j = 0; j < vereine.length; j++) {
             var v = vereine[j];
             var shortName = v.link.firstChild.textContent;
-            if (td.innerHTML.indexOf(shortName) >= 0) {
-              var num = / [IVX]+$/.exec(td.innerHTML)[0];
+            if (text.indexOf(shortName) >= 0) {
+              var num = / [IVX]+$/.exec(text)[0];
               var href = v.link.href;
               var l = create("a", shortName + num, "href", href, "title", v.name + num);
               replaceChildren(td, l);
@@ -768,7 +770,7 @@ function makeGegenueber() {
   for (var i = 0; i < tr.length - 1; i++) {
     var td = tr[i + 1].getElementsByTagName("td");
     for (var j = 0; j < td.length - 1; j++) {
-      var reg = /(\d+):(\d+)/.exec(td[j].innerHTML);
+      var reg = /(\d+):(\d+)/.exec(td[j].textContent);
       if (reg) {
         var font = create("font", reg[1] + ":" + reg[2]);
         var u = newParentElement("u", font);
@@ -802,9 +804,9 @@ function makeGegenueberStats() {
     var tr = doc.getElementsByTagName("table")[0].getElementsByTagName("tr");
     var td = tr[(teamRow + 1)].getElementsByTagName("td");
 
-    var innerHTML = td[1].innerHTML;
-    var teamI = /-(\d\d).HTML/.exec(innerHTML)[1];
-    var teamNumI = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(innerHTML)[1]);
+    var HTML = td[1].innerHTML;
+    var teamI = /-(\d\d).HTML/.exec(HTML)[1];
+    var teamNumI = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(HTML)[1]);
     var teamStrI = teamI + "-" + twoDigits(teamNumI);
 
     var teamLink = new Array(tr.length - 1);
@@ -951,7 +953,7 @@ function loadSpielbericht(link) {
                        ": Konnte kein h2-Element finden.");
         return;
       }
-      var datum = /(\d\d.\d\d.\d\d\d\d)/.exec(doc.body.innerHTML)[1];
+      var datum = /(\d\d.\d\d.\d\d\d\d)/.exec(doc.body.textContent)[1];
       var tr = h2.getElementsByTagName("tr");
       var spiele = new Array(8);
       for (var i = 0; i < tr.length; i++) {
@@ -963,11 +965,11 @@ function loadSpielbericht(link) {
         if (!bg[0] || !bh[0]) {
           continue;
         }
-        var spieler = bh[1] ? [ bh[0].innerHTML, bh[1].innerHTML ] : [ bh[0].innerHTML ];
-        var gegner = bg[1] ? [ bg[0].innerHTML, bg[1].innerHTML ] : [ bg[0].innerHTML ];
-        var p1 = />(\d\d) : (\d\d)</.exec(td[5].innerHTML);
-        var p2 = />(\d\d) : (\d\d)</.exec(td[6].innerHTML);
-        var p3 = />(\d\d) : (\d\d)</.exec(td[7].innerHTML);
+        var spieler = bh[1] ? [ bh[0].textContent, bh[1].textContent ] : [ bh[0].textContent ];
+        var gegner = bg[1] ? [ bg[0].textContent, bg[1].textContent ] : [ bg[0].textContent ];
+        var p1 = /(\d\d) : (\d\d)/.exec(td[5].textContent);
+        var p2 = /(\d\d) : (\d\d)/.exec(td[6].textContent);
+        var p3 = /(\d\d) : (\d\d)/.exec(td[7].textContent);
         var hSaetze = (p1[1] > p1[2] ? 1 : 0) + (p2[1] > p2[2] ? 1 : 0)
             + (p3 ? (p3[1] > p3[2] ? 1 : 0) : 0);
         var gSaetze = (p1[1] < p1[2] ? 1 : 0) + (p2[1] < p2[2] ? 1 : 0)
@@ -1678,8 +1680,8 @@ function getFestgespielt(doc1, doc) {
       return;
     }
     var verein = a[0].href.substr(-7, 2);
-    var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[2].innerHTML;
-    if (stamm == "Ersatz") {
+    var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[2].textContent;
+    if (stamm === "Ersatz") {
       stamm = 0;
     }
 
@@ -1923,7 +1925,7 @@ function makeHeadLine(groupNum, teamNum) {
   }
 
   for (var i = 0; i < td.length; i++) {
-    if (/Stand:/.test(td[i].innerHTML)) {
+    if (/Stand:/.test(td[i].textContent)) {
       var stand = td[i].firstChild;
       stand.setAttribute("class", MOBILE ? "standMobile" : "stand");
       if (MOBILE) {
@@ -1994,12 +1996,14 @@ function parseAnsetzung(doc, ansetzungen) {
   var numAns = 0;
   var div = ansetzungen.body.getElementsByTagName("div");
   for (var j = 0; j < div.length; j++) {
-    var ex = /^(\d+) \/ (\d+)$/.exec(div[j].innerHTML);
+    var text = div[j].textContent;
+    var ex = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
+    log(ex);
     if (ex) {
-      num1 = ex[1];
-      num2 = ex[2];
+      num1 = parseInt(ex[1], 10);
+      num2 = parseInt(ex[2], 10);
     }
-    if (/\d\d.\d\d.\d\d\d\d/.test(div[j].innerHTML)) {
+    if (/\d\d.\d\d.\d\d\d\d/.test(text)) {
       // num1 und num2 sind noch von der letzten Zelle belegt
       ansetzung[numAns++] = {
         t1 : teamObj[num1 - 1].tabellenPlatz,
@@ -2040,7 +2044,7 @@ function makeTabelle() {
   }
 
   var td = BODY.getElementsByTagName("td");
-  var kampflos = false; // erschien "kampflos schon in einer Zelle?"
+  var kampflos = false; // erschien "kampflos" schon in einer Zelle?
   for (var i = 0; i < td.length; i++) {
     if (td[i].width && td[i].width == 30) {
       td[i].width = 40;
@@ -2048,7 +2052,7 @@ function makeTabelle() {
     if (kampflos) {
       td[i].height = 30;
     }
-    kampflos |= /kampflos/.test(td[i].innerHTML);
+    kampflos |= /kampflos/.test(td[i].textContent);
   }
 
   removeParents(DOC, "b");
