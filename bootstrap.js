@@ -445,7 +445,7 @@ function makeHallenbelegung(doc, spiele, hallen) {
         }
         tds[key].textContent = textContent;
       } else {
-        log("miss " + key);
+//      log("miss " + key);
       }
     }
 
@@ -1998,7 +1998,6 @@ function parseAnsetzung(doc, ansetzungen) {
   for (var j = 0; j < div.length; j++) {
     var text = div[j].textContent;
     var ex = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
-    log(ex);
     if (ex) {
       num1 = parseInt(ex[1], 10);
       num2 = parseInt(ex[2], 10);
