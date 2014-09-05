@@ -228,7 +228,7 @@ function makeAufstellung() {
   var title = h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung");
   h2[0].parentNode.replaceChild(create("h1", title, "class", "title"), h2[0]);
   BVBBPP.doc.title = title.replace("(R\u00FCckrunde)", "");
-  var button = makeLoadStatsButton();
+  var button = makeLoadStatsButton(BVBBPP);
   button.setAttribute("style", "margin: auto 320px"); // wie geht's besser?
   h2[0].parentNode.appendChild(button);
 
@@ -714,15 +714,12 @@ function makeCurrentSpieltermine(doc, spiele) {
 /**
  * Get HTML-String to a loadStats button
  */
-function makeLoadStatsButton() {
+function makeLoadStatsButton(bvbbpp) {
   var input = DOC.createElement("input");
   input.type = "button";
   input.id = "loadStats";
   input.value = "Spielerstatistik laden";
-  input.doc = DOC;
-  input.onclick = function() {
-    loadPlayerStats(input.doc);
-  };
+  input.onclick = loadPlayerStats.bind({ bvbbpp: bvbbpp });
   return input;
 }
 
@@ -824,7 +821,7 @@ function makeGegenueberStats() {
     var b = newElement(doc, "b", null, "id", "linkAndType");
     var linkAndType = newParentElement("div", newParentElement("h4", b));
     tr1.appendChild(newParentElement("td", linkAndType, "width", 300));
-    tr1.appendChild(newParentElement("td", makeLoadStatsButton()));
+    tr1.appendChild(newParentElement("td", makeLoadStatsButton(this.bvbbpp)));
     var tbody1 = newParentElement("tbody", tr1);
     var table1 = newParentElement("table", tbody1, "class", "borderless", "style", "border:0");
     h2.appendChild(table1);
@@ -1369,7 +1366,7 @@ function linkToKlasse(klasse, target) {
   return create("a", name, "href", href);
 }
 
-function loadPlayerStats(doc) {
+function loadPlayerStats() {
   function processLink(playerDoc, e) {
     var doc = this.bvbbpp.doc;
     var e = this.element;
@@ -1413,6 +1410,7 @@ function loadPlayerStats(doc) {
   };
 
   try {
+    var doc = this.bvbbpp.doc;
     removeElement(doc.getElementById("loadStats"));
     var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) ||
     /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
@@ -1422,7 +1420,7 @@ function loadPlayerStats(doc) {
     for (var i = 0; i < as.length; i++) {
       var a = as[i];
       if (/spielerstatistik\/P-/.test(a.href)) {
-        getDocument(a.href).then(processLink.bind( { bvbbpp: BVBBPP, element: a } ));
+        getDocument(a.href).then(processLink.bind( { bvbbpp: this.bvbbpp, element: a } ));
       }
     }
     adjustIFrameHeight(doc);
