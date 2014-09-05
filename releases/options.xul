@@ -2,5 +2,4 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 	<setting type="bool" pref="extensions.bvbbpp.useIframe" title="Spielbericht unter Tabelle zeigen" desc="(statt im eigenen Fenster)" />
-	<setting type="bool" pref="extensions.bvbbpp.hideDoodle" title="Doodle-Links verstecken" />
 </vbox>
