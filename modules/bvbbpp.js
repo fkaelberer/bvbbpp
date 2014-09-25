@@ -1728,30 +1728,28 @@ function getFestgespielt(doc1, doc) {
   }
 
   var s = doc.getElementsByTagName("span");
-  var mannschaft = new Array(100);
-  var num = 0;
+  var mannschaft = [];
   for (var i = 0; i < s.length - 2; i++) {
     if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i + 2].innerHTML)) {
       var d = s[i].innerHTML;
       var m = parseInt(s[i + 2].innerHTML, 10);
-      if (num === 0 || mannschaft[num - 1].day !== d || mannschaft[num - 1].mann !== m) {
-        mannschaft[num] = {
+      var len = mannschaft.length;
+      if (len === 0 || mannschaft[len - 1].day !== d || mannschaft[len - 1].mann !== m) {
+        mannschaft.push({
           day: d,
           mann: m
-        };
-        num++;
+        });
       }
     }
   }
-  if (num < 3) {
+  if (mannschaft.length < 3) {
     return [stamm, 0, verein];
   }
-  var ms = new Array(num);
-  for (var i = 0; i < num; i++) {
-    ms[i] = mannschaft[i].mann;
-  }
-  ms.sort();
-  var fest = ms[2];
+  var playedInTeams = mannschaft.map(function(e) {
+    return e.mann;
+  });
+  playedInTeams.sort();
+  var fest = playedInTeams[2];
   if (stamm !== 0 && fest !== 0 && stamm < fest) {
     fest = 0;
   }
