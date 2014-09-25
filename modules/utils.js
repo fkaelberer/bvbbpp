@@ -6,9 +6,9 @@
 "use strict";
 
 var EXPORTED_SYMBOLS = [ "removeElement", "removeElements", "removeParent", "removeParents",
-                         "newParentElement", "clearElement", "newElement", "replaceChildren", 
+                         "newParentElement", "clearElement", "newElement", "replaceChildren",
                          "setElementAttributes", "log", "romanize", "deromanize", "loadDocument",
-                         "getDocument", "twoDigits" ];
+                         "getDocument", "twoDigits", "ttest" ];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -18,12 +18,15 @@ function log(msg) {
   console.logStringMessage("BVBB++: " + msg);
 };
 
+function ttest(num) {
+  return (num < 10 ? "0" : "") + num;
+}
 function twoDigits(num) {
   return (num < 10 ? "0" : "") + num;
 }
 
 function error(e, msg) {
-  var err = e ? "Fehler in utils.jsm, Zeile" + e.lineNumber + ": " + e.message + " " : "";
+  var err = e ? "Fehler in utils.js, Zeile" + e.lineNumber + ": " + e.message + " " : "";
   Components.utils.reportError("BVPP++: " + err + (msg ? msg : ""));
 };
 
@@ -34,13 +37,13 @@ function getDocument(url) {
     req.open('GET', url);
     req.responseType = "document";
     req.overrideMimeType('text/html; charset=iso-8859-1');
-    
+
     req.onload = function() {
       if (req.status === 200) {
         resolve(req.response);
       }
     };
-    
+
     req.onerror = function() {
       reject("Kann Datei " + url + " nicht laden. Antwort ist 'null'.");
     };
@@ -70,7 +73,7 @@ function removeParent(e) {
 /**
  * Remove all elements of the given tag type, but keep their children.
  * @param tag A tag name (string)
- * @param regex A regular expression (applied to innerHTML) to filter the tags (optional).  
+ * @param regex A regular expression (applied to innerHTML) to filter the tags (optional).
  */
 function removeParents(doc, tag, regex) {
   if (!doc) {
@@ -85,7 +88,7 @@ function removeParents(doc, tag, regex) {
 }
 
 /**
- * remove all children of the element and add the ones passed in arguments 2, 3, ... 
+ * remove all children of the element and add the ones passed in arguments 2, 3, ...
  */
 function replaceChildren(e) {
   if (!e || !arguments) {
@@ -187,7 +190,7 @@ function romanize(num) {
   }
   var digits = String(+num).split("");
   var key = [ "", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM", "", "X", "XX", "XXX",
-              "XL", "L", "LX", "LXX", "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII", 
+              "XL", "L", "LX", "LXX", "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII",
               "VIII", "IX" ];
   var roman = "";
   var i = 3;
