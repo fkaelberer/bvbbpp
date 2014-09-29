@@ -21,6 +21,9 @@ var PREFS = [{
 }, {
   name: "hideDoodle",
   def: MOBILE
+}, {
+  name: "hideICS",
+  def: MOBILE
 }];
 
 function run(evt) {
@@ -33,19 +36,20 @@ function run(evt) {
 
 
 var windowListener = {
-  onOpenWindow : function(aWindow) {
+  onOpenWindow: function(aWindow) {
     var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                            .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
     domWindow.addEventListener("DOMContentLoaded", run, false);
   },
-  onCloseWindow : function(aWindow) {
+  onCloseWindow: function(aWindow) {
     var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                            .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
     domWindow.removeEventListener("DOMContentLoaded", run, false);
   },
-  onWindowTitleChange : function(aWindow, aTitle) {
+  onWindowTitleChange: function(aWindow, aTitle) {
   }
 };
+
 
 function startup(aData, aReason) {
   Cu.import("chrome://bvbbpp/content/bvbbpp.js");
@@ -64,6 +68,7 @@ function startup(aData, aReason) {
   wm.addListener(windowListener);
 }
 
+
 function reloadTabs(window) {
   if (window.gBrowser && window.gBrowser.browsers) {
     var num = window.gBrowser.browsers.length;
@@ -76,6 +81,7 @@ function reloadTabs(window) {
     }
   }
 }
+
 
 function shutdown(aData, aReason) {
   // When the application is shutting down we normally don't have to clean
@@ -100,6 +106,7 @@ function shutdown(aData, aReason) {
   }
 }
 
+
 function install(aData, aReason) {
   for (var i = 0; i < PREFS.length; i++) {
     if (!prefManager.getBranch("extensions.bvbbpp.").prefHasUserValue(PREFS[i].name)) {
@@ -107,6 +114,7 @@ function install(aData, aReason) {
     }
   }
 }
+
 
 function uninstall(aData, aReason) {
   shutdown(aData, aReason);
