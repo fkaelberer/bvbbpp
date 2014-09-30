@@ -28,7 +28,8 @@ var PREFS = [{
 
 function run(evt) {
   var doc = evt.target;
-  if (PAGE_TEST.test(doc.URL)) {
+  var URL_test = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
+  if (URL_test.test(doc.URL) && doc.URL.indexOf("view-source:") < 0) {
     var BVBBPP = new Bvbbpp(doc);
     BVBBPP.run();
   }

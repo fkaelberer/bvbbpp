@@ -5,13 +5,7 @@
 //
 "use strict";
 
-var EXPORTED_SYMBOLS = [ "Bvbbpp", "TTEST", "PAGE_TEST" ];
-
-
-
-var PAGE_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
-
-var TTEST = "TEST";
+var EXPORTED_SYMBOLS = [ "Bvbbpp" ];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -35,9 +29,6 @@ var PREFS = [{
   def: MOBILE
 }];
 
-// constants
-var PAGE_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
-var WEB = "http://bvbb.net/fileadmin/user_upload/schuch/meisterschaft/";
 
 var BB = "BB";
 var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
@@ -95,7 +86,7 @@ var BVBBPP;
 
 function Bvbbpp(document) {
   this.URL = document.URL;
-  this.valid = PAGE_TEST.test(this.URL) && this.URL.indexOf("view-source:") < 0;
+  this.valid = true;
   if (!this.valid) {
     return;
   }
@@ -139,13 +130,10 @@ Bvbbpp.prototype = {
     BVBBPP = this;
     DOC = this.doc;
     BODY = DOC.body;
-    if (!this.valid) {
-      return;
-    }
+
     if (!this.body.firstChild || this.doc.getElementById("bvbbBody")) {
       return;
     }
-    WEB = "http://bvbb.net/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
 
     // avoid processing the same file twice (for example, when embedded in an iframe)
     BODY.id = "bvbbBody";
@@ -372,10 +360,10 @@ function makeVerein() {
       if (!/<|\d\d:\d\d|^\w$/.test(HTML)) {
         for (var j = 0; j < vereine.length; j++) {
           var v = vereine[j];
-          var shortName = v.link.firstChild.textContent;
+          var shortName = v.shortName;
           if (text.indexOf(shortName) >= 0) {
             var num = / [IVX]+$/.exec(text)[0];
-            var href = v.link.href;
+            var href = v.href;
             var l = create("a", shortName + num, "href", href, "title", v.name + num);
             replaceChildren(td, l);
             break;
@@ -559,9 +547,9 @@ function parseSpieltermine(doc, vereine) {
     // even table contains the number of the team "x. Mannschaft"
     var teamName = tables[i].textContent.match(/\d+/);
     var verein = vereine.filter( function (v) {
-      return v.link.href.substr(-14) == BVBBPP.URL.substr(-14);
+      return v.href.substr(-14) == BVBBPP.URL.substr(-14);
     } );
-    var shortName = verein[0].link.textContent;
+    var shortName = verein[0].shortName;
     var teamNumber = romanize(teamName);
     teamName = shortName + " " + teamNumber;
 
@@ -1960,33 +1948,32 @@ function makePlayerLinksCallback(playerDoc) {
  * Parse die Seite der Vereine als Objekte mit den Attributen
  *  {
  *    nr: integer,
- *    link: html-<a>-Element,
+ *    href: ,
+ *    shortName: ,
  *    name: String
  *  }
  */
 function parseVereine(vereineURL) {
   return getDocument(vereineURL).then(function(vereineDoc) {
     var td = vereineDoc.getElementsByTagName("td");
-    var vereine = new Array(100); // max 100 vereine, sonst auf drei ziffern testen
-    var numSets = 0;
+    var vereine; vereine = []; // eclipse compiler is confused if arrays are initialized immediately
     for (var i = 0; i < td.length; i++) {
       var textContent = td[i].textContent;
       if (/^\d{2,3}$/.test(textContent)) {
-        var l = td[i + 1].getElementsByTagName("a")[0];
-        l.href = "http://bvbb.net/" + l.href.substring(l.href.lastIndexOf("fileadmin"));
-        vereine[numSets] = {
-          nr : parseInt(textContent, 10),
-          link : l,
-          name : td[i + 2].textContent
-        };
-        numSets++;
+        var a = td[i + 1].getElementsByTagName("a")[0];
+        vereine.push({
+          nr: parseInt(textContent, 10),
+          href: "http://bvbb.net/" + a.href.substring(a.href.lastIndexOf("fileadmin")),
+          shortName: a.textContent,
+          name: td[i + 2].textContent
+        });
       }
     }
     vereine = vereine.filter(function(e) {
       return e;
     });
-    vereine.sort(function(a, b) {
-      return a.name != b.name ? a.name < b.name ? -1 : 1 : 0;
+    vereine.sort(function(v, w) {
+      return v.name != w.name ? v.name < w.name ? -1 : 1 : 0;
     });
     return vereine;
   });
