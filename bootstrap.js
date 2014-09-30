@@ -12,24 +12,11 @@ var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPref
 var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS
              .toLowerCase().indexOf("android") >= 0;
 
-
-//preferences and defaults
-//TODO: de-duplicate prefs
-var PREFS = [{
-  name: "useIframe",
-  def: true
-}, {
-  name: "hideDoodle",
-  def: MOBILE
-}, {
-  name: "hideICS",
-  def: MOBILE
-}];
+var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
 
 function run(evt) {
   var doc = evt.target;
-  var URL_test = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
-  if (URL_test.test(doc.URL) && doc.URL.indexOf("view-source:") < 0) {
+  if (URL_TEST.test(doc.URL) && doc.URL.indexOf("view-source:") < 0) {
     var BVBBPP = new Bvbbpp(doc);
     BVBBPP.run();
   }
@@ -76,7 +63,7 @@ function reloadTabs(window) {
     for (var i = 0; i < num; i++) {
       var tab = window.gBrowser.getBrowserAtIndex(i);
       var uri = tab.currentURI.spec;
-      if (PAGE_TEST.test(uri)) {
+      if (URL_TEST.test(uri)) {
         tab.reload();
       }
     }
@@ -108,6 +95,7 @@ function shutdown(aData, aReason) {
 
 
 function install(aData, aReason) {
+  Cu.import("chrome://bvbbpp/content/bvbbpp.js");
   for (var i = 0; i < PREFS.length; i++) {
     if (!prefManager.getBranch("extensions.bvbbpp.").prefHasUserValue(PREFS[i].name)) {
       prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
@@ -117,8 +105,8 @@ function install(aData, aReason) {
 
 
 function uninstall(aData, aReason) {
-  shutdown(aData, aReason);
   for (var i = 0; i < PREFS.length; i++) {
     prefManager.getBranch("extensions.bvbbpp.").clearUserPref(PREFS[i].name);
   }
+  shutdown(aData, aReason);
 }
