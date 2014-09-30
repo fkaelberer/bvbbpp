@@ -1993,24 +1993,25 @@ function parseVereine(vereineURL) {
 }
 
 function fillMenuWithTeams(vereine) {
-  var doc = this.bvbbpp.doc;
+  var bvbbpp = this.bvbbpp;
+  var doc = bvbbpp.doc;
   // Fill menu with the loaded team list.
   for (var i = 0; i < vereine.length; i++) {
-    var ver = vereine[i];
-    if (!ver) {
+    var verein = vereine[i];
+    if (!verein) {
       continue;
     }
-    var a = newElement(doc, "a", ver.name, "href",
-                       this.bvbbpp.webAufstellung + "aufstellung-" + twoDigits(ver.nr) + ".HTML");
+    var a = newElement(doc, "a", verein.name, "href",
+                       bvbbpp.webAufstellung + "aufstellung-" + twoDigits(verein.nr) + ".HTML");
     this.ulAuf.appendChild(newParentElement("li", a));
-    if (ver.nr == this.teamNum) {
+    if (verein.nr == this.teamNum) {
       a.setAttribute("class", "selected");
     }
 
-    a = newElement(doc, "a", ver.name, "href",
-                   this.bvbbpp.webSpielberichteVereine + "verein-" + twoDigits(ver.nr) + ".HTML");
+    a = newElement(doc, "a", verein.name, "href",
+                   bvbbpp.webSpielberichteVereine + "verein-" + twoDigits(verein.nr) + ".HTML");
     this.ulSpi.appendChild(newParentElement("li", a));
-    if (ver.nr == this.teamNum) {
+    if (verein.nr == this.teamNum) {
       a.setAttribute("class", "selected");
     }
   }
@@ -2331,7 +2332,7 @@ function insertAnsetzungen(spiele, doc) {
     var vorbei = spiele.filter(function(spiel) {
       return gespielt[spiel.t1][spiel.t2] && gespielt[spiel.t1][spiel.t2] !== -1;
     });
-    var numLines = 4;
+    var numLines = 5;
 
     var tbody = create("tbody");
 
@@ -2382,9 +2383,8 @@ function insertAnsetzungen(spiele, doc) {
     for (i = 0; i < numLines; i++) {
       tbody.appendChild(tr[i]);
     }
-    doc.getElementById("centerstyle")
-    .insertBefore(newParentElement("p", table),
-                  doc.body.getElementsByTagName("table")[0].parentNode);
+    var first = doc.body.getElementsByTagName("table")[0];
+    doc.getElementById("centerstyle").insertBefore(newParentElement("p", table), first.parentNode);
   }
 }
 

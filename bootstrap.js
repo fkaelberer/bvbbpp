@@ -84,8 +84,7 @@ function reloadTabs(window) {
 
 
 function shutdown(aData, aReason) {
-  // When the application is shutting down we normally don't have to clean
-  // up any UI changes made
+  // When the application is shutting down we normally don't have to clean up any UI changes made
   if (aReason === APP_SHUTDOWN) {
     return;
   }
@@ -101,9 +100,9 @@ function shutdown(aData, aReason) {
   // Stop listening for new windows
   wm.removeListener(windowListener);
 
-  if (aReason === ADDON_DISABLE) { // somehow throws exceptions upon uninstall.
-    Cu.unload("chrome://bvbbpp/content/bvbbpp.js");
-  }
+  var baseUrl = aData.resourceURI.spec;
+  Cu.unload(baseUrl + "/content/bvbbpp.js");
+  Cu.unload(baseUrl + "/content/utils.js");
 }
 
 
