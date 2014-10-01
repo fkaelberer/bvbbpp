@@ -625,7 +625,7 @@ function makeDoodleLinks(doc, spiele) {
     }
     href += "&description=" + description;
     var a = newElement(doc, "a", null, "href", href, "target", "_blank");
-    a.title = "Eine neue Umfrage mit diesen Terminen und Spielst\u00E4tten bei Doodle.com erstellen";
+    a.title = "Eine neue Umfrage mit diesen Terminen bei Doodle.com erstellen";
     a.appendChild(newElement(doc, "span", "Eine ", "style", "font-weight: 400"));
     a.appendChild(newElement(doc, "span", "Doodle", "style", "font-weight: 600"));
     a.appendChild(newElement(doc, "span", "-Umfrage mit diesen Terminen erstellen",
@@ -768,7 +768,7 @@ function makeICalendar(doc, spiele) {
     var removal = newElement(doc, "b", " X ",
                              "style", "color: #C00; font-size: 8pt; cursor: pointer");
 
-    removal.title = "Ich brauche keine iCal-Datei (mehr)";
+    removal.title = "Ich brauche keine Kalenderdateien (mehr)";
     removal.onclick = function() {
       setPref("hideICS", true);
       var link = null;
@@ -1148,8 +1148,7 @@ function loadSpielbericht(url) {
       var spiele = new Array(8);
       for (var i = 0; i < tr.length; i++) {
         var td = tr[i].getElementsByTagName("td");
-        var typ = />(.{2}|.{4})<\/div>/.exec(td[0].innerHTML);
-
+        
         var bheim = td[1].getElementsByTagName("b");
         var bgast = td[3].getElementsByTagName("b");
         var invalid = /Mannschaft|hat|verloren/;
@@ -1165,7 +1164,6 @@ function loadSpielbericht(url) {
                                     : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
         var gegnerNode = validGast ? td[3].cloneNode(true)
                                    : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
-        log("gegner: " + gegner);
         var p1 = /^(\d\d) : (\d\d)/.exec(td[5].textContent);
         var p2 = /^(\d\d) : (\d\d)/.exec(td[6].textContent);
         var p3 = /^(\d\d) : (\d\d)/.exec(td[7].textContent);
@@ -1174,7 +1172,7 @@ function loadSpielbericht(url) {
         var gSaetze = (p1[1] < p1[2] ? 1 : 0) + (p2[1] < p2[2] ? 1 : 0)
             + (p3 ? (p3[1] < p3[2] ? 1 : 0) : 0);
         spiele[i] = {
-          type : typ[1],
+          type : ["1.HD", "DD", "2.HD", "DE", "GD", "1.HE", "2.HE", "3.HE"][i],
           typeNum : i,
           spielerNodes : [ spielerNode, gegnerNode ],
           spieler1 : [ spieler[0], gegner[0] ],
@@ -1189,11 +1187,11 @@ function loadSpielbericht(url) {
       tr = doc.body.getElementsByTagName("tr");
       var lastTr = tr[tr.length - 1].getElementsByTagName("td");
       if (!(lastTr[6] && lastTr[4] && lastTr[2])) {
-        log("undef: " + doc.url);
+      	// log("undef: " + url);
       } else {
-        var spielErgebnisText = lastTr[6].textContent;
-        var satzErgebnisText = lastTr[4].textContent;
-        var punktErgebnisText = lastTr[2].textContent;
+      var spielErgebnisText = lastTr[6].textContent;
+      var satzErgebnisText = lastTr[4].textContent;
+      var punktErgebnisText = lastTr[2].textContent;
       }
 
       var bericht = {
