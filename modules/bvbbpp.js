@@ -6,6 +6,16 @@
 "use strict";
 
 var EXPORTED_SYMBOLS = [ "Bvbbpp", "PREFS" ];
+var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACS0l" +
+    "EQVR42q2TS2gTURSGO4mZvBNJyDu4KQhdhIS6sEbBWpRusywuXLhTNwqV2p0KRSjdiBs3iopLcavdhChYW0F8Ia4l7" +
+    "xfk1cyQSTJ+N0RJumrBgcM957/n/vec/56RZg58iUTiG8tcuVw+VywWP03gv1n8hUJhvlKp/PqLSw6HQ45Go6uyLJ9" +
+    "pt9sbbrf7DfjxVquVYu8yvgP8Dvh3cQB8EXy11+t9zOfzW1IsFntiNBqvik0SU06n85kgOOBfwE+LC/EX8TMifzAYP" +
+    "JUoTcG3CKDf798bDodtbBbSlyaT6T2wEfwWmBPzg78GT487UAWBPiHBgKRtXddbJC6Jnse4Bv4WXAG/SOz5p4EgYHN" +
+    "HUZSdmSN8Vqs1aTAYkiMCVF1CnD2bzRZjr0v8gwQjvc4T6+x9VlVV9/v9CWJzt9v9ipDJYDCYHhGUSiUhzLLdbl8XB" +
+    "3K53BwEp71e73NxW61WS6F6KRwO747FXsP2iDOTBCkIbooEnicBwYLH43k8JlgZE4zU73Q6d6kqM0WAQA1IVlj3GaB" +
+    "Ns9nso4Lr5A8heMhLKIFA4LYkSTKHRWXBKQLsHcPihkAjoStuInSKlprNZkfELpfLDsEx4iZ6nJ8iQJSz2AZ5PTQ4S" +
+    "QunqOCVOFitVi/RQiUSiXwRc0H/N7Cf/02DATcs86YSJYqe97PZ7DWLxXLC5/PdFxrwY61pmtbmn3lELDcajS1atdH" +
+    "GthSPxz8QqPV6/QGzrR1miJhGE+2to4dFgmU2FAq9IFhgz3DIQRxy6S6tX/kDUgliRvSSn2IAAAAASUVORK5CYII=";
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -646,9 +656,6 @@ function parseSpieltermine(doc, vereine) {
 function makeDoodleLinks(doc, spiele) {
   var tables = doc.getElementsByTagName("table");
   for (var i = 0; i < tables.length; i += 2) {
-    var table = tables[i+1]; // odd tables contain dates;
-    var h5 = newElement(doc, "h5", null, "style", "width: 580px; margin: auto; text-align: right",
-                        "id","doodle-link" + (i / 2));
     var href = "http://doodle.com/create?";
     href += "locale=de";
     href += "&type=text";
@@ -675,34 +682,14 @@ function makeDoodleLinks(doc, spiele) {
         description += encodeURIComponent(descr);
       }
     }
+    var doodleStyle = "font-weight: 800; font-size: 14pt; text-align: center;" +
+                      "font-family: arial,'sans serif'; color: #006DDE;" +
+                      "text-shadow: 1px 1px 1px #DDD";
     href += "&description=" + description;
-    var a = newElement(doc, "a", null, "href", href, "target", "_blank");
-    a.title = "Eine neue Umfrage mit diesen Terminen bei Doodle.com erstellen";
-    a.appendChild(newElement(doc, "span", "Eine ", "style", "font-weight: 400"));
-    a.appendChild(newElement(doc, "span", "Doodle", "style", "font-weight: 600"));
-    a.appendChild(newElement(doc, "span", "-Umfrage mit diesen Terminen erstellen",
-                             "style", "font-weight: 400"));
-    h5.appendChild(a);
-    var removal = newElement(doc, "b", " X ",
-                             "style", "color: #C00; font-size: 8pt; cursor: pointer");
-    removal.title = "Ich brauche Doodle nicht (mehr)";
-    removal.onclick = function() {
-      setPref("hideDoodle", true);
-      var link = null;
-      var doc = this.bvbbpp.doc;
-      if (doc) {
-        for (var i = 0; (link = doc.getElementById("doodle-link" + i)); i++) {
-          clearElement(link);
-          if (i === this.index) {
-            var hint = "Zum wiederherstellen: Neuinstallation von BVBB++ oder Men\u00FC" +
-                       "\u2192Einstellungen\u2192Extras\u2192BVBB++\u2192Einstellungen.";
-            link.appendChild(newElement(doc, "span", hint, "style", "font-weight: 400"));
-          }
-        }
-      }
-    }.bind({ index: (i / 2), bvbbpp: this.bvbbpp });
-    h5.appendChild(removal);
-    table.parentNode.appendChild(h5, table.nextSibling);
+    var a = newElement(doc, "a", null, "href", href, "target", "_blank", "class", "icon");
+    a.title = "Eine Umfrage mit diesen Terminen bei Doodle.com erstellen";
+    a.appendChild(newElement(doc, "span", "d", "style", doodleStyle));
+    getIconBar(i / 2, tables[i+1], doc).appendChild(a);
   }
 }
 
@@ -772,16 +759,20 @@ ICal.prototype = {
   }
 };
 
+function getIconBar(i, table, doc) {
+  var h5 = doc.getElementById("iconBar" + i);
+  if (!h5) {
+    h5 = newElement(doc, "h5", null, "style", "width: 600px; margin: auto; text-align: right",
+                    "id", "iconBar" + i);
+    table.parentNode.appendChild(h5, table.nextSibling);
+  }
+  return h5;
+}
 
 function makeICalendar(doc, spiele) {
   var tables = doc.getElementsByTagName("table");
   for (var i = 0; i < tables.length; i += 2) {
-    var table = tables[i+1]; // odd tables contain dates;
-
     var iCal = new ICal();
-
-    var h5 = newElement(doc, "h5", null, "style", "width: 580px; margin: auto; text-align: right",
-                        "id","iCalendar-link" + (i / 2));
 
     var homeTeam = "";
     for (var j = 0; j < spiele.length; j++) {
@@ -809,35 +800,13 @@ function makeICalendar(doc, spiele) {
     }
 
     var href = "data:text/calendar;charset=utf-8," + encodeURIComponent(iCal.toString());
-    var a = newElement(doc, "a", null, "href", href, "target", "_blank");
-    a.download = "Spieltermine " + homeTeam + ".ics";
-    a.title = "Diese Termine f\u00FCr den Import in z. B. Outlook, Thunderbird/Lightning, Google- oder Apple-Kalender herunterladen";
-    a.appendChild(newElement(doc, "span", "Diese Termine als ", "style", "font-weight: 400"));
-    a.appendChild(newElement(doc, "span", ".ics", "style", "font-weight: 600"));
-    a.appendChild(newElement(doc, "span", "-Datei herunterladen",
-                             "style", "font-weight: 400"));
-    h5.appendChild(a);
-    var removal = newElement(doc, "b", " X ",
-                             "style", "color: #C00; font-size: 8pt; cursor: pointer");
+    var a = newElement(doc, "a", null, "href", href, "target", "_blank", "class", "icon",
+                       "download", "Spieltermine " + homeTeam + ".ics",
+                       "title", "Termine als .ics-Datei f\u00FCr Outlook, Thunderbird/Lightning, " +
+                                "Google- oder Apple-Kalender herunterladen");
+    a.appendChild(newElement(doc, "img", "c", "style", "margin-top: 2px", "src", CALENDAR_ICON));
 
-    removal.title = "Ich brauche keine Kalenderdateien (mehr)";
-    removal.onclick = function() {
-      setPref("hideICS", true);
-      var link = null;
-      var doc = this.bvbbpp.doc;
-      if (doc) {
-        for (var i = 0; (link = doc.getElementById("iCalendar-link" + i)); i++) {
-          clearElement(link);
-          if (i === this.index) {
-            var hint = "Zum wiederherstellen: Neuinstallation von BVBB++ oder Men\u00FC" +
-            "\u2192Einstellungen\u2192Extras\u2192BVBB++\u2192Einstellungen.";
-            link.appendChild(newElement(doc, "span", hint, "style", "font-weight: 400"));
-          }
-        }
-      }
-    }.bind({ index: (i / 2), bvbbpp: this.bvbbpp });
-    h5.appendChild(removal);
-    table.parentNode.appendChild(h5, table.nextSibling);
+    getIconBar(i / 2, tables[i+1], doc).appendChild(a);
   }
 }
 
@@ -1239,7 +1208,7 @@ function loadSpielbericht(url) {
       tr = doc.body.getElementsByTagName("tr");
       var lastTr = tr[tr.length - 1].getElementsByTagName("td");
       if (!(lastTr[6] && lastTr[4] && lastTr[2])) {
-      	// log("undef: " + url);
+        // log("undef: " + url);
       } else {
       var spielErgebnisText = lastTr[6].textContent;
       var satzErgebnisText = lastTr[4].textContent;
