@@ -13,7 +13,9 @@ var Cu = Components.utils;
 
 Cu.import("chrome://bvbbpp/content/utils.js");
 
-var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService);
+var prefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
+                 .getBranch("extensions.bvbbpp.");
+
 var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS
              .toLowerCase().indexOf("android") >= 0;
 
@@ -243,21 +245,19 @@ function errorMsg(e, msg) {
  */
 function getPref(name) {
   if (!name) {
-    return false;
+    return null;
   }
   try {
-    return prefManager.getBranch("extensions.bvbbpp.").getBoolPref(name);
+    return prefBranch.getBoolPref(name);
   } catch (err) {
-    Cu.reportError(errorMsg(err, "Kann Einstellung \"" + name +
-                                 "\" nicht lesen. Benutze Standardeinstellung."));
   }
   for (var i = 0; i < PREFS.length; i++) {
     if (name == PREFS[i].name) {
-      prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
+      prefBranch.setBoolPref(PREFS[i].name, PREFS[i].def);
       return PREFS[i].def;
     }
   }
-  return false;
+  return null;
 }
 
 function setPref(name, value) {
@@ -265,7 +265,7 @@ function setPref(name, value) {
     return false;
   }
   try {
-    prefManager.getBranch("extensions.bvbbpp.").setBoolPref(name, value);
+    prefBranch.setBoolPref(name, value);
   } catch (err) {
     Cu.reportError(errorMsg(err, "Kann Einstellung \"" + name + "\" nicht aendern."));
   }
@@ -309,9 +309,58 @@ function makeAufstellung() {
   }
 }
 
+function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
+  var OFF = "#fffff5";
+  var ON =  "#ffff00";
+  var OFF_SHADOW = "0px 1px 4px rgba(0, 0, 0, 0.3)";
+  var ON_SHADOW =  "0px 1px 4px rgba(0, 0, 0, 0.3), #000 0px 0px 0px";
+
+
+  function toggle() {
+    if (getPref(this.storage + this.num)) {
+      setPref(this.storage + this.num, false);
+      this.node.style.color = OFF;
+      this.node.style.textShadow = OFF_SHADOW;
+      log("Turn off");
+    } else {
+      setPref(this.storage + this.num, true);
+      this.node.style.color = ON;
+      this.node.style.textShadow = ON_SHADOW;
+      log("Turn on");
+    }
+  }
+
+  var doc = bvbbpp.doc;
+  if ((groupNum < 0) === (teamNum < 0)) {
+    return null;
+  }
+
+  var star = newElement(doc,
+                        "b", "\u2605",
+                        "id", "favorite",
+                        "title", "Diesen Verein zu Favoriten hinzufuegen");
+  star.style.fontWeight = 600;
+  star.style.cursor = "pointer";
+  star.style.verticalAlign = "4pt";
+  star.style.textOutline = "1pt";
+
+  if (teamNum >= 0) {
+    star.onclick = toggle.bind({ node: star, num: teamNum, storage: "verein" });
+    star.style.color = getPref("verein" + teamNum) ? ON : OFF;
+    star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
+  }
+  if (groupNum >= 0) {
+    star.onclick = toggle.bind({ node: star, num: groupNum, storage: "gruppe" });
+    star.style.color = getPref("gruppe" + teamNum) ? ON : OFF;
+    star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
+  }
+  return star;
+}
+
 // Spieltermine
 function makeVerein() {
-  makeHeadLine(-1, parseInt(BVBBPP.URL.substr(-7, 2), 10));
+  var teamNum = parseInt(BVBBPP.URL.substr(-7, 2), 10);
+  makeHeadLine(-1, teamNum);
 
   var dueText = "Eventuell spielt der Verein in der Saison " + BVBBPP.season.name + " nicht.";
   var futureText = "Eventuell ist diese Webseite f\u00FCr die Saison " +
@@ -324,7 +373,10 @@ function makeVerein() {
   if (h2[0]) {
     var title = "Spieltermine " + h2[0].getElementsByTagName("b")[0].textContent;
     BVBBPP.doc.title = title.replace("Spieltermine", "Termine");
-    h2[0].parentNode.replaceChild(create("h1", title, "class", "title"), h2[0]);
+    var titleNode = create("h1", title, "class", "title");
+    h2[0].parentNode.replaceChild(titleNode, h2[0]);
+    var favoriteStar = makeFavoriteStar(BVBBPP, -1, teamNum);
+    titleNode.appendChild(favoriteStar);
   }
 
   var span = BODY.getElementsByTagName("span");
@@ -1148,7 +1200,7 @@ function loadSpielbericht(url) {
       var spiele = new Array(8);
       for (var i = 0; i < tr.length; i++) {
         var td = tr[i].getElementsByTagName("td");
-        
+
         var bheim = td[1].getElementsByTagName("b");
         var bgast = td[3].getElementsByTagName("b");
         var invalid = /Mannschaft|hat|verloren/;
@@ -2241,136 +2293,154 @@ function makeTabelle() {
   getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
 }
 
-function parseAnsetzungAndInsert(ansetzungen) {
-  var spiele = parseAnsetzungen(this.bvbbpp.doc, ansetzungen);
-  insertAnsetzungen(spiele, this.bvbbpp.doc);
+function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
+  var verein = new Array(10);
+  var gespielt = [ new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
+                   new Array(10), new Array(10), new Array(10), new Array(10), new Array(10) ];
+  var tr = doc.body.getElementsByTagName("tr");
+  var i, td, date;
+  for (i = 0; i < tr.length - 2; i++) {
+    td = tr[i + 2].getElementsByTagName("td");
+    verein[i] = td[1].textContent;
+    for (var j = 0; j < td.length - 6 - 1; j++) {
+      var cell = td[j + 6];
+      var div = cell.getElementsByTagName("div")[0];
+      // faellt aus oder beide gespielt
+      if (cell.getAttribute("bgcolor") === ORANGE.css) {
+        gespielt[i][j] = -1;
+        continue;
+      }
+      if (/\d : \d.*\d : \d/.test(div.innerHTML)) {
+        gespielt[i][j] = cell.getElementsByTagName("a")[0] || cell.getElementsByTagName("font")[0];
+        continue;
+      }
+
+      var br = div.appendChild(create("br"));
+
+      if (cell.getAttribute("valign") === "top" ||
+          /0 : 8\s*<br>|8 : 0\s*<br>/.test(div.innerHTML)) {
+        // Heimspiel gewesen
+        gespielt[i][j] = cell.getElementsByTagName("a")[0] || cell.getElementsByTagName("font")[0];
+        date = dateFromSpiele(spiele, j, i);
+        if (date) {
+          removeParents(div, "br");
+          div.appendChild(br);
+          div.appendChild(date);
+        }
+        continue;
+      }
+      if (cell.getAttribute("valign") === "bottom" ||
+          /<br><font color="#FF6600"/.test(div.innerHTML)) {
+        // auswaerts gewesen
+        date = dateFromSpiele(spiele, i, j);
+        if (date) {
+          removeParents(div, "br");
+          div.insertBefore(br, div.firstChild);
+          div.insertBefore(date, div.firstChild);
+        }
+        continue;
+      }
+      // nix gewesen
+      var hDate = dateFromSpiele(spiele, i, j);
+      var aDate = dateFromSpiele(spiele, j, i);
+      replaceChildren(div, hDate, br, aDate);
+    }
+  }
+
+  spiele = spiele.sort(function(spiel1, spiel2) {
+    return spiel1.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel1.time >
+           spiel2.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel2.time;
+  });
+
+  var bald = spiele.filter(function(spiel) {
+    return !gespielt[spiel.t1][spiel.t2];
+  });
+
+  var vorbei = spiele.filter(function(spiel) {
+    return gespielt[spiel.t1][spiel.t2] && gespielt[spiel.t1][spiel.t2] !== -1;
+  });
+
+  return {
+    bald: bald,
+    vorbei: vorbei,
+    gespielt: gespielt,
+    verein: verein
+  };
 }
 
-function insertAnsetzungen(spiele, doc) {
-  if (spiele) {
-    var verein = new Array(10);
-    var gespielt = [ new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
-                     new Array(10), new Array(10), new Array(10), new Array(10), new Array(10) ];
-    var tr = doc.body.getElementsByTagName("tr");
-    var i, td, date;
-    for (i = 0; i < tr.length - 2; i++) {
-      td = tr[i + 2].getElementsByTagName("td");
-      verein[i] = td[1].textContent;
-      for (var j = 0; j < td.length - 6 - 1; j++) {
-        var cell = td[j + 6];
-        var div = cell.getElementsByTagName("div")[0];
-        if (cell.getAttribute("bgcolor") === ORANGE.css || /\d : \d.*\d : \d/.test(div.innerHTML)) {
-          // faellt aus oder beide gespielt
-          if (cell.getAttribute("bgcolor") === ORANGE.css) {
-            gespielt[i][j] = -1;
-            continue;
-          }
-          var a = cell.getElementsByTagName("a")[0];
-          if (a) {
-            gespielt[i][j] = a;
-          } else {
-            gespielt[i][j] = cell.getElementsByTagName("font")[0];
-          }
-          continue;
-        }
+function filterCurrentSpiele(currentSpiele) {
+  currentSpiele.vorbei = currentSpiele.vorbei.slice(-5, currentSpiele.vorbei.length);
+  currentSpiele.bald = currentSpiele.bald.slice(0, 5);
+}
 
-        var br = div.appendChild(create("br"));
+function parseAnsetzungAndInsert(ansetzungen) {
+  var doc = this.bvbbpp.doc;
+  var spiele = parseAnsetzungen(doc, ansetzungen);
+  var currentSpiele = getCurrentSpiele(doc, spiele, 5);
+  filterCurrentSpiele(currentSpiele);
+  insertAnsetzungen(doc, currentSpiele);
+}
 
-        if (cell.getAttribute("valign") === "top"
-          || /0 : 8\s*<br>|8 : 0\s*<br>/.test(div.innerHTML)) {
-          // Heimspiel gewesen
-          gespielt[i][j] = cell.getElementsByTagName("a")[0];
-          if (!gespielt[i][j])
-            gespielt[i][j] = cell.getElementsByTagName("font")[0];
-          date = dateFromSpiele(spiele, j, i);
-          if (date) {
-            removeParents(div, "br");
-            div.appendChild(br);
-            div.appendChild(date);
-          }
-          continue;
-        }
-        if (cell.getAttribute("valign") === "bottom"
-          || /<br><font color="#FF6600"/.test(div.innerHTML)) {
-          // auswaerts gewesen
-          date = dateFromSpiele(spiele, i, j);
-          if (date) {
-            removeParents(div, "br");
-            div.insertBefore(br, div.firstChild);
-            div.insertBefore(date, div.firstChild);
-          }
-          continue;
-        }
-        // nix gewesen
-        var hDate = dateFromSpiele(spiele, i, j);
-        var aDate = dateFromSpiele(spiele, j, i);
-        replaceChildren(div, hDate, br, aDate);
-      }
-    }
-    spiele = spiele.sort(function(spiel1, spiel2) {
-      return spiel1.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel1.time >
-             spiel2.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel2.time;
-    });
-    var bald = spiele.filter(function(spiel) {
-      return !gespielt[spiel.t1][spiel.t2];
-    });
-    var vorbei = spiele.filter(function(spiel) {
-      return gespielt[spiel.t1][spiel.t2] && gespielt[spiel.t1][spiel.t2] !== -1;
-    });
-    var numLines = 5;
 
-    var tbody = create("tbody");
 
-    var head = create("td", "Aktuelle Termine (laut Ansetzung)", "colspan", 2,
-                      "style", "font-size: 11pt; font-weight: bold", "class", DARK_YELLOW.bg);
+function insertAnsetzungen(doc, currentSpiele) {
+  var bald = currentSpiele.bald;
+  var vorbei = currentSpiele.vorbei;
+  var gespielt = currentSpiele.gespielt;
+  var verein = currentSpiele.verein;
 
-    tr = newParentElement("tr", head);
-    tbody.appendChild(tr);
-    tr = create("tr", null, "class", DARK_YELLOW.bg);
-    tr.appendChild(create("td", "K\u00FCrzlich", "style", "font-size: 9pt; font-weight: bold"));
-    tr.appendChild(create("td", "Demn\u00E4chst", "style", "font-size: 9pt; font-weight: bold"));
-    tbody.appendChild(tr);
+  var numLines = Math.max(bald.length, vorbei.length);
 
-    // array of new lines
-    tr = new Array(numLines);
-    for (i = 0; i < numLines; i++) {
-      tr[i] = create("tr", null);
-    }
+  var tbody = create("tbody");
 
-    var link, s, td1, td2;
-    // kuerzlich
-    for (i = Math.max(0, vorbei.length - numLines); i < vorbei.length; i++) {
-      s = vorbei[i];
-      link = gespielt[s.t1][s.t2].cloneNode(true);
-      td1 = create("td", null, "style", "padding-right: 20; padding-bottom: 0");
-      link.textContent = link.textContent.replace(/\s+$/, "");
-      td1.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
-      td1.appendChild(create("b", verein[s.t1]));
-      td1.appendChild(doc.createTextNode(" spielt "));
-      td1.appendChild(link);
-      td1.appendChild(doc.createTextNode(" gegen "));
-      td1.appendChild(create("b", verein[s.t2]));
-      tr[i - Math.max(0, vorbei.length - numLines)].appendChild(td1);
-    }
+  var head = create("td", "Aktuelle Termine (laut Ansetzung)", "colspan", 2,
+                    "style", "font-size: 11pt; font-weight: bold", "class", DARK_YELLOW.bg);
 
-    // demnaechst
-    for (i = 0; i < Math.min(numLines, bald.length); i++) {
-      s = bald[i];
-      td2 = create("td", null, "style", "padding-right: 10; padding-bottom: 0");
-      td2.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
-      td2.appendChild(create("b", verein[s.t1]));
-      td2.appendChild(doc.createTextNode(" empf\u00E4ngt "));
-      td2.appendChild(create("b", verein[s.t2]));
-      td2.appendChild(create("br"));
-      tr[i].appendChild(td2);
-    }
-    var table = newParentElement("table", tbody, "cellpadding", 4, "class", "borderless");
-    for (i = 0; i < numLines; i++) {
-      tbody.appendChild(tr[i]);
-    }
-    var first = doc.body.getElementsByTagName("table")[0];
-    doc.getElementById("centerstyle").insertBefore(newParentElement("p", table), first.parentNode);
+  tbody.appendChild(newParentElement("tr", head));
+  var tr = create("tr", null, "class", DARK_YELLOW.bg);
+  tbody.appendChild(tr);
+  tr.appendChild(create("td", "K\u00FCrzlich", "style", "font-size: 9pt; font-weight: bold"));
+  tr.appendChild(create("td", "Demn\u00E4chst", "style", "font-size: 9pt; font-weight: bold"));
+
+  // array of new lines
+  tr = new Array(numLines);
+  for (var i = 0; i < numLines; i++) {
+    tr[i] = create("tr", null);
   }
+
+  var s, td;
+  // kuerzlich
+  for (i = Math.max(0, vorbei.length - numLines); i < vorbei.length; i++) {
+    s = vorbei[i];
+    var link = gespielt[s.t1][s.t2].cloneNode(true);
+    td = create("td", null, "style", "padding-right: 20; padding-bottom: 0");
+    link.textContent = link.textContent.replace(/\s+$/, "");
+    td.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
+    td.appendChild(create("b", verein[s.t1]));
+    td.appendChild(doc.createTextNode(" spielt "));
+    td.appendChild(link);
+    td.appendChild(doc.createTextNode(" gegen "));
+    td.appendChild(create("b", verein[s.t2]));
+    tr[i - Math.max(0, vorbei.length - numLines)].appendChild(td);
+  }
+
+  // demnaechst
+  for (i = 0; i < Math.min(numLines, bald.length); i++) {
+    s = bald[i];
+    td = create("td", null, "style", "padding-right: 10; padding-bottom: 0");
+    td.appendChild(doc.createTextNode(s.date.replace(/.20/, ".") + ": "));
+    td.appendChild(create("b", verein[s.t1]));
+    td.appendChild(doc.createTextNode(" empf\u00E4ngt "));
+    td.appendChild(create("b", verein[s.t2]));
+    td.appendChild(create("br"));
+    tr[i].appendChild(td);
+  }
+  var table = newParentElement("table", tbody, "cellpadding", 4, "class", "borderless");
+  for (i = 0; i < numLines; i++) {
+    tbody.appendChild(tr[i]);
+  }
+  var first = doc.body.getElementsByTagName("table")[0];
+  doc.getElementById("centerstyle").insertBefore(newParentElement("p", table), first.parentNode);
 }
 
 function dateFromSpiele(spiele, i, j) {
@@ -2385,7 +2455,7 @@ function dateFromSpiele(spiele, i, j) {
 }
 
 /**
- * Change colors, set Stylesheet,
+ * Change colors, set style sheet,
  */
 function makeStyle() {
   // center page
@@ -2428,15 +2498,6 @@ function makeStyle() {
   link.href = "chrome://bvbbpp/skin/skin.css";
   DOC.head.appendChild(link);
 
-  if (!MOBILE) {
-    link = DOC.createElement("link");
-    link.id = "fonts";
-    link.media = "all";
-    link.type = "text/css";
-    link.rel = "stylesheet";
-    link.href = "http://fonts.googleapis.com/css?family=Open+Sans:400,600|subset=latin";
-    DOC.head.appendChild(link);
-  }
   var icon = DOC.createElement("link");
   icon.id = "icon";
   icon.rel = "shortcut icon";
