@@ -8,7 +8,9 @@
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var Cu = Components.utils;
-var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService);
+var prefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
+                 .getBranch("extensions.bvbbpp.");
+
 var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS
              .toLowerCase().indexOf("android") >= 0;
 
@@ -95,18 +97,19 @@ function shutdown(aData, aReason) {
 
 
 function install(aData, aReason) {
-  Cu.import("chrome://bvbbpp/content/bvbbpp.js");
-  for (var i = 0; i < PREFS.length; i++) {
-    if (!prefManager.getBranch("extensions.bvbbpp.").prefHasUserValue(PREFS[i].name)) {
-      prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
-    }
-  }
+//  Cu.import("chrome://bvbbpp/content/bvbbpp.js");
+//  for (var i = 0; i < PREFS.length; i++) {
+//    if (!prefBranch.prefHasUserValue(PREFS[i].name)) {
+//      prefBranch.setBoolPref(PREFS[i].name, PREFS[i].def);
+//    }
+//  }
 }
 
 
 function uninstall(aData, aReason) {
-  for (var i = 0; i < PREFS.length; i++) {
-    prefManager.getBranch("extensions.bvbbpp.").clearUserPref(PREFS[i].name);
-  }
+  prefBranch.deleteBranch("");
+//  for (var i = 0; i < PREFS.length; i++) {
+//    prefBranch.clearUserPref(PREFS[i].name);
+//  }
   shutdown(aData, aReason);
 }

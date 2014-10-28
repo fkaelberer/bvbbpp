@@ -2010,16 +2010,16 @@ function fillMenuWithTeams(vereine) {
     var a = newElement(doc, "a", verein.name, "href",
                        bvbbpp.webAufstellung + "aufstellung-" + twoDigits(verein.nr) + ".HTML");
     this.ulAuf.appendChild(newParentElement("li", a));
-    if (verein.nr == this.teamNum) {
-      a.setAttribute("class", "selected");
+    if (getPref("verein" + verein.nr)) {
+      a.setAttribute("class", "favorite");
     }
 
     a = newElement(doc, "a", verein.name, "href",
                    bvbbpp.webSpielberichteVereine + "verein-" + twoDigits(verein.nr) + ".HTML");
-    this.ulSpi.appendChild(newParentElement("li", a));
-    if (verein.nr == this.teamNum) {
-      a.setAttribute("class", "selected");
+    if (getPref("verein" + verein.nr)) {
+      a.setAttribute("class", "favorite");
     }
+    this.ulSpi.appendChild(newParentElement("li", a));
   }
 }
 
