@@ -296,9 +296,12 @@ function makeAufstellung() {
   if (!h2[0]) {
     return;
   }
-  var title = h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung");
-  h2[0].parentNode.replaceChild(create("h1", title, "class", "title"), h2[0]);
-  BVBBPP.doc.title = title.replace("(R\u00FCckrunde)", "");
+  var title = h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung").replace(/\s+$/, "");
+  var titleNode = create("h1", title, "class", "title");
+  h2[0].parentNode.replaceChild(titleNode, h2[0]);
+  var favoriteStar = makeFavoriteStar(BVBBPP, -1, teamNum);
+  titleNode.appendChild(favoriteStar);
+  BVBBPP.doc.title = title.replace(" (R\u00FCckrunde)", "").replace(" (Hinrunde)", "");
   var button = makeLoadStatsButton(BVBBPP);
   button.setAttribute("style", "margin: auto 320px"); // wie geht's besser?
   h2[0].parentNode.appendChild(button);
@@ -327,16 +330,19 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
 
 
   function toggle() {
+    var doc = this.bvbbpp.doc;
     if (getPref(this.storage + this.num)) {
       setPref(this.storage + this.num, false);
       this.node.style.color = OFF;
       this.node.style.textShadow = OFF_SHADOW;
-      log("Turn off");
+      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
+      doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
     } else {
       setPref(this.storage + this.num, true);
       this.node.style.color = ON;
       this.node.style.textShadow = ON_SHADOW;
-      log("Turn on");
+      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
+      doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
     }
   }
 
@@ -355,12 +361,22 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
   star.style.textOutline = "1pt";
 
   if (teamNum >= 0) {
-    star.onclick = toggle.bind({ node: star, num: teamNum, storage: "verein" });
+    star.onclick = toggle.bind({
+      bvbbpp: bvbbpp,
+      node: star,
+      num: teamNum,
+      storage: "verein"
+    });
     star.style.color = getPref("verein" + teamNum) ? ON : OFF;
     star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
   }
   if (groupNum >= 0) {
-    star.onclick = toggle.bind({ node: star, num: groupNum, storage: "gruppe" });
+    star.onclick = toggle.bind({
+      bvbbpp: bvbbpp,
+      node: star,
+      num: groupNum,
+      storage: "gruppe"
+    });
     star.style.color = getPref("gruppe" + teamNum) ? ON : OFF;
     star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
   }
@@ -1314,8 +1330,9 @@ function replaceTeamLinks(tabelle) {
   var doc = this.bvbbpp.doc;
   // teams durch links ersetzen und die Teamlinks speichern
   var team = doc.body.getElementsByTagName("table")[0].getElementsByTagName("div");
-  var teamObj = new Array(20); // rank: nummer innerhalb des vereins (I,II, ...), verein:
-  // globale nummer, link: link zu ansetzungen
+  var teamObj = []; // rank: nummer innerhalb des vereins (I,II, ...),
+                    // verein: globale nummer,
+                    // link: link zu ansetzungen
   var a = tabelle.getElementsByTagName("a");
 
   var teamNumber = 0;// kurznummer in dieser Tabelle
@@ -1328,7 +1345,7 @@ function replaceTeamLinks(tabelle) {
     }
 
     for (var j = 0; j < a.length; j++) {
-      var name = a[j].innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, "");
+      var name = a[j].innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, "").replace(/^\s+/, "");
       if (name.length < 6) {
         continue;
       }
@@ -1363,7 +1380,7 @@ function replaceTeamLinks(tabelle) {
   var nums2 = [];
   // start counting at 2 to skip body centering div and headline
   for (var j = 2; j < div.length; j++) {
-    if (/\d\s*\/\s*\d/.test(div[j].textContent)) {
+    if (/\d+\s*\/\s*\d+/.test(div[j].textContent)) {
       // Ausdruck durch irgendwas ersetzen. Die ersetzen Werte in den klammern () werden
       // dann in $1 und $2 gespeichert
       div[j].textContent.replace(/(\d+)\s*\/\s*(\d+)/, "");
@@ -2007,14 +2024,16 @@ function fillMenuWithTeams(vereine) {
     if (!verein) {
       continue;
     }
-    var a = newElement(doc, "a", verein.name, "href",
+    var a = newElement(doc, "a", verein.name, "id", "menuAufstellung" + verein.nr,
+                       "href",
                        bvbbpp.webAufstellung + "aufstellung-" + twoDigits(verein.nr) + ".HTML");
     this.ulAuf.appendChild(newParentElement("li", a));
     if (getPref("verein" + verein.nr)) {
       a.setAttribute("class", "favorite");
     }
 
-    a = newElement(doc, "a", verein.name, "href",
+    a = newElement(doc, "a", verein.name, "id", "menuVerein" + verein.nr,
+                   "href",
                    bvbbpp.webSpielberichteVereine + "verein-" + twoDigits(verein.nr) + ".HTML");
     if (getPref("verein" + verein.nr)) {
       a.setAttribute("class", "favorite");
