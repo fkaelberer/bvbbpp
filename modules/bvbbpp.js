@@ -1013,12 +1013,12 @@ function makeGegenueber() {
     for (var j = 0; j < td.length - 1; j++) {
       var reg = /(\d+):(\d+)/.exec(td[j].textContent);
       if (reg) {
-        var font = create("font", reg[1] + ":" + reg[2], "style", "text-decoration:underline");
-        var a = newParentElement("a", font, "style", "cursor: pointer");
+        var a = create("a", reg[1] + ":" + reg[2],
+                       "style", "cursor:pointer; text-decoration:underline");
         a.onclick = makeGegenueberStats.bind( {
           bvbbpp: BVBBPP,
-          i: i - 1,
-          j: (j - 2),
+          teamRow: i - 1,
+          game: (j - 2),
           sum: parseInt(reg[1], 10) + parseInt(reg[2], 10)
         } );
         td[j].replaceChild(a, td[j].firstChild);
@@ -1029,41 +1029,29 @@ function makeGegenueber() {
 }
 
 function makeGegenueberStats() {
-  var webSpielberichte = this.bvbbpp.webSpielberichteVereine;
-
-  var teamRow = this.i;
-  var game = this.j;
-  var sum = this.sum;
-  var doc = this.bvbbpp.doc;
+  var teamRow = this.teamRow;
+  var game = this.game;
+  var bvbbpp = this.bvbbpp;
+  var doc = bvbbpp.doc;
 
   // schon vorhandene Elemente aufraeumen
   removeElement(doc.getElementById("h2stats"));
   var div = doc.getElementById('centerstyle');
 
   var tr = doc.getElementsByTagName("table")[0].getElementsByTagName("tr");
-  var td = tr[(teamRow + 1)].getElementsByTagName("td");
+  var teamNameElem = tr[(teamRow + 1)].getElementsByTagName("td")[1].getElementsByTagName("a")[0];
+  var globalRefTeam = getGlobalTeamRefFromAElement(teamNameElem);
 
-  var HTML = td[1].innerHTML;
-  var teamI = /-(\d\d).HTML/.exec(HTML)[1];
-  var teamNumI = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(HTML)[1]);
-  var teamStrI = teamI + "-" + twoDigits(teamNumI);
-
-  var teamLink = new Array(tr.length - 1);
-  var rows = 0;
 
   // there's a left-over h2 element that we will fill with stats
-  var h2 = div.getElementsByTagName("h2")[2];
-  if (!h2) {
-    h2 = newElement(doc, "h2");
-    div.appendChild(h2);
-  }
+  var h2 = div.getElementsByTagName("h2")[2] || div.appendChild(newElement(doc, "h2"));
   h2.id = "h2stats";
 
   var tr1 = newElement(doc, "tr");
   var b = newElement(doc, "b", null, "id", "linkAndType");
   var linkAndType = newParentElement("div", newParentElement("h4", b));
   tr1.appendChild(newParentElement("td", linkAndType, "width", 300));
-  tr1.appendChild(newParentElement("td", makeLoadStatsButton(this.bvbbpp)));
+  tr1.appendChild(newParentElement("td", makeLoadStatsButton(bvbbpp)));
   var tbody1 = newParentElement("tbody", tr1);
   var table1 = newParentElement("table", tbody1, "class", "borderless", "style", "border:0");
   h2.appendChild(table1);
@@ -1085,53 +1073,52 @@ function makeGegenueberStats() {
                             "style", "font-weight:normal;font-size:8pt"));
   h2.appendChild(newElement(doc, "br"));
 
-  for (var j = 0; j < tr.length - 1; j++) {
-    teamLink[j] = /<b>(.*)\s+<\/b>/.exec(tr[(j + 1)].innerHTML)[1];
-    if (j === teamRow) {
-      continue;
-    }
-    var innerJ = tr[(j + 1)].getElementsByTagName("td")[1].innerHTML;
-    var teamJ = /-(\d\d).HTML/.exec(innerJ)[1];
-    var teamNumJ = deromanize(/<b>.*\s([X|V|I]+)\s*<\/b>/.exec(innerJ)[1]);
-    var teamStrJ = teamJ + "-" + twoDigits(teamNumJ);
-    var link = webSpielberichte + teamStrI + "_" + teamStrJ + ".HTML";
-    var row = newElement(doc, "tr");
-    var args = {
-        bvbbpp: this.bvbbpp,
-        row: row,
-        heim: 0,
-        typ: game,
-        teamLink: teamLink[j]
-    };
-    loadSpielbericht(link).then(makeTrForGegenueberStats.bind(args));
-    if (row) {
-      tbody.appendChild(row);
-      rows++;
-    }
-    link = webSpielberichte + teamStrJ + "_" + teamStrI + ".HTML";
-    row = newElement(doc, "tr");
-    var args = {
-        bvbbpp: this.bvbbpp,
-        row: row,
-        heim: 1,
-        typ: game,
-        teamLink: teamLink[j]
-    };
-    loadSpielbericht(link).then(makeTrForGegenueberStats.bind(args));
-    if (row) {
-      tbody.appendChild(row);
-      rows++;
+  for (var opponentRow = 0; opponentRow < tr.length - 1; opponentRow++) {
+    var opponentNameElem = tr[(opponentRow + 1)].getElementsByTagName("td")[1]
+                                                .getElementsByTagName("a")[0];
+    var opponentName = opponentNameElem.textContent;
+    var globalRefOpponent = getGlobalTeamRefFromAElement(opponentNameElem);
+    if (opponentRow !== teamRow) {
+      addRowToGegenueberStats(bvbbpp, tbody, globalRefTeam, globalRefOpponent, 0, opponentName, game);
+      addRowToGegenueberStats(bvbbpp, tbody, globalRefOpponent, globalRefTeam, 1, opponentName, game);
     }
   }
   var type = ["1. HE", "2. HE", "3. HE", "DE", "1. HD", "2. HD", "DD", "GD"][game];
   linkAndType = doc.getElementById('linkAndType');
-  var textNode = doc.createTextNode(teamLink[teamRow].replace(/\s+</, "<") + ", " + type);
+  var textNode = doc.createTextNode(teamNameElem.textContent.trim() + ", " + type);
   linkAndType.appendChild(textNode);
-  if (sum > rows) {
-    h2.appendChild(newElement(doc, "span", "Fehlende Spiele wurden eventuell nicht gewertet!",
-                              "style", "font-weight:normal;font-size:8pt"));
-  }
 }
+
+function getGlobalClubNumberFromHref(href) {
+  return href.substr(-7, 2);
+}
+
+function getTeamRankFromTeamName(teamName) {
+  return deromanize(/.*\s([X|V|I]+$)/.exec(teamName.trim())[1]);
+}
+
+function getGlobalTeamRefFromAElement(a) {
+  var teamRank = getTeamRankFromTeamName(a.textContent);
+  var teamRef = getGlobalClubNumberFromHref(a.href) + "-" + twoDigits(teamRank);
+  return teamRef;
+}
+
+function addRowToGegenueberStats(bvbbpp, tbody, globaTeamRefI, globalTeamRefJ, homeGame, teamNameJ,
+                                 gameType) {
+  var webSpielberichte = bvbbpp.webSpielberichteVereine;
+  var link = webSpielberichte + globaTeamRefI + "_" + globalTeamRefJ + ".HTML";
+  var row = newElement(bvbbpp.doc, "tr");
+  var args = {
+      bvbbpp: bvbbpp,
+      row: row,
+      heim: homeGame,
+      typ: gameType,
+      teamLink: teamNameJ
+  };
+  loadSpielbericht(link).then(makeTrForGegenueberStats.bind(args));
+  tbody.appendChild(row);
+}
+
 
 function makeTrForGegenueberStats(bericht) {
   if (!bericht) {
@@ -1152,7 +1139,7 @@ function makeTrForGegenueberStats(bericht) {
   var sieg = spiel.sieg[wir];
   var hclass = (sieg ? WIN.bg : LOSE.bg);
 
-  var tl = DOC.createTextNode(this.teamLink);
+  var tl = doc.createTextNode(this.teamLink);
   var berichtLink = newParentElement("a", newParentElement("b", tl), "href", bericht.url);
 
   row.appendChild(newParentElement("td", berichtLink, "width", "152px", "class", DARK_YELLOW.bg));
