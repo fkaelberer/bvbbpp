@@ -1205,15 +1205,15 @@ function loadSpielbericht(url) {
         var gSaetze = (p1[1] < p1[2] ? 1 : 0) + (p2[1] < p2[2] ? 1 : 0)
             + (p3 ? (p3[1] < p3[2] ? 1 : 0) : 0);
         spiele[i] = {
-          type : ["1.HD", "DD", "2.HD", "DE", "GD", "1.HE", "2.HE", "3.HE"][i],
-          typeNum : i,
-          spielerNodes : [ spielerNode, gegnerNode ],
-          spieler1 : [ spieler[0], gegner[0] ],
-          spieler2 : [ spieler[1], gegner[1] ],
-          saetze : [ hSaetze, gSaetze ],
-          sieg : (hSaetze > gSaetze ? [ 1, 0 ] : [ 0, 1 ]),
-          p : [ (p3 ? [ p1[1], p2[1], p3[1] ] : [ p1[1], p2[1] ]),
-              (p3 ? [ p1[2], p2[2], p3[2] ] : [ p1[2], p2[2] ]) ]
+          type: ["1.HD", "DD", "2.HD", "DE", "GD", "1.HE", "2.HE", "3.HE"][i],
+          typeNum: i,
+          spielerNodes: [spielerNode, gegnerNode],
+          spieler1: [spieler[0], gegner[0]],
+          spieler2: [spieler[1], gegner[1]],
+          saetze: [hSaetze, gSaetze],
+          sieg: (hSaetze > gSaetze ? [1, 0] : [0, 1]),
+          p: [(p3 ? [p1[1], p2[1], p3[1]] : [p1[1], p2[1]]),
+              (p3 ? [p1[2], p2[2], p3[2]] : [p1[2], p2[2]])]
         };
       }
 
@@ -1296,8 +1296,8 @@ function replaceTeamLinks(tabelle) {
   function highlight() {
     var locA = this.bvbbpp.doc.getElementById("centerstyle").getElementsByTagName("a");
     for (var i = 0; i < locA.length; i++) {
-      if (locA[i].getAttribute("href") == this.el.firstChild.href) {
-        locA[i].parentNode.parentNode.setAttribute("class", this.col);
+      if (locA[i].getAttribute("href") === this.el.firstChild.href) {
+        locA[i].parentNode.parentNode.setAttribute("style", "background:" + this.col);
       }
     }
   }
@@ -1351,20 +1351,20 @@ function replaceTeamLinks(tabelle) {
         team[i].replaceChild(newA, team[i].firstChild);
 
         team[i].onmouseover = highlight.bind({
-          bvbbpp : this.bvbbpp,
-          col : DARK_YELLOW.bg,
-          el : team[i]
+          bvbbpp: this.bvbbpp,
+          col: "#d1e7f1", // DARK_YELLOW.css * 0.4 opacity
+          el: team[i]
         });
         team[i].onmouseout = highlight.bind({
-          bvbbpp : this.bvbbpp,
-          col : YELLOW.bg,
-          el : team[i]
+          bvbbpp: this.bvbbpp,
+          col: "#ffffff", // yellow.css
+          el: team[i]
         });
 
         teamObj[teamNumber] = {
-            rank : deromanize(name.substring(name.lastIndexOf(" ") + 1)),
-            link : create("a", teamNumber, "href", href, "title", name),
-            verein : parseInt(href.substr(-7, 2), 10)
+          rank: deromanize(name.substring(name.lastIndexOf(" ") + 1)),
+          link: create("a", teamNumber, "href", href, "title", name),
+          verein: parseInt(href.substr(-7, 2), 10)
         };
       }
     }
@@ -1393,9 +1393,9 @@ function replaceTeamLinks(tabelle) {
   // get directory listing, Format=0; Pattern=*-??_??-??.HTML
   var link = this.bvbbpp.webSpielberichteVereine + "?F=0;P=*-??_??-??.HTML";
   getDocument(link).then(makeGameLinks.bind({
-    bvbbpp : this.bvbbpp,
-    nums1 : nums1,
-    nums2 : nums2
+    bvbbpp: this.bvbbpp,
+    nums1: nums1,
+    nums2: nums2
   }));
 }
 
@@ -1478,10 +1478,10 @@ function ensureHallenschluessel() {
         }
 
         hallenschluessel[key] = {
-            street : street,
-            PLZ : PLZ,
-            shortStreet : shortStreet,
-            URL : url
+          street: street,
+          PLZ: PLZ,
+          shortStreet: shortStreet,
+          URL: url
         };
       }
     }
@@ -1809,34 +1809,34 @@ function makeSpieler() {
 
       for (var j = 0; j < 3; j++) {
         overArgs = {
-            doc: DOC,
-            j : j,
-            name : td[j].textContent,
-            col1 : "background-color:rgba(15, 70, 95, 0.12)",
-            col2 : "background-color:rgba(15, 70, 95, 0.06)"
+          doc: DOC,
+          j: j,
+          name: td[j].textContent,
+          col1: "background-color:rgba(15, 70, 95, 0.12)",
+          col2: "background-color:rgba(15, 70, 95, 0.06)"
         };
         outArgs = {
-            doc: DOC,
-            j : j,
-            col1 : "",
-            col2 : ""
+          doc: DOC,
+          j: j,
+          col1: "",
+          col2: ""
         };
         td[j].onmouseover = highlightPlayerStats.bind(overArgs);
         td[j].onmouseout = highlightPlayerStats.bind(outArgs);
       }
 
       overArgs = {
-          doc: DOC,
-          j : 3,
-          name : /(DE|GD|DD|HE|HD)/.exec(td[3].textContent)[1],
-          col1 : "background-color:rgba(15, 70, 95, 0.12)",
-          col2 : "background-color:rgba(15, 70, 95, 0.06)"
+        doc: DOC,
+        j: 3,
+        name: /(DE|GD|DD|HE|HD)/.exec(td[3].textContent)[1],
+        col1: "background-color:rgba(15, 70, 95, 0.12)",
+        col2: "background-color:rgba(15, 70, 95, 0.06)"
       };
       outArgs = {
-          doc: DOC,
-          j : 3,
-          col1 : "",
-          col2 : ""
+        doc: DOC,
+        j: 3,
+        col1: "",
+        col2: ""
       };
       td[3].onmouseover = highlightPlayerStats.bind(overArgs);
       td[3].onmouseout = highlightPlayerStats.bind(outArgs);
@@ -2207,11 +2207,11 @@ function parseAnsetzungen(doc, ansetzungen) {
     if (/\d\d.\d\d.\d\d\d\d/.test(text)) {
       // num1 und num2 sind noch von der letzten Zelle belegt
       ansetzung[numAns++] = {
-        t1 : teamObj[num1 - 1].tabellenPlatz,
-        t2 : teamObj[num2 - 1].tabellenPlatz,
-        date : div[j].textContent,
-        time : div[j + 1].textContent,
-        loc : div[j + 2].textContent
+        t1: teamObj[num1 - 1].tabellenPlatz,
+        t2: teamObj[num2 - 1].tabellenPlatz,
+        date: div[j].textContent,
+        time: div[j + 1].textContent,
+        loc: div[j + 2].textContent
       };
     }
   }
