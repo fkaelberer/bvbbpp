@@ -10,31 +10,31 @@ var Ci = Components.interfaces;
 var Cu = Components.utils;
 var prefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
                  .getBranch("extensions.bvbbpp.");
+var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase()
+             .indexOf("android") >= 0;
 
-var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS
-             .toLowerCase().indexOf("android") >= 0;
 
-var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
 
-function run(evt) {
-  var doc = evt.target;
-  if (URL_TEST.test(doc.URL) && doc.URL.indexOf("view-source:") < 0) {
-    var BVBBPP = new Bvbbpp(doc);
-    BVBBPP.run();
-  }
-}
+//function run(evt) {
+//  var doc = evt.target;
+//  if (URL_TEST.test(doc.URL) && doc.URL.indexOf("view-source:") < 0) {
+//    var BVBBPP = new Bvbbpp(doc);
+//    BVBBPP.run();
+//  }
+//}
 
 
 var windowListener = {
   onOpenWindow: function(aWindow) {
-    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
-                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
-    domWindow.addEventListener("DOMContentLoaded", run, false);
+//    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+//                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
+
+//    domWindow.addEventListener("DOMContentLoaded", run, false);
   },
   onCloseWindow: function(aWindow) {
-    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
-                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
-    domWindow.removeEventListener("DOMContentLoaded", run, false);
+//    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+//                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
+//    domWindow.removeEventListener("DOMContentLoaded", run, false);
   },
   onWindowTitleChange: function(aWindow, aTitle) {
   }
@@ -42,7 +42,8 @@ var windowListener = {
 
 
 function startup(aData, aReason) {
-  Cu.import("chrome://bvbbpp/content/bvbbpp.js");
+  var globalMM = Cc['@mozilla.org/globalmessagemanager;1'].getService(Ci.nsIFrameScriptLoader);
+  globalMM.loadFrameScript('chrome://bvbbpp/content/bvbbpp.js', true);
 
   var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
@@ -50,7 +51,8 @@ function startup(aData, aReason) {
   var windows = wm.getEnumerator("navigator:browser");
   while (windows.hasMoreElements()) {
     var domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
-    domWindow.addEventListener("DOMContentLoaded", run, false);
+
+//    domWindow.addEventListener("DOMContentLoaded", run, false);
     reloadTabs(domWindow);
   }
 
@@ -82,8 +84,8 @@ function shutdown(aData, aReason) {
   // stop listening to any existing windows
   var windows = wm.getEnumerator("navigator:browser");
   while (windows.hasMoreElements()) {
-    var domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
-    domWindow.removeEventListener("DOMContentLoaded", run, false);
+//    var domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
+//    domWindow.removeEventListener("DOMContentLoaded", run, false);
     reloadTabs(domWindow);
   }
 
@@ -91,25 +93,19 @@ function shutdown(aData, aReason) {
   wm.removeListener(windowListener);
 
   var baseUrl = aData.resourceURI.spec;
-  Cu.unload(baseUrl + "/content/bvbbpp.js");
+  var globalMM = Cc['@mozilla.org/globalmessagemanager;1'].getService(Ci.nsIMessageBroadcaster);
+  globalMM.removeDelayedFrameScript('chrome://bvbbpp/content/bvbbpp.js');
+
+//  Cu.unload(baseUrl + "/content/bvbbpp.js");
   Cu.unload(baseUrl + "/content/utils.js");
 }
 
 
 function install(aData, aReason) {
-//  Cu.import("chrome://bvbbpp/content/bvbbpp.js");
-//  for (var i = 0; i < PREFS.length; i++) {
-//    if (!prefBranch.prefHasUserValue(PREFS[i].name)) {
-//      prefBranch.setBoolPref(PREFS[i].name, PREFS[i].def);
-//    }
-//  }
 }
 
 
 function uninstall(aData, aReason) {
   prefBranch.deleteBranch("");
-//  for (var i = 0; i < PREFS.length; i++) {
-//    prefBranch.clearUserPref(PREFS[i].name);
-//  }
   shutdown(aData, aReason);
 }

@@ -95,6 +95,16 @@ var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANG
 var DOC = null;
 var BODY = null;
 var BVBBPP;
+var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
+
+
+addEventListener("DOMContentLoaded", function(event) {
+  var doc = event.originalTarget;
+  if (doc.nodeName === "#document" && URL_TEST.test(doc.URL)) {
+    new Bvbbpp(doc).run();
+  }
+});
+
 
 function Bvbbpp(document) {
   this.URL = document.URL;
