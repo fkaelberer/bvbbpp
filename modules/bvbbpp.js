@@ -1008,17 +1008,16 @@ function makeGegenueber() {
 
 
   var tr = BODY.getElementsByTagName("tr");
-  for (var i = 0; i < tr.length - 1; i++) {
-    var td = tr[i + 1].getElementsByTagName("td");
+  for (var i = 1; i < tr.length; i++) {
+    var td = tr[i].getElementsByTagName("td");
     for (var j = 0; j < td.length - 1; j++) {
       var reg = /(\d+):(\d+)/.exec(td[j].textContent);
       if (reg) {
-        var font = create("font", reg[1] + ":" + reg[2]);
-        var u = newParentElement("u", font);
-        var a = newParentElement("a", u, "style", "cursor: pointer");
+        var font = create("font", reg[1] + ":" + reg[2], "style", "text-decoration:underline");
+        var a = newParentElement("a", font, "style", "cursor: pointer");
         a.onclick = makeGegenueberStats.bind( {
           bvbbpp: BVBBPP,
-          i: i,
+          i: i - 1,
           j: (j - 2),
           sum: parseInt(reg[1], 10) + parseInt(reg[2], 10)
         } );
@@ -1104,7 +1103,7 @@ function makeGegenueberStats() {
         typ: game,
         teamLink: teamLink[j]
     };
-    loadSpielbericht(link).then(makeTr.bind(args));
+    loadSpielbericht(link).then(makeTrForGegenueberStats.bind(args));
     if (row) {
       tbody.appendChild(row);
       rows++;
@@ -1118,7 +1117,7 @@ function makeGegenueberStats() {
         typ: game,
         teamLink: teamLink[j]
     };
-    loadSpielbericht(link).then(makeTr.bind(args));
+    loadSpielbericht(link).then(makeTrForGegenueberStats.bind(args));
     if (row) {
       tbody.appendChild(row);
       rows++;
@@ -1134,14 +1133,14 @@ function makeGegenueberStats() {
   }
 }
 
-function makeTr(bericht) {
+function makeTrForGegenueberStats(bericht) {
   if (!bericht) {
     return;
   }
   var doc = this.bvbbpp.doc;
   var row = this.row;
   // Reihenfolge Gegenueberstellung: 1HE, 2HE, 3HE, DE, 1HD, 2HD, DD, MIX
-  // Reihenfolge im Spielbericht: 1HD, DD, 2HD, DE, MIX, 1HE, 2HE, 3HE
+  // Reihenfolge im Spielbericht:    1HD, DD, 2HD, DE, MIX, 1HE, 2HE, 3HE
   var reihenfolge = [ 5, 6, 7, 3, 0, 2, 1, 4 ]; // uebersetzung gegenueber-->bericht
 
   var spiel = bericht.spiele[reihenfolge[this.typ]];
