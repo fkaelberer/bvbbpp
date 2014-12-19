@@ -1352,7 +1352,7 @@ function replaceTeamLinks(tabelle) {
 
         team[i].onmouseover = highlight.bind({
           bvbbpp: this.bvbbpp,
-          col: "#d1e7f1", // DARK_YELLOW.css * 0.4 opacity
+          col: "#ddedf5", // DARK_YELLOW.css * 0.3 opacity
           el: team[i]
         });
         team[i].onmouseout = highlight.bind({
