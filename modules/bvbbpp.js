@@ -65,9 +65,10 @@ DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1,
 DIVISIONS[12] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
 DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
+DIVISIONS[15] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-var CURRENT_SEASON = 14;
-var SEASONS = [9, 10, 11, 12, 13, 14];
+var CURRENT_SEASON = 15;
+var SEASONS = [9, 10, 11, 12, 13, 14, 15];
 
 function toColorObject(color) {
   return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
@@ -364,7 +365,7 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
   var star = newElement(doc,
                         "b", "\u2605",
                         "id", "favorite",
-                        "title", "Diesen Verein zu Favoriten hinzufuegen");
+                        "title", "Diesen Verein als Favoriten w\u00E4hlen");
   star.style.fontWeight = 600;
   star.style.cursor = "pointer";
   star.style.verticalAlign = "4pt";
@@ -407,7 +408,7 @@ function makeVerein() {
 
   var h2 = BODY.getElementsByTagName("h2");
   if (h2[0]) {
-    var title = "Spieltermine " + h2[0].getElementsByTagName("b")[0].textContent;
+    var title = "Spieltermine " + BODY.getElementsByTagName("tr")[1].textContent;
     BVBBPP.doc.title = title.replace("Spieltermine", "Termine");
     var titleNode = create("h1", title, "class", "title");
     h2[0].parentNode.replaceChild(titleNode, h2[0]);
@@ -685,10 +686,10 @@ function makeDoodleLinks(doc, spiele) {
     var href = "http://doodle.com/create?";
     href += "locale=de";
     href += "&type=text";
-    var title = "Spieltermine der " + tables[i].getElementsByTagName("font")[1].textContent;
+    var title = "Spieltermine der " + tables[i].getElementsByTagName("div")[1].textContent;
     href += "&title=" + encodeURIComponent(title);
     href += "&levels=3"; // ja-nein-vielleicht
-    var description = escape("Auswärtige Spielstätten:\n");
+    var description = escape("Ausw\u00E4rtige Spielst\u00E4tten:\n");
     var numOptions = 0;
     for (var j = 0; j < spiele.length; j++) {
       if (spiele[j].tableIndex !== i) {
@@ -2134,7 +2135,7 @@ function makeHeadLine(groupNum, teamNum) {
         stand = newParentElement("div", stand, "class", "standMobile");
         BODY.insertBefore(stand, BODY.firstChild);
       } else {
-        header.appendChild(stand);
+        header.appendChild(create("font", stand.textContent, "class", "stand"));
       }
       break;
     }
