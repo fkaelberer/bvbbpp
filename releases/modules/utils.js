@@ -7,28 +7,29 @@
 
 var EXPORTED_SYMBOLS = [ "removeElement", "removeElements", "removeParent", "removeParents",
                          "newParentElement", "clearElement", "newElement", "replaceChildren",
-                         "setElementAttributes", "log", "romanize", "deromanize", "loadDocument",
-                         "getDocument", "twoDigits", "ttest" ];
+                         "setElementAttributes", "log", "romanize", "deromanize", "getDocument",
+                         "twoDigits" ];
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var console = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
 
+
 function log(msg) {
   console.logStringMessage("BVBB++: " + msg);
-};
-
-function ttest(num) {
-  return (num < 10 ? "0" : "") + num;
 }
+
+
 function twoDigits(num) {
   return (num < 10 ? "0" : "") + num;
 }
 
+
 function error(e, msg) {
   var err = e ? "Fehler in utils.js, Zeile" + e.lineNumber + ": " + e.message + " " : "";
   Components.utils.reportError("BVPP++: " + err + (msg ? msg : ""));
-};
+}
+
 
 function getDocument(url) {
   return new Promise(function(resolve, reject) {
@@ -95,17 +96,15 @@ function replaceChildren(e) {
     return e;
   }
   clearElement(e);
-  try {
-    for (var i = 1; i < arguments.length; i++) {
-      if (arguments[i]) {
-        e.appendChild(arguments[i]);
-      }
+
+  for (var i = 1; i < arguments.length; i++) {
+    if (arguments[i]) {
+      e.appendChild(arguments[i]);
     }
-  } catch (err) {
-    error(err, "doc = " + doc);
   }
   return e;
 }
+
 
 function clearElement(e) {
   while (e.hasChildNodes()) {
@@ -113,6 +112,7 @@ function clearElement(e) {
   }
   return e;
 }
+
 
 function newParentElement(type, e) {
   if (!e) {
@@ -130,6 +130,7 @@ function newParentElement(type, e) {
   return parent;
 }
 
+
 function removeElements(doc, tag, regex) {
   if (!doc) {
     return;
@@ -142,20 +143,18 @@ function removeElements(doc, tag, regex) {
   }
 }
 
+
 function newElement(doc, type, textContent) {
-  try {
-    var e = doc.createElement(type);
-    if (textContent && textContent != "") {
-      e.textContent = textContent;
-    }
-    for (var i = 3; i + 1 < arguments.length; i += 2) {
-      e.setAttribute(arguments[i], arguments[i + 1]);
-    }
-    return e;
-  } catch (err) {
-    error(err, "doc = " + doc);
+  var e = doc.createElement(type);
+  if (textContent && textContent != "") {
+    e.textContent = textContent;
   }
+  for (var i = 3; i + 1 < arguments.length; i += 2) {
+    e.setAttribute(arguments[i], arguments[i + 1]);
+  }
+  return e;
 }
+
 
 function setElementAttributes(doc, tag, attribute, value, regex) {
   var e = doc.getElementsByTagName(tag);
@@ -165,6 +164,7 @@ function setElementAttributes(doc, tag, attribute, value, regex) {
     }
   }
 }
+
 
 // deromanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
 function deromanize(str) {
@@ -182,6 +182,7 @@ function deromanize(str) {
   }
   return num;
 }
+
 
 // romanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
 function romanize(num) {

@@ -8,47 +8,43 @@
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var Cu = Components.utils;
-var prefManager = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService);
-var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS
-             .toLowerCase().indexOf("android") >= 0;
+var prefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
+                 .getBranch("extensions.bvbbpp.");
+var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase()
+             .indexOf("android") >= 0;
+var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
 
 
-//preferences and defaults
-//TODO: de-duplicate prefs
-var PREFS = [{
-  name: "useIframe",
-  def: true
-}, {
-  name: "hideDoodle",
-  def: MOBILE
-}];
 
-function run(evt) {
-  var doc = evt.target;
-  if (PAGE_TEST.test(doc.URL)) {
-    var BVBBPP = new Bvbbpp(doc);
-    BVBBPP.run();
-  }
-}
+//function run(evt) {
+//  var doc = evt.target;
+//  if (URL_TEST.test(doc.URL) && doc.URL.indexOf("view-source:") < 0) {
+//    var BVBBPP = new Bvbbpp(doc);
+//    BVBBPP.run();
+//  }
+//}
 
 
 var windowListener = {
-  onOpenWindow : function(aWindow) {
-    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
-                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
-    domWindow.addEventListener("DOMContentLoaded", run, false);
+  onOpenWindow: function(aWindow) {
+//    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+//                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
+
+//    domWindow.addEventListener("DOMContentLoaded", run, false);
   },
-  onCloseWindow : function(aWindow) {
-    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
-                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
-    domWindow.removeEventListener("DOMContentLoaded", run, false);
+  onCloseWindow: function(aWindow) {
+//    var domWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+//                           .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
+//    domWindow.removeEventListener("DOMContentLoaded", run, false);
   },
-  onWindowTitleChange : function(aWindow, aTitle) {
+  onWindowTitleChange: function(aWindow, aTitle) {
   }
 };
 
+
 function startup(aData, aReason) {
-  Cu.import("chrome://bvbbpp/content/bvbbpp.js");
+  var globalMM = Cc['@mozilla.org/globalmessagemanager;1'].getService(Ci.nsIFrameScriptLoader);
+  globalMM.loadFrameScript('chrome://bvbbpp/content/bvbbpp.js', true);
 
   var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
@@ -56,7 +52,8 @@ function startup(aData, aReason) {
   var windows = wm.getEnumerator("navigator:browser");
   while (windows.hasMoreElements()) {
     var domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
-    domWindow.addEventListener("DOMContentLoaded", run, false);
+
+//    domWindow.addEventListener("DOMContentLoaded", run, false);
     reloadTabs(domWindow);
   }
 
@@ -64,22 +61,23 @@ function startup(aData, aReason) {
   wm.addListener(windowListener);
 }
 
+
 function reloadTabs(window) {
   if (window.gBrowser && window.gBrowser.browsers) {
     var num = window.gBrowser.browsers.length;
     for (var i = 0; i < num; i++) {
       var tab = window.gBrowser.getBrowserAtIndex(i);
       var uri = tab.currentURI.spec;
-      if (PAGE_TEST.test(uri)) {
+      if (URL_TEST.test(uri)) {
         tab.reload();
       }
     }
   }
 }
 
+
 function shutdown(aData, aReason) {
-  // When the application is shutting down we normally don't have to clean
-  // up any UI changes made
+  // When the application is shutting down we normally don't have to clean up any UI changes made
   if (aReason === APP_SHUTDOWN) {
     return;
   }
@@ -87,30 +85,28 @@ function shutdown(aData, aReason) {
   // stop listening to any existing windows
   var windows = wm.getEnumerator("navigator:browser");
   while (windows.hasMoreElements()) {
-    var domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
-    domWindow.removeEventListener("DOMContentLoaded", run, false);
+//    var domWindow = windows.getNext().QueryInterface(Ci.nsIDOMWindow);
+//    domWindow.removeEventListener("DOMContentLoaded", run, false);
     reloadTabs(domWindow);
   }
 
   // Stop listening for new windows
   wm.removeListener(windowListener);
 
-  if (aReason === ADDON_DISABLE) { // somehow throws exceptions upon uninstall.
-    Cu.unload("chrome://bvbbpp/content/bvbbpp.js");
-  }
+  var baseUrl = aData.resourceURI.spec;
+  var globalMM = Cc['@mozilla.org/globalmessagemanager;1'].getService(Ci.nsIMessageBroadcaster);
+  globalMM.removeDelayedFrameScript('chrome://bvbbpp/content/bvbbpp.js');
+
+//  Cu.unload(baseUrl + "/content/bvbbpp.js");
+  Cu.unload(baseUrl + "/content/utils.js");
 }
+
 
 function install(aData, aReason) {
-  for (var i = 0; i < PREFS.length; i++) {
-    if (!prefManager.getBranch("extensions.bvbbpp.").prefHasUserValue(PREFS[i].name)) {
-      prefManager.getBranch("extensions.bvbbpp.").setBoolPref(PREFS[i].name, PREFS[i].def);
-    }
-  }
 }
 
+
 function uninstall(aData, aReason) {
+  prefBranch.deleteBranch("");
   shutdown(aData, aReason);
-  for (var i = 0; i < PREFS.length; i++) {
-    prefManager.getBranch("extensions.bvbbpp.").clearUserPref(PREFS[i].name);
-  }
 }
