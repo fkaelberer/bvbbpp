@@ -307,7 +307,9 @@ function makeAufstellung() {
   if (!h2[0]) {
     return;
   }
-  var title = h2[0].textContent.replace("Mannschaftsaufstellung", "Aufstellung").replace(/\s+$/, "");
+  var td = BODY.getElementsByTagName("td");
+
+  var title = "Aufstellung " + td[1].textContent + " " + td[3].textContent;
   var titleNode = create("h1", title, "class", "title");
   h2[0].parentNode.replaceChild(titleNode, h2[0]);
   var favoriteStar = makeFavoriteStar(BVBBPP, -1, teamNum);
@@ -1930,7 +1932,7 @@ function getFestgespielt(doc1, doc) {
 
 function makePlayerLinksCallback(playerDoc) {
   var doc = this.bvbbpp.doc;
-  var d = doc.getElementsByTagName("b");
+  var td = doc.getElementsByTagName("td");
   // load player links from options element and convert to array
   var p = playerDoc.getElementsByTagName("option");
   // convert entries to objects
@@ -1940,9 +1942,11 @@ function makePlayerLinksCallback(playerDoc) {
       link : e.value
     };
   });
+
   // loop over player names in the document
-  for (var i = 0; d && i < d.length; i++) {
-    var name = d[i].innerHTML.replace(/^\s+|\s+$|(\s\(\d\))/g, "");
+  for (var i = 0; td && i < td.length; i++) {
+    var name = td[i].textContent.replace(/^\s+|\s+$|(\s\(\d\))/g, "");
+    log(name);
     var ext = RegExp.$1 ? RegExp.$1 : "";
     if (!name || name.length < 5 || /</.test(name) || /Additionsregeln/.test(name)) {
       continue;
@@ -1954,7 +1958,7 @@ function makePlayerLinksCallback(playerDoc) {
         var link = this.bvbbpp.web + "spielerstatistik/" + p[j].link;
         if ((!p[j - 1] || p[j - 1].name != p[j].name) &&
             (!p[j + 1] || p[j + 1].name != p[j].name)) {
-          replaceChildren(d[i], newElement(doc, "a", name + ext, "href", link));
+          replaceChildren(td[i], newElement(doc, "a", name + ext, "href", link));
           break;
         }
         // name is not unique. Load player's page and check the team name
@@ -1970,7 +1974,7 @@ function makePlayerLinksCallback(playerDoc) {
               var msg = "Fehler beim Verlinken von doppelt vorkommenden Spielernamen: ";
               Cu.reportError(errorMsg(err, msg + playerPage.URL));
             }
-          }.bind( {doc: doc, name_ext: name + ext, di: d[i], link: link} ));
+          }.bind( {doc: doc, name_ext: name + ext, di: td[i], link: link} ));
         }
       }
     }
