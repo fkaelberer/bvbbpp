@@ -12,6 +12,7 @@ var prefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefS
                  .getBranch("extensions.bvbbpp.");
 var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS.toLowerCase()
              .indexOf("android") >= 0;
+var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
 
 
 
