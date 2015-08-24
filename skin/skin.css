@@ -45,6 +45,21 @@ div#centerstyle {
 	margin: 60px auto auto auto;
 }
 
+.Style_14_links {
+	font-weight: 700;
+	font-size: 10pt;
+}
+
+.Style_13_links {
+	font-weight: 700;
+	font-size: 8pt;
+}
+
+.Style_11_links {
+	font-weight: 700;
+	font-size: 8pt;
+}
+
 h1 {
 	font-size: 20pt;
 	font-weight: 600;
