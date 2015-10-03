@@ -1898,7 +1898,7 @@ function getFestgespielt(doc1, doc) {
     return;
   }
   var verein = a[0].href.substr(-7, 2);
-  var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[2].textContent;
+  var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[3].textContent;
   if (stamm === "Ersatz") {
     stamm = 0;
   }
