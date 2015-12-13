@@ -5,7 +5,6 @@
 //
 "use strict";
 
-var EXPORTED_SYMBOLS = [ "Bvbbpp", "PREFS" ];
 var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACS0l" +
     "EQVR42q2TS2gTURSGO4mZvBNJyDu4KQhdhIS6sEbBWpRusywuXLhTNwqV2p0KRSjdiBs3iopLcavdhChYW0F8Ia4l7" +
     "xfk1cyQSTJ+N0RJumrBgcM957/n/vec/56RZg58iUTiG8tcuVw+VywWP03gv1n8hUJhvlKp/PqLSw6HQ45Go6uyLJ9" +
@@ -17,17 +16,194 @@ var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAA
     "QunqOCVOFitVi/RQiUSiXwRc0H/N7Cf/02DATcs86YSJYqe97PZ7DWLxXLC5/PdFxrwY61pmtbmn3lELDcajS1atdH" +
     "GthSPxz8QqPV6/QGzrR1miJhGE+2to4dFgmU2FAq9IFhgz3DIQRxy6S6tX/kDUgliRvSSn2IAAAAASUVORK5CYII=";
 
-var Cc = Components.classes;
-var Ci = Components.interfaces;
-var Cu = Components.utils;
 
-Cu.import("chrome://bvbbpp/content/utils.js");
+function log(msg) {
+  console.log("BVBB++: " + msg);
+}
 
-var prefBranch = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService)
-                 .getBranch("extensions.bvbbpp.");
 
-var MOBILE = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS
-             .toLowerCase().indexOf("android") >= 0;
+function twoDigits(num) {
+  return (num < 10 ? "0" : "") + num;
+}
+
+
+function error(e, msg) {
+  var err = e ? "Fehler in utils.js, Zeile" + e.lineNumber + ": " + e.message + " " : "";
+  console.log("BVPP++: " + err + (msg ? msg : ""));
+}
+
+
+function getDocument(url) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url);
+    req.responseType = "document";
+    req.overrideMimeType('text/html; charset=iso-8859-1');
+
+    req.onload = function() {
+      if (req.status === 200) {
+        resolve(req.response);
+      }
+    };
+
+    req.onerror = function() {
+      reject("Kann Datei " + url + " nicht laden. Antwort ist 'null'.");
+    };
+
+    req.send();
+  });
+}
+
+
+function removeElement(e) {
+  if (e) {
+    e.parentNode.removeChild(e);
+  }
+}
+
+
+function removeParent(e) {
+  while (e && e.hasChildNodes()) {
+    e.parentNode.insertBefore(e.firstChild, e);
+  }
+  if (e && e.parentNode) {
+    e.parentNode.removeChild(e);
+  }
+}
+
+
+/**
+ * Remove all elements of the given tag type, but keep their children.
+ * @param tag A tag name (string)
+ * @param regex A regular expression (applied to innerHTML) to filter the tags (optional).
+ */
+function removeParents(doc, tag, regex) {
+  if (!doc) {
+    return;
+  }
+  var e = doc.getElementsByTagName(tag);
+  for (var i = e.length - 1; i >= 0; i--) {
+    if (!regex || regex.test(e[i].innerHTML)) {
+      removeParent(e[i]);
+    }
+  }
+}
+
+/**
+ * remove all children of the element and add the ones passed in arguments 2, 3, ...
+ */
+function replaceChildren(e) {
+  if (!e || !arguments) {
+    return e;
+  }
+  clearElement(e);
+
+  for (var i = 1; i < arguments.length; i++) {
+    if (arguments[i]) {
+      e.appendChild(arguments[i]);
+    }
+  }
+  return e;
+}
+
+
+function clearElement(e) {
+  while (e.hasChildNodes()) {
+    e.removeChild(e.firstChild);
+  }
+  return e;
+}
+
+
+function newParentElement(type, e) {
+  if (!e) {
+    return;
+  }
+  var doc = e.ownerDocument;
+  if (!doc) {
+    return;
+  }
+  var parent = doc.createElement(type);
+  parent.appendChild(e);
+  for (var i = 2; i + 1 < arguments.length; i += 2) {
+    parent.setAttribute(arguments[i], arguments[i + 1]);
+  }
+  return parent;
+}
+
+
+function removeElements(doc, tag, regex) {
+  if (!doc) {
+    return;
+  }
+  var e = doc.getElementsByTagName(tag);
+  for (var i = e.length - 1; i >= 0; i--) {
+    if (!regex || regex.test(e[i].innerHTML)) {
+      removeElement(e[i]);
+    }
+  }
+}
+
+
+function newElement(doc, type, textContent) {
+  var e = doc.createElement(type);
+  if (textContent && textContent != "") {
+    e.textContent = textContent;
+  }
+  for (var i = 3; i + 1 < arguments.length; i += 2) {
+    e.setAttribute(arguments[i], arguments[i + 1]);
+  }
+  return e;
+}
+
+
+function setElementAttributes(doc, tag, attribute, value, regex) {
+  var e = doc.getElementsByTagName(tag);
+  for (var i = 0; i < e.length; i++) {
+    if (!regex || regex.test(e[i].outerHTML)) {
+      e[i].setAttribute(attribute, value);
+    }
+  }
+}
+
+
+// deromanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
+function deromanize(str) {
+  str = str.toUpperCase();
+  var validator = /^M*(?:D?C{0,3}|C[MD])(?:L?X{0,3}|X[CL])(?:V?I{0,3}|I[XV])$/;
+  var token = /[MDLV]|C[MD]?|X[CL]?|I[XV]?/g;
+  var key = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
+  var num = 0;
+  var m;
+  if (!(str && validator.test(str))) {
+    return false;
+  }
+  while (m = token.exec(str)) {
+    num += key[m[0]];
+  }
+  return num;
+}
+
+
+// romanize from http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
+function romanize(num) {
+  if (!+num) {
+    return false;
+  }
+  var digits = String(+num).split("");
+  var key = [ "", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM", "", "X", "XX", "XXX",
+              "XL", "L", "LX", "LXX", "LXXX", "XC", "", "I", "II", "III", "IV", "V", "VI", "VII",
+              "VIII", "IX" ];
+  var roman = "";
+  var i = 3;
+  while (i--) {
+    roman = (key[+digits.pop() + (i * 10)] || "") + roman;
+  }
+  var r = Array(+digits.join("") + 1).join("M") + roman;
+  return r;
+}
+
+var MOBILE = false;
 
 // preferences and defaults
 var PREFS = [{
@@ -265,31 +441,11 @@ function errorMsg(e, msg) {
  * @returns pref value
  */
 function getPref(name) {
-  if (!name) {
-    return null;
-  }
-  try {
-    return prefBranch.getBoolPref(name);
-  } catch (err) {
-  }
-  for (var i = 0; i < PREFS.length; i++) {
-    if (name == PREFS[i].name) {
-      prefBranch.setBoolPref(PREFS[i].name, PREFS[i].def);
-      return PREFS[i].def;
-    }
-  }
-  return null;
+	return false;
 }
 
 function setPref(name, value) {
-  if (!name) {
     return false;
-  }
-  try {
-    prefBranch.setBoolPref(name, value);
-  } catch (err) {
-    Cu.reportError(errorMsg(err, "Kann Einstellung \"" + name + "\" nicht aendern."));
-  }
 }
 
 function makeAufstellung() {
@@ -573,7 +729,12 @@ function makeHallenbelegung(doc, spiele, hallen) {
       tr.appendChild(tds[times[j]]); // left
       for (var i = 0; i < dates.length; i++) {
         key = loc + dates[i] + times[j];
-        tr.appendChild(tds[key] = newElement(doc, "td", null, "style", "padding: 0 0")); // left
+		var date = new Date(dates[i].substr(6,4), dates[i].substr(3,2) - 1, dates[i].substr(0,2));
+		if (date < new Date(new Date().getYear() + 1900, new Date().getMonth(), new Date().getDate()))
+		  tds[key] = newElement(doc, "td", null, "style", "padding: 0 0; color: #aaa");
+		else
+		  tds[key] = newElement(doc, "td", null, "style", "padding: 0 0");
+        tr.appendChild(tds[key]); // left
       }
     }
 
@@ -2493,3 +2654,6 @@ function makeStyle() {
   icon.href = "http://www.bvbb.net/fileadmin/user_upload/pics/logo.jpg";
   DOC.head.appendChild(icon);
 }
+
+console.log("TEST: " + window.document);
+new Bvbbpp(window.document).run();

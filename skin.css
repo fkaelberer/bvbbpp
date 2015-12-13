@@ -298,7 +298,7 @@ nav ul li a {
 	text-decoration: none;
 }
 nav ul li:hover a {
-	/** gew‰hlte menuepunkte in der headline und in der Drop-Down-Auswahl. */
+	/** gew√§hlte menuepunkte in der headline und in der Drop-Down-Auswahl. */
 	background: rgba(0, 0, 0, 0.1);
 	color: #fff;
 }
