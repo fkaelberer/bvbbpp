@@ -235,17 +235,22 @@ var DIVISIONS = [];
 // keine Spieltermine 2007/08, 2008/09
 // DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
 // DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
+
+// Nur diejenigen Staffeln müssen angegeben werden, die sich von der Vorsaison unterscheiden.
 DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
-DIVISIONS[10] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
 DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-DIVISIONS[12] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
 DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-DIVISIONS[15] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-DIVISIONS[16] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-var CURRENT_SEASON = 16;
-var SEASONS = [9, 10, 11, 12, 13, 14, 15, 16];
+var FIRST_SEASON = 9
+var CURRENT_SEASON = getCurrentSeasonYear();
+var SEASONS = [];
+for (var i = FIRST_SEASON; i <= CURRENT_SEASON; i++ ) {
+	SEASONS.push(i);
+	if (!DIVISIONS[i]) {
+		DIVISIONS[i] = DIVISIONS[i - 1];
+	}
+}
 
 function toColorObject(color) {
   return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
@@ -383,7 +388,16 @@ function getYear(url) {
   return CURRENT_SEASON;
 }
 
-
+function getCurrentSeasonYear() {
+	// lässt die neue Saison ab August starten
+	var d = new Date();
+	var year = d.getFullYear() - 2000;
+	var august = 7
+	if (d.getMonth() < august) {
+	  year -= 1
+	}
+	return year
+}
 
 function toSeasonName(year) {
   return "20" + twoDigits(year) + "/" + twoDigits(year + 1);
