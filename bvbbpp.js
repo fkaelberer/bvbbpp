@@ -90,7 +90,6 @@ var KAMPFLOS     = toColorObject("FF6600");
 var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
               AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
 
-var DOC = null;
 var BODY = null;
 var BVBBPP;
 var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
@@ -148,8 +147,7 @@ Bvbbpp.prototype = {
 
   run: function bvbbpp_run() {
     BVBBPP = this;
-    DOC = this.doc;
-    BODY = DOC.body;
+    BODY = document.body;
 
     if (!this.body.firstChild || this.doc.getElementById("bvbbBody")) {
       return;
@@ -158,7 +156,7 @@ Bvbbpp.prototype = {
     // avoid processing the same file twice (for example, when embedded in an iframe)
     BODY.id = "bvbbBody";
 
-    var url = DOC.URL;
+    var url = document.URL;
     makeStyle();
 
     if (!getIFrame()) {
@@ -234,7 +232,7 @@ function toLongName(shortName) {
 }
 
 function getNotFoundElement() {
-  var h1 = DOC.body.getElementsByTagName("h1");
+  var h1 = document.body.getElementsByTagName("h1");
   for (var i = 0; i < h1.length; i++) {
     if (h1[i].textContent === "Not Found") {
       return h1[i];
@@ -251,10 +249,10 @@ function isDue() { // Websites should be online by now.
 
 /**
  * create(type, textContent, arg2, arg3) is a shortcut for
- * newElement(DOC, type, textContent, arg2, arg3, ...)
+ * newElement(document, type, textContent, arg2, arg3, ...)
  */
 function create() {
-  return newElement.apply(this, [DOC].concat([].slice.call(arguments)));
+  return newElement.apply(this, [document].concat([].slice.call(arguments)));
 }
 
 function errorMsg(e, msg) {
@@ -475,7 +473,6 @@ function makeVerein() {
     makeHallenbelegung(doc, spiele, hallen);
 //  disable catch because it doesn't compile in eclipse
 //  }).catch(function(error) {
-//  log(error);
   }.bind(BVBBPP.this_));
 
   var tables = BODY.getElementsByTagName("table");
@@ -586,7 +583,7 @@ function makeHallenbelegung(doc, spiele, hallen) {
         }
         tds[key].textContent = textContent;
       } else {
-//      log("miss " + key);
+//      console.log("miss " + key);
       }
     }
 
@@ -967,7 +964,7 @@ function makeCurrentSpieltermine(doc, spiele) {
  * Get HTML-String to a loadStats button
  */
 function makeLoadStatsButton(bvbbpp) {
-  var input = DOC.createElement("input");
+  var input = document.createElement("input");
   input.type = "button";
   input.id = "loadStats";
   input.value = "Spielerstatistik laden";
@@ -1217,7 +1214,7 @@ function loadSpielbericht(url) {
       tr = doc.body.getElementsByTagName("tr");
       var lastTr = tr[tr.length - 1].getElementsByTagName("td");
       if (!(lastTr[6] && lastTr[4] && lastTr[2])) {
-        // log("undef: " + url);
+        // console.log("undef: " + url);
       } else {
       var spielErgebnisText = lastTr[6].textContent;
       var satzErgebnisText = lastTr[4].textContent;
@@ -1507,12 +1504,12 @@ function makeSpielbericht() {
   }
 
   // check if correct web page
-  if (!/\d\d-\d\d_\d\d-\d\d/.test(DOC.title)) {
+  if (!/\d\d-\d\d_\d\d-\d\d/.test(document.title)) {
     return;
   }
 
-  removeElements(DOC, "p");
-  var h2 = DOC.getElementsByTagName("h2");
+  removeElements(document, "p");
+  var h2 = document.getElementsByTagName("h2");
   if (h2[5] && h2[5].textContent === "") {
     removeElement(h2[5]);
   }
@@ -1524,7 +1521,7 @@ function makeSpielbericht() {
   removeParent(h2[1]);
   removeElement(h2[0]);
 
-  var tr = DOC.getElementsByTagName("tr");
+  var tr = document.getElementsByTagName("tr");
   if (!tr || !tr[0]) {
     return;
   }
@@ -1646,8 +1643,8 @@ function loadPlayerStats() {
 }
 
 function getIFrame() {
-  if (DOC.defaultView && DOC.defaultView.parent && DOC.defaultView.parent.document) {
-    var parent = DOC.defaultView.parent.document;
+  if (document.defaultView && document.defaultView.parent && document.defaultView.parent.document) {
+    var parent = document.defaultView.parent.document;
     var iFrame = parent.getElementById("ifrmErgebnis");
     return iFrame;
   }
@@ -1658,7 +1655,7 @@ function adjustIFrameHeight() {
   var iFrame = getIFrame();
   // check if this is an iFrame and adjust parent's height
   if (iFrame) {
-    iFrame.height = (DOC.documentElement.scrollHeight + 40); // leave some space for player stats
+    iFrame.height = (document.documentElement.scrollHeight + 40); // leave some space for player stats
   }
 }
 
@@ -1806,14 +1803,14 @@ function makeSpieler() {
 
       for (var j = 0; j < 3; j++) {
         overArgs = {
-          doc: DOC,
+          doc: document,
           j: j,
           name: td[j].textContent,
           col1: "background-color:rgba(15, 70, 95, 0.12)",
           col2: "background-color:rgba(15, 70, 95, 0.06)"
         };
         outArgs = {
-          doc: DOC,
+          doc: document,
           j: j,
           col1: "",
           col2: ""
@@ -1823,14 +1820,14 @@ function makeSpieler() {
       }
 
       overArgs = {
-        doc: DOC,
+        doc: document,
         j: 3,
         name: /(DE|GD|DD|HE|HD)/.exec(td[3].textContent)[1],
         col1: "background-color:rgba(15, 70, 95, 0.12)",
         col2: "background-color:rgba(15, 70, 95, 0.06)"
       };
       outArgs = {
-        doc: DOC,
+        doc: document,
         j: 3,
         col1: "",
         col2: ""
@@ -1856,7 +1853,7 @@ function makeSpieler() {
   table[2].setAttribute("color.bg", "#999999");
   table[2].width = 780;
   table[2].removeAttribute("style");
-  setElementAttributes(DOC, "table", "style",
+  setElementAttributes(document, "table", "style",
                        "border:0", /Statistik|Ergebnisse je|Stamm-Mannschaft/);
   table[3].setAttribute("style", "border:1px solid #888");
   table[4].setAttribute("style", "border:1px solid #888");
@@ -1930,7 +1927,7 @@ function makePlayerLinksCallback(playerDoc) {
   // load player links from options element and convert to array
   var p = playerDoc.getElementsByTagName("option");
   // convert entries to objects
-  p = Array.map(p, function(e) {
+  p = Array.prototype.map.call(p, function(e) {
     return {
       name : e.innerHTML.replace(/&nbsp;&nbsp;+\(.*\)/, ""),
       link : e.value
@@ -1940,7 +1937,6 @@ function makePlayerLinksCallback(playerDoc) {
   // loop over player names in the document
   for (var i = 0; td && i < td.length; i++) {
     var name = td[i].textContent.replace(/^\s+|\s+$|(\s\(\d\))/g, "");
-    log(name);
     var ext = RegExp.$1 ? RegExp.$1 : "";
     if (!name || name.length < 5 || /</.test(name) || /Additionsregeln/.test(name)) {
       continue;
@@ -2115,7 +2111,7 @@ function makeHeadLine(groupNum, teamNum) {
   }
   var menu = newParentElement("nav", nav, "role", "navigation");
 
-  var td = DOC.getElementsByTagName("td");
+  var td = document.getElementsByTagName("td");
 
   var header = newParentElement("header", menu, "id", "headline");
   header.setAttribute("class", MOBILE ? "mobile" : "desktop");
@@ -2140,9 +2136,9 @@ function makeHeadLine(groupNum, teamNum) {
   }
 
   if (year !== CURRENT_SEASON) {
-    var centerDiv = DOC.getElementById("centerstyle");
+    var centerDiv = document.getElementById("centerstyle");
     if (centerDiv) {
-      var h1 = newElement(DOC, "h1", "Saison " + toSeasonName(year), "class", "title",
+      var h1 = newElement(document, "h1", "Saison " + toSeasonName(year), "class", "title",
                           "style", "color:#C55");
       centerDiv.insertBefore(h1, centerDiv.firstChild);
     }
@@ -2255,13 +2251,13 @@ function makeTabelle() {
     kampflos |= /kampflos/.test(td[i].textContent);
   }
 
-  removeParents(DOC, "b");
+  removeParents(document, "b");
 
   // iFrame hinzufuegen
   if (getPref("useIframe")) {
     var ifrm = create("iframe", null, "id", "ifrmErgebnis", "class", "ifrmErgebnis", "name",
                       "Ergebnis", "seamless", "true");
-    DOC.getElementById("centerstyle").appendChild(ifrm);
+    document.getElementById("centerstyle").appendChild(ifrm);
 
     // setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
     var links = BODY.getElementsByTagName("a");
@@ -2450,8 +2446,8 @@ function makeStyle() {
     BODY.appendChild(div);
   }
 
-  removeParents(DOC, "i");
-  removeElements(DOC, "style");
+  removeParents(document, "i");
+  removeElements(document, "style");
   removeElements(BODY, "h2", /Fenster schlie/);
   removeElements(BODY, "table", /Fenster schlie/);
 
@@ -2474,11 +2470,11 @@ function makeStyle() {
     }
   }
 
-  var icon = DOC.createElement("link");
+  var icon = document.createElement("link");
   icon.id = "icon";
   icon.rel = "shortcut icon";
   icon.href = "http://www.bvbb.net/fileadmin/user_upload/pics/logo.jpg";
-  DOC.head.appendChild(icon);
+  document.head.appendChild(icon);
 }
 
-new Bvbbpp(window.document).run();
+new Bvbbpp(document).run();

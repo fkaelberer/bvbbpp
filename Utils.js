@@ -1,8 +1,3 @@
-function log(msg) {
-  console.log("BVBB++: " + msg);
-}
-
-
 function twoDigits(num) {    
 	return (num < 10 ? "0" : "") + num;
 }
