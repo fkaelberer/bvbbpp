@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="releases"/>
-	<classpathentry excluding="bvbbpp@felixkaelberer.de|extensions.lnk|releases/|releases/bootstrap.js" including="bootstrap.js|chrome.manifest|export.xml|extensions.lnk|install.rdf|modules/|options.xul|skin/" kind="src" path=""/>
-	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path=""/>
-</classpath>
