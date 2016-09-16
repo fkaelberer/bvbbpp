@@ -200,7 +200,7 @@ function getYear(url) {
   if (seasonString === "schuch") {
     return CURRENT_SEASON;
   }
-  if (seasonString.contains("saison")) {
+  if (seasonString.indexOf("saison") >= 0) {
     return parseInt(seasonString.substr("saison".length, 2), 10);
   }
   return CURRENT_SEASON;
@@ -847,7 +847,7 @@ function makeCurrentSpieltermine(doc, spiele) {
 
   var soon = spiele.filter(function(spiel) {
     var href = spiel.dateNode.firstChild.href;
-    if (href && href.contains("zurueckgezogen")) {
+    if (href && href.indexOf("zurueckgezogen") >= 0) {
       return false;
     }
     // doesn't contain link and is in the future
@@ -856,7 +856,7 @@ function makeCurrentSpieltermine(doc, spiele) {
 
   var past = spiele.filter(function(spiel) {
     var href = spiel.dateNode.firstChild.href;
-    if (href && href.contains("zurueckgezogen")) {
+    if (href && href.indexOf("zurueckgezogen") >= 0) {
       return false;
     }
     // contains link or is in the past
@@ -1474,7 +1474,7 @@ function ensureHallenschluessel() {
         var url = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
 
         // url corrections
-        if (street.contains("Giebelseehalle")) {
+        if (street.indexOf("Giebelseehalle") >= 0) {
           url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
             + "15370+Petershagen/@52.5288403,13.7847762,17z/"
             + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
