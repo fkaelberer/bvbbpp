@@ -493,9 +493,10 @@ function makeHallenbelegung(doc, spiele, hallen) {
   var numLocations = 0;
   var spiel, key;
 
-  // we are only interested in home matches
+  // we are only interested in matches in our home location
+  var homeLoc = getHomeLocKey(spiele);
   spiele = spiele.filter(function(s) {
-    return s.heimspiel;
+	return s.locKey = homeLoc;
   });
 
   for (var s in spiele) {
@@ -613,6 +614,12 @@ function makeHallenbelegung(doc, spiele, hallen) {
   }
 }
 
+function getHomeLocKey(spiele) {
+	var someHomeMatch = spiele.find(function(spiel) {
+		return spiel.heimspiel;
+	});
+	return someHomeMatch.locKey;
+}
 
 function toDate(spiel) {
   var d = spiel.date;
