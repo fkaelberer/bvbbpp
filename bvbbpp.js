@@ -496,7 +496,7 @@ function makeHallenbelegung(doc, spiele, hallen) {
   // we are only interested in matches in our home location
   var homeLoc = getHomeLocKey(spiele);
   spiele = spiele.filter(function(s) {
-    return s.locKey = homeLoc;
+    return s.locKey == homeLoc;
   });
 
   for (var s in spiele) {
