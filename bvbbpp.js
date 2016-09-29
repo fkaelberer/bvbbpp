@@ -20,6 +20,7 @@ var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAA
 
 var MOBILE = false;
 
+// TODO store defaults (relict from old firefox extension)
 // preferences and defaults
 var PREFS = [{
   name: "useIframe",
@@ -263,6 +264,8 @@ function errorMsg(e, msg) {
 /**
  * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, create the preference
  * with default setting.
+ * 
+ * TODO https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Implement_a_settings_page
  *
  * @param name
  *            pref name
@@ -495,8 +498,8 @@ function makeHallenbelegung(doc, spiele, hallen) {
 
   // we are only interested in matches in our home location
   var homeLoc = getHomeLocKey(spiele);
-  spiele = spiele.filter(function(s) {
-    return s.locKey == homeLoc;
+  spiele = spiele.filter(spiel => {
+    return spiel.locKey == homeLoc;
   });
 
   for (var s in spiele) {
@@ -615,7 +618,7 @@ function makeHallenbelegung(doc, spiele, hallen) {
 }
 
 function getHomeLocKey(spiele) {
-  var someHomeMatch = spiele.find(function(spiel) {
+  var someHomeMatch = spiele.find(spiel => {
     return spiel.heimspiel;
   });
   return someHomeMatch.locKey;
