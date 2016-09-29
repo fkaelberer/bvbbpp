@@ -20,6 +20,7 @@ var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAA
 
 var MOBILE = false;
 
+// TODO store defaults (relict from old firefox extension)
 // preferences and defaults
 var PREFS = [{
   name: "useIframe",
@@ -263,14 +264,21 @@ function errorMsg(e, msg) {
 /**
  * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, create the preference
  * with default setting.
+ * 
+ * TODO https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Implement_a_settings_page
  *
  * @param name
  *            pref name
  * @returns pref value
  */
 function getPref(name, callback) {
-	return false;
-	return chrome.storage.local.set(name, callback);
+  if (!callback) return false;
+	return chrome.storage.local.get(name, (value) => {
+	  if (value) 
+	    return callback(value[name]) 
+	  else 
+	    return PREFS.find(element => {return element.name == name});
+	});
 }
 
 function setPref(name, value) {
@@ -331,19 +339,21 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
 
   function toggle() {
     var doc = this.bvbbpp.doc;
-    if (getPref(this.storage + this.num)) {
-      setPref(this.storage + this.num, false);
-      this.node.style.color = OFF;
-      this.node.style.textShadow = OFF_SHADOW;
-      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
-      doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
-    } else {
-      setPref(this.storage + this.num, true);
-      this.node.style.color = ON;
-      this.node.style.textShadow = ON_SHADOW;
-      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
-      doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
-    }
+    getPref(this.storage + this.num, (value) => {
+      if (value) {
+        setPref(this.storage + this.num, false);
+        this.node.style.color = OFF;
+        this.node.style.textShadow = OFF_SHADOW;
+        doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
+        doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
+      } else {
+        setPref(this.storage + this.num, true);
+        this.node.style.color = ON;
+        this.node.style.textShadow = ON_SHADOW;
+        doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
+        doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
+      }
+    })
   }
 
   var doc = bvbbpp.doc;
@@ -367,7 +377,9 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: teamNum,
       storage: "verein"
     });
-    star.style.color = getPref("verein" + teamNum) ? ON : OFF;
+    getPref("verein" + teamNum, value => {
+      document.getElementById("favorite").style.color = value ? ON : OFF;
+    })
     star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
   }
   if (groupNum >= 0) {
@@ -377,7 +389,9 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: groupNum,
       storage: "gruppe"
     });
-    star.style.color = getPref("gruppe" + teamNum) ? ON : OFF;
+    getPref("gruppe" + teamNum, value => {
+      document.getElementById("favorite").style.color = value ? ON : OFF;
+    })
     star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
   }
   return star;
@@ -493,9 +507,10 @@ function makeHallenbelegung(doc, spiele, hallen) {
   var numLocations = 0;
   var spiel, key;
 
-  // we are only interested in home matches
-  spiele = spiele.filter(function(s) {
-    return s.heimspiel;
+  // we are only interested in matches in our home location
+  var homeLoc = getHomeLocKey(spiele);
+  spiele = spiele.filter(spiel => {
+    return spiel.locKey == homeLoc;
   });
 
   for (var s in spiele) {
@@ -613,6 +628,12 @@ function makeHallenbelegung(doc, spiele, hallen) {
   }
 }
 
+function getHomeLocKey(spiele) {
+  var someHomeMatch = spiele.find(spiel => {
+    return spiel.heimspiel;
+  });
+  return someHomeMatch.locKey;
+}
 
 function toDate(spiel) {
   var d = spiel.date;
