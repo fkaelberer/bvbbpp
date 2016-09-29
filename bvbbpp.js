@@ -272,8 +272,13 @@ function errorMsg(e, msg) {
  * @returns pref value
  */
 function getPref(name, callback) {
-	return false;
-	return chrome.storage.local.set(name, callback);
+  if (!callback) return false;
+	return chrome.storage.local.get(name, (value) => {
+	  if (value) 
+	    return callback(value[name]) 
+	  else 
+	    return PREFS.find(element => {return element.name == name});
+	});
 }
 
 function setPref(name, value) {
@@ -334,19 +339,21 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
 
   function toggle() {
     var doc = this.bvbbpp.doc;
-    if (getPref(this.storage + this.num)) {
-      setPref(this.storage + this.num, false);
-      this.node.style.color = OFF;
-      this.node.style.textShadow = OFF_SHADOW;
-      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
-      doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
-    } else {
-      setPref(this.storage + this.num, true);
-      this.node.style.color = ON;
-      this.node.style.textShadow = ON_SHADOW;
-      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
-      doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
-    }
+    getPref(this.storage + this.num, (value) => {
+      if (value) {
+        setPref(this.storage + this.num, false);
+        this.node.style.color = OFF;
+        this.node.style.textShadow = OFF_SHADOW;
+        doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
+        doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
+      } else {
+        setPref(this.storage + this.num, true);
+        this.node.style.color = ON;
+        this.node.style.textShadow = ON_SHADOW;
+        doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
+        doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
+      }
+    })
   }
 
   var doc = bvbbpp.doc;
@@ -370,7 +377,9 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: teamNum,
       storage: "verein"
     });
-    star.style.color = getPref("verein" + teamNum) ? ON : OFF;
+    getPref("verein" + teamNum, value => {
+      document.getElementById("favorite").style.color = value ? ON : OFF;
+    })
     star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
   }
   if (groupNum >= 0) {
@@ -380,7 +389,9 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: groupNum,
       storage: "gruppe"
     });
-    star.style.color = getPref("gruppe" + teamNum) ? ON : OFF;
+    getPref("gruppe" + teamNum, value => {
+      document.getElementById("favorite").style.color = value ? ON : OFF;
+    })
     star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
   }
   return star;
