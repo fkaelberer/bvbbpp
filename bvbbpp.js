@@ -377,10 +377,10 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: teamNum,
       storage: "verein"
     });
-    getPref("verein" + teamNum, value => {
+    getPref("verein" + teamNum, function(value) {
       document.getElementById("favorite").style.color = value ? ON : OFF;
-    })
-    star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
+      this.star.style.textShadow = value ? ON_SHADOW : OFF_SHADOW;
+    }.bind({star: star}));
   }
   
   if (groupNum >= 0) {
@@ -390,10 +390,10 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: groupNum,
       storage: "gruppe"
     });
-    getPref("gruppe" + teamNum, value => {
+    getPref("gruppe" + groupNum, function(value) {
       document.getElementById("favorite").style.color = value ? ON : OFF;
-    })
-    star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
+      this.star.style.textShadow = value ? ON_SHADOW : OFF_SHADOW;
+    }.bind({star: star}));
   }
   return star;
 }
