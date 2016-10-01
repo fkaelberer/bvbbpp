@@ -62,10 +62,10 @@ var FIRST_SEASON = 9
 var CURRENT_SEASON = getCurrentSeasonYear();
 var SEASONS = [];
 for (var i = FIRST_SEASON; i <= CURRENT_SEASON; i++ ) {
-	SEASONS.push(i);
-	if (!DIVISIONS[i]) {
-		DIVISIONS[i] = DIVISIONS[i - 1];
-	}
+  SEASONS.push(i);
+  if (!DIVISIONS[i]) {
+    DIVISIONS[i] = DIVISIONS[i - 1];
+  }
 }
 
 function toColorObject(color) {
@@ -203,14 +203,14 @@ function getYear(url) {
 }
 
 function getCurrentSeasonYear() {
-	// lässt die neue Saison ab August starten
-	var d = new Date();
-	var year = d.getFullYear() - 2000;
-	var august = 7
-	if (d.getMonth() < august) {
-	  year -= 1
-	}
-	return year
+  // lässt die neue Saison ab August starten
+  var d = new Date();
+  var year = d.getFullYear() - 2000;
+  var august = 7
+  if (d.getMonth() < august) {
+    year -= 1
+  }
+  return year
 }
 
 function toSeasonName(year) {
@@ -273,18 +273,18 @@ function errorMsg(e, msg) {
  */
 function getPref(name, callback) {
   if (!callback) return false;
-	return chrome.storage.local.get(name, (value) => {
-	  if (value) 
-	    return callback(value[name]) 
-	  else 
+  return chrome.storage.local.get(name, (value) => {
+    if (value) 
+      return callback(value[name]) 
+    else 
       return PREFS.find(element => element.name === name);
-	});
+  });
 }
 
 function setPref(name, value) {
-		var pref = {};
-		pref[name] = value;
-		chrome.storage.local.set(pref);
+    var pref = {};
+    pref[name] = value;
+    chrome.storage.local.set(pref);
 }
 
 function makeAufstellung() {
@@ -478,12 +478,16 @@ function makeVerein() {
     vereineVerlinken(vereine);
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
-    if (!getPref("hideDoodle") && BVBBPP.year === CURRENT_SEASON) {
-      (makeDoodleLinks.bind(this))(doc, spiele);
-    }
-    if (!getPref("hideICS") && BVBBPP.year === CURRENT_SEASON) {
-      (makeICalendar.bind(this))(doc, spiele);
-    }
+    getPref("hideDoodle", function(value) {
+      if (!value && BVBBPP.year === CURRENT_SEASON) {
+        (makeDoodleLinks.bind(this.this_))(doc, spiele);
+      }
+    }.bind({this_: this}));
+    getPref("hideICS", function(value) {
+      if (!value && BVBBPP.year === CURRENT_SEASON) {
+        (makeICalendar.bind(this.this_))(doc, spiele);
+      }
+    }.bind({this_: this}));
     makeCurrentSpieltermine(doc, spiele);
     makeHallenbelegung(doc, spiele, hallen);
 //  disable catch because it doesn't compile in eclipse
@@ -573,11 +577,11 @@ function makeHallenbelegung(doc, spiele, hallen) {
       tr.appendChild(tds[times[j]]); // left
       for (var i = 0; i < dates.length; i++) {
         key = loc + dates[i] + times[j];
-		var date = new Date(dates[i].substr(6,4), dates[i].substr(3,2) - 1, dates[i].substr(0,2));
-		if (date < new Date(new Date().getYear() + 1900, new Date().getMonth(), new Date().getDate()))
-		  tds[key] = newElement(doc, "td", null, "style", "padding: 0 0; color: #aaa");
-		else
-		  tds[key] = newElement(doc, "td", null, "style", "padding: 0 0");
+    var date = new Date(dates[i].substr(6,4), dates[i].substr(3,2) - 1, dates[i].substr(0,2));
+    if (date < new Date(new Date().getYear() + 1900, new Date().getMonth(), new Date().getDate()))
+      tds[key] = newElement(doc, "td", null, "style", "padding: 0 0; color: #aaa");
+    else
+      tds[key] = newElement(doc, "td", null, "style", "padding: 0 0");
         tr.appendChild(tds[key]); // left
       }
     }
@@ -644,7 +648,7 @@ function toDate(spiel) {
 function parseSpieltermine(doc, vereine) {
   var spiele = [];
   var tables = doc.getElementsByTagName("table");
-  for (var i=0; i<tables.length; i += 2) {
+  for (var i = 0; i < tables.length; i += 2) {
     var zurueckgezogen = /ckgezogen/.test(tables[i].textContent);
     // even table contains the number of the team "x. Mannschaft"
     var teamName = tables[i].textContent.match(/\d+/);
@@ -971,7 +975,7 @@ function makeCurrentSpieltermine(doc, spiele) {
     resultCell.textContent = "\u00A0\u00A0\u00A0(" + result.spielErgebnisText + ")";
   }
 
-  for (i = 0; i<resultsToLoad.length; i++) {
+  for (i = 0; i < resultsToLoad.length; i++) {
     loadSpielbericht(resultsToLoad[i]).then(fillResults.bind(BVBBPP.this_));
   }
 
@@ -1946,10 +1950,10 @@ function makePlayerLinksCallback(playerDoc) {
   var p = playerDoc.getElementsByTagName("option");
   // convert entries to objects
   p = Array.prototype.map.call(p,
-  		e => ({
-      name : e.innerHTML.replace(/&nbsp;&nbsp;+\(.*\)/, ""),
-      link : e.value
-  		})
+      e => ({
+        name : e.innerHTML.replace(/&nbsp;&nbsp;+\(.*\)/, ""),
+        link : e.value
+      })
   );
 
   // loop over player names in the document
@@ -2033,16 +2037,22 @@ function fillMenuWithTeams(vereine) {
                        "href",
                        bvbbpp.webAufstellung + "aufstellung-" + twoDigits(verein.nr) + ".HTML");
     this.ulAuf.appendChild(newParentElement("li", a));
-    if (getPref("verein" + verein.nr)) {
-      a.setAttribute("class", "favorite");
-    }
-
+    
+    getPref("verein" + verein.nr, function(value) {
+      if (value) {
+        this.a.setAttribute("class", "favorite");
+      }
+    }.bind({ a: a }));
+    
     a = newElement(doc, "a", verein.name, "id", "menuVerein" + verein.nr,
                    "href",
                    bvbbpp.webSpielberichteVereine + "verein-" + twoDigits(verein.nr) + ".HTML");
-    if (getPref("verein" + verein.nr)) {
-      a.setAttribute("class", "favorite");
-    }
+    getPref("verein" + verein.nr, function(value) {
+      if (value) {
+        this.a.setAttribute("class", "favorite");
+      }
+    }.bind({ a: a }));
+
     this.ulSpi.appendChild(newParentElement("li", a));
   }
 }
@@ -2345,7 +2355,7 @@ function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
 
   var vorbei = spiele.filter(
     spiel => gespielt[spiel.t1][spiel.t2] && gespielt[spiel.t1][spiel.t2] !== -1
-	);
+  );
 
   return {
     bald: bald,
