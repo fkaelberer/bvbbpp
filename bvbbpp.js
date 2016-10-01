@@ -52,7 +52,7 @@ var DIVISIONS = [];
 // DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
 // DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
 
-// Nur diejenigen Staffeln müssen angegeben werden, die sich von der Vorsaison unterscheiden.
+// Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
 DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
 DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
@@ -274,10 +274,12 @@ function errorMsg(e, msg) {
 function getPref(name, callback) {
   if (!callback) return false;
   return chrome.storage.local.get(name, (value) => {
-    if (value) 
+    if (value[name] !== undefined) 
       return callback(value[name]) 
     else 
-      return PREFS.find(element => element.name === name);
+      var defaultPreference = PREFS.find(element => element.name === name);
+      var pref = defaultPreference ? defaultPreference.def : undefined
+      return pref;  
   });
 }
 
