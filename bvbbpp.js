@@ -736,20 +736,6 @@ function makeDoodleLinks(doc, spiele) {
 }
 
 
-function hashCode(str) {
-  var hash = 0, i, char, len = str.length;
-  if (len === 0) {
-    return hash;
-  }
-  for (i = 0; i < len; i++) {
-    char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash >>> 0;
-}
-
-
 function ICal() {
   //BEGIN:VCALENDAR
   //VERSION:2.0
@@ -2247,7 +2233,7 @@ function makeTabelle() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2")[0]; // uebersicht
+  var h2 = BODY.getElementsByTagName("h2")[0]; // Uebersicht
   var groupTitle = makeGroupTitle("Spielstand " + BVBBPP.divisions.names[groupNum], true);
   h2.parentNode.replaceChild(groupTitle, h2);
 
