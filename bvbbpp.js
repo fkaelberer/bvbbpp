@@ -2262,7 +2262,8 @@ function makeTabelle() {
   removeParents(document, "b");
 
   // iFrame hinzufuegen
-  if (getPref("useIframe")) {
+  getPref("useIframe", function(value) {
+  	if (value) {
     var ifrm = create("iframe", null, "id", "ifrmErgebnis", "class", "ifrmErgebnis", "name",
                       "Ergebnis", "seamless", "true");
     document.getElementById("centerstyle").appendChild(ifrm);
@@ -2278,6 +2279,8 @@ function makeTabelle() {
   var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
                                   "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
   getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
+  });
+	
 }
 
 function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
