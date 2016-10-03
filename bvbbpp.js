@@ -262,24 +262,31 @@ function errorMsg(e, msg) {
 }
 
 /**
- * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, create the preference
- * with default setting.
+ * @param name 
+ *            name of the preference
+ * @returns the default value of the preference if it exists, 'undefined' otherwise. 
+ */
+function getDefaultPrefValue(name) {
+  var defaultPreference = PREFS.find(element => (element.name === name));
+  return defaultPreference ? defaultPreference.def : undefined;
+}
+
+/**
+ * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, return the preference's
+ * default setting. If the default setting doesn't exist either, return undefined. 
  * 
  * TODO https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Implement_a_settings_page
  *
  * @param name
  *            pref name
- * @returns pref value
+ * @param callback
+ *            callback function which is called with pref value as argument
  */
 function getPref(name, callback) {
   if (!callback) return false;
-  return chrome.storage.local.get(name, (value) => {
-    if (value[name] !== undefined) 
-      return callback(value[name]) 
-    else 
-      var defaultPreference = PREFS.find(element => element.name === name);
-      var pref = defaultPreference ? defaultPreference.def : undefined
-      return pref;  
+  return chrome.storage.local.get(name, value => {
+    var prefValue = (value[name] !== undefined) ? value[name] : getDefaultPrefValue(name);
+    callback(prefValue);
   });
 }
 
@@ -2260,27 +2267,27 @@ function makeTabelle() {
   }
 
   removeParents(document, "b");
-
+  
   // iFrame hinzufuegen
   getPref("useIframe", function(value) {
-  	if (value) {
-    var ifrm = create("iframe", null, "id", "ifrmErgebnis", "class", "ifrmErgebnis", "name",
-                      "Ergebnis", "seamless", "true");
-    document.getElementById("centerstyle").appendChild(ifrm);
-
-    // setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
-    var links = BODY.getElementsByTagName("a");
-    for (var i = 0; i < links.length; i++) {
-      if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) {
-        links[i].target = "Ergebnis";
+    if (value) {
+      var ifrm = create("iframe", null, "id", "ifrmErgebnis", "class", "ifrmErgebnis", "name",
+                        "Ergebnis", "seamless", "true");
+      document.getElementById("centerstyle").appendChild(ifrm);
+  
+      // setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
+      var links = BODY.getElementsByTagName("a");
+      for (var i = 0; i < links.length; i++) {
+        if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) {
+          links[i].target = "Ergebnis";
+        }
       }
     }
-  }
-  var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
-                                  "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
-  getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
+    var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
+        "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
+    getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
   });
-	
+  
 }
 
 function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
