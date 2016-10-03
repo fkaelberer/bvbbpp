@@ -110,6 +110,7 @@ function Bvbbpp(document) {
   if (!this.valid) {
     return;
   }
+  this.domain = getProtocolAndDomain(this.URL);
   this.doc = document;
   this.body = document.body;
   this.year = getYear(this.URL);
@@ -121,7 +122,7 @@ function Bvbbpp(document) {
     shortNames: DIVISIONS[this.year],
     names: DIVISIONS[this.year].map(toLongName)
   };
-  this.web = "http://bvbb.net/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
+  this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
   this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
   this.webAufstellung = this.web + "aufstellung/";
   this.webHallen = this.web + "Hallen.HTML";
@@ -996,7 +997,6 @@ function onNotFound(dueText, futureText) {
     notFound.textContent = "Webseite nicht gefunden.";
     parent.insertBefore(create("h2", isDue() ? dueText : futureText), notFound.nextSibling);
     return notFound;
-
   }
 }
 
@@ -1417,89 +1417,89 @@ function ensureHallenschluessel() {
     }.bind(BVBBPP.this_));
   }
 
- return new Promise(function(resolve, reject) {
-  getDocument(this.bvbbpp.webHallen).then(function(hallenDoc) {
-    var tr = hallenDoc.getElementsByTagName("tr");
-    var hallenschluessel;
-    hallenschluessel = [];
+  return new Promise(function(resolve, reject) {
+    getDocument(this.bvbbpp.webHallen).then(function(hallenDoc) {
+      var tr = hallenDoc.getElementsByTagName("tr");
+      var hallenschluessel;
+      hallenschluessel = [];
 
-    // speichere hallenschluessel in arrays
-    for (var i = 0; i < tr.length; i++) {
-      var f = tr[i].getElementsByTagName("font")[0];
-      var d = tr[i].getElementsByTagName("div");
-      if (f && d[1] && d[2] && d[3]) {
-        var key = f.textContent;
-        if (key.length !== 2) {
-          continue;
-        }
-        var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
-                                     .replace(/(&nbsp;){2,}/g, " ")
-                                     .replace(/str\./, "stra\u00DFe")
-                                     .replace(/Str\./, "Stra\u00DFe");
-        var shortStreet = street.replace(/\s*\n.+/g, "");
-        var PLZ = d[1].textContent.replace(/^\s+/, "")
-            + d[2].textContent.replace("(", " ").replace(")", "");
+      // speichere hallenschluessel in arrays
+      for (var i = 0; i < tr.length; i++) {
+        var f = tr[i].getElementsByTagName("font")[0];
+        var d = tr[i].getElementsByTagName("div");
+        if (f && d[1] && d[2] && d[3]) {
+          var key = f.textContent;
+          if (key.length !== 2) {
+            continue;
+          }
+          var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
+          .replace(/(&nbsp;){2,}/g, " ")
+          .replace(/str\./, "stra\u00DFe")
+          .replace(/Str\./, "Stra\u00DFe");
+          var shortStreet = street.replace(/\s*\n.+/g, "");
+          var PLZ = d[1].textContent.replace(/^\s+/, "")
+          + d[2].textContent.replace("(", " ").replace(")", "");
 
-        // street corrections
-        if (/-Nydal-/.test(street)) {
-          street = street.replace("-Nydal-", "-Nydahl-");
-          shortStreet = street.replace(/\s*\n.+/g, "");
-        }
-        if (/Sportcenter\sPreu.enpark/.test(street)) {
-          shortStreet = "Kamenzer Damm 34";
-        }
-        if (/Pfalzburger\sStr/.test(street)) {
-          shortStreet = "G\u00FCntzelstra\u00DFe 34-35";
-        }
-        if (/Gr.ner\sWeg/.test(street)) {
-          shortStreet = "Gr\u00FCner Weg";
-        }
-        if (/Neuendorfer\sSand/.test(street)) {
-          shortStreet = shortStreet.replace(/Ecke\s/, "");
-        }
-        if (/Schwyzer.Stra.e/.test(street)) {
-          shortStreet = shortStreet.replace(/,\suntere\sHalle/, "");
-        }
-        if (/Sporthalle.Dabendorf/.test(street)) {
-          shortStreet += ", J\u00E4gerstra\u00DFe";
-        }
-        if (/Sporthalle\s+Saarlandstr/.test(street)) {
-          shortStreet = "Saarlandstra\u00DFe 14";
-        }
-        if (/Hausburgstr/.test(street) && !/Hausburgstra.e\s20/.test(street)) {
-          street = street.replace(/Hausburgstra.e/, "Hausburgstra\u00DFe 20");
-          shortStreet = street.replace(/\s*\n.+/g, "");
-        }
-        if (/Immanuel-Kant-Gesamtschule/.test(street)) {
-          shortStreet = "Kantstra\u00DFe 17";
-        }
-        if (/Kuno-Fischer-Stra.e\s27/.test(shortStreet)) {
-          shortStreet = "Kuno-Fischer-Stra\u00DFe 27";
-        }
-        if (/L.tzowstra.e.83-85/.test(shortStreet)) {
-          shortStreet = shortStreet.replace(/,..ber.Parkplatzeinf./, "");
-        }
-        var url = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
+          // street corrections
+          if (/-Nydal-/.test(street)) {
+            street = street.replace("-Nydal-", "-Nydahl-");
+            shortStreet = street.replace(/\s*\n.+/g, "");
+          }
+          if (/Sportcenter\sPreu.enpark/.test(street)) {
+            shortStreet = "Kamenzer Damm 34";
+          }
+          if (/Pfalzburger\sStr/.test(street)) {
+            shortStreet = "G\u00FCntzelstra\u00DFe 34-35";
+          }
+          if (/Gr.ner\sWeg/.test(street)) {
+            shortStreet = "Gr\u00FCner Weg";
+          }
+          if (/Neuendorfer\sSand/.test(street)) {
+            shortStreet = shortStreet.replace(/Ecke\s/, "");
+          }
+          if (/Schwyzer.Stra.e/.test(street)) {
+            shortStreet = shortStreet.replace(/,\suntere\sHalle/, "");
+          }
+          if (/Sporthalle.Dabendorf/.test(street)) {
+            shortStreet += ", J\u00E4gerstra\u00DFe";
+          }
+          if (/Sporthalle\s+Saarlandstr/.test(street)) {
+            shortStreet = "Saarlandstra\u00DFe 14";
+          }
+          if (/Hausburgstr/.test(street) && !/Hausburgstra.e\s20/.test(street)) {
+            street = street.replace(/Hausburgstra.e/, "Hausburgstra\u00DFe 20");
+            shortStreet = street.replace(/\s*\n.+/g, "");
+          }
+          if (/Immanuel-Kant-Gesamtschule/.test(street)) {
+            shortStreet = "Kantstra\u00DFe 17";
+          }
+          if (/Kuno-Fischer-Stra.e\s27/.test(shortStreet)) {
+            shortStreet = "Kuno-Fischer-Stra\u00DFe 27";
+          }
+          if (/L.tzowstra.e.83-85/.test(shortStreet)) {
+            shortStreet = shortStreet.replace(/,..ber.Parkplatzeinf./, "");
+          }
+          var url = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
 
-        // url corrections
-        if (street.indexOf("Giebelseehalle") >= 0) {
-          url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
-            + "15370+Petershagen/@52.5288403,13.7847762,17z/"
-            + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
-        }
+          // url corrections
+          if (street.indexOf("Giebelseehalle") >= 0) {
+            url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
+              + "15370+Petershagen/@52.5288403,13.7847762,17z/"
+              + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
+          }
 
-        hallenschluessel[key] = {
-          street: street,
-          PLZ: PLZ,
-          shortStreet: shortStreet,
-          URL: url
-        };
+          hallenschluessel[key] = {
+              street: street,
+              PLZ: PLZ,
+              shortStreet: shortStreet,
+              URL: url
+          };
+        }
       }
-    }
-    this.bvbbpp.hallenschluessel = hallenschluessel;
-    resolve(this.bvbbpp.hallenschluessel);
-  }.bind(this.bvbbpp.this_));
-}.bind(BVBBPP.this_));
+      this.bvbbpp.hallenschluessel = hallenschluessel;
+      resolve(this.bvbbpp.hallenschluessel);
+    }.bind(this.bvbbpp.this_));
+  }.bind(BVBBPP.this_));
 }
 
 function replaceHallenschluessel(halle) {
@@ -2007,7 +2007,7 @@ function parseVereine(vereineURL) {
         var a = td[i + 1].getElementsByTagName("a")[0];
         vereine.push({
           nr: parseInt(textContent, 10),
-          href: "http://bvbb.net/" + a.href.substring(a.href.lastIndexOf("fileadmin")),
+          href: getProtocolAndDomain(vereineURL) + "/" + a.href.substring(a.href.lastIndexOf("fileadmin")),
           shortName: a.textContent,
           name: td[i + 2].textContent
         });
@@ -2267,6 +2267,12 @@ function makeTabelle() {
   }
 
   removeParents(document, "b");
+
+  // Fix the domain name in all links in the table to match the current domain name. 
+  // Otherwise opening the iFrame would be hindered by same-origin-policy
+  [].slice.call(BODY.querySelectorAll("h2 table a")).map(
+      a => { a.href = a.href.replace(getProtocolAndDomain(a.href), BVBBPP.domain) } 
+  );
   
   // iFrame hinzufuegen
   getPref("useIframe", function(value) {
