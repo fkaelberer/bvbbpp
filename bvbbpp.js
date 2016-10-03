@@ -33,63 +33,83 @@ var PREFS = [{
   def: MOBILE
 }];
 
+var BvbbLeague = (function() {
+  var my = {};
+  
+  var BB = "BB";
+  var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
+  var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
+  var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
+  var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
+  var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
+  var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
+  var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
+  var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
+  var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
+  
+  var DIVISIONS = [];
+  my.DIVISIONS = DIVISIONS;
+  // keine Gegenueberstellung 2006/07
+  // DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
+  // keine Spieltermine 2007/08, 2008/09
+  // DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
+  // DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
 
-var BB = "BB";
-var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
-var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
-var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
-var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
-var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
-var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
-var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
-var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
-var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
+  // Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
+  DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
+  DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
+  DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
+  DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-var DIVISIONS = [];
-// keine Gegenueberstellung 2006/07
-// DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
-// keine Spieltermine 2007/08, 2008/09
-// DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-// DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-
-// Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
-DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
-DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
-DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-
-var FIRST_SEASON = 9
-var CURRENT_SEASON = getCurrentSeasonYear();
-var SEASONS = [];
-for (var i = FIRST_SEASON; i <= CURRENT_SEASON; i++ ) {
-  SEASONS.push(i);
-  if (!DIVISIONS[i]) {
-    DIVISIONS[i] = DIVISIONS[i - 1];
+  var FIRST_SEASON = 9
+  my.CURRENT_SEASON = getCurrentSeasonYear();
+  my.SEASONS = [];
+  for (var i = FIRST_SEASON; i <= my.CURRENT_SEASON; i++ ) {
+    my.SEASONS.push(i);
+    if (!DIVISIONS[i]) {
+      DIVISIONS[i] = DIVISIONS[i - 1];
+    }
+  }  
+  
+  function getCurrentSeasonYear() {
+    // lässt die neue Saison ab August starten
+    var d = new Date();
+    var year = d.getFullYear() - 2000;
+    var august = 7
+    if (d.getMonth() < august) {
+      year -= 1
+    }
+    return year
   }
-}
+  
+  return my;
 
-function toColorObject(color) {
-  return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
-}
+}());
 
-var LIGHT_YELLOW = toColorObject("FFFFCC");
-var YELLOW       = toColorObject("FFFF66");
-var MIX_YELLOW   = toColorObject("FAFA44");
-var DARK_YELLOW  = toColorObject("F0F000");
-var LIGHT_ORANGE = toColorObject("FFCC33");
-var ORANGE       = toColorObject("FF9900");
-var DARK_ORANGE  = toColorObject("CC9933");
-var AUFSTEIGER   = toColorObject("00CC00");
-var ABSTEIGER    = toColorObject("FF6633");
-var ZURUECK      = toColorObject("FF0022");
-var WIN          = toColorObject("33FF00");
-var LOSE         = toColorObject("FF0000");
-var FRAME_TOP    = toColorObject("D8D8D8");
-var FRAME_BOTTOM = toColorObject("474747");
-var KAMPFLOS     = toColorObject("FF6600");
+//var Styles = (function(){ 
+  function toColorObject(color) {
+    return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
+  }
 
-var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
-              AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+  var LIGHT_YELLOW = toColorObject("FFFFCC");
+  var YELLOW       = toColorObject("FFFF66");
+  var MIX_YELLOW   = toColorObject("FAFA44");
+  var DARK_YELLOW  = toColorObject("F0F000");
+  var LIGHT_ORANGE = toColorObject("FFCC33");
+  var ORANGE       = toColorObject("FF9900");
+  var DARK_ORANGE  = toColorObject("CC9933");
+  var AUFSTEIGER   = toColorObject("00CC00");
+  var ABSTEIGER    = toColorObject("FF6633");
+  var ZURUECK      = toColorObject("FF0022");
+  var WIN          = toColorObject("33FF00");
+  var LOSE         = toColorObject("FF0000");
+  var FRAME_TOP    = toColorObject("D8D8D8");
+  var FRAME_BOTTOM = toColorObject("474747");
+  var KAMPFLOS     = toColorObject("FF6600");
+
+  var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
+                AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+//}());
 
 var BODY = null;
 var BVBBPP;
@@ -118,8 +138,8 @@ function Bvbbpp(document) {
     name: toSeasonName(this.year)
   };
   this.divisions = {
-    shortNames: DIVISIONS[this.year],
-    names: DIVISIONS[this.year].map(toLongName)
+    shortNames: BvbbLeague.DIVISIONS[this.year],
+    names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
   };
   this.web = "http://bvbb.net/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
   this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
@@ -194,23 +214,12 @@ Bvbbpp.prototype = {
 function getYear(url) {
   var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
   if (seasonString === "schuch") {
-    return CURRENT_SEASON;
+    return BvbbLeague.CURRENT_SEASON;
   }
   if (seasonString.indexOf("saison") >= 0) {
     return parseInt(seasonString.substr("saison".length, 2), 10);
   }
-  return CURRENT_SEASON;
-}
-
-function getCurrentSeasonYear() {
-  // lässt die neue Saison ab August starten
-  var d = new Date();
-  var year = d.getFullYear() - 2000;
-  var august = 7
-  if (d.getMonth() < august) {
-    year -= 1
-  }
-  return year
+  return BvbbLeague.CURRENT_SEASON;
 }
 
 function toSeasonName(year) {
@@ -218,7 +227,7 @@ function toSeasonName(year) {
 }
 
 function toWebName(year) {
-  if (year === CURRENT_SEASON) {
+  if (year === BvbbLeague.CURRENT_SEASON) {
     return "schuch";
   }
   return "saison" + twoDigits(year) + twoDigits(year + 1);
@@ -481,12 +490,12 @@ function makeVerein() {
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
     getPref("hideDoodle", function(value) {
-      if (!value && BVBBPP.year === CURRENT_SEASON) {
+      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
         (makeDoodleLinks.bind(this.this_))(doc, spiele);
       }
     }.bind({this_: this}));
     getPref("hideICS", function(value) {
-      if (!value && BVBBPP.year === CURRENT_SEASON) {
+      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
         (makeICalendar.bind(this.this_))(doc, spiele);
       }
     }.bind({this_: this}));
@@ -2063,9 +2072,9 @@ function makeHeadLine(groupNum, teamNum) {
 
   var aSeason = create("a", BVBBPP.season.name, "class", "navigationSelected", "style",
                        "font-weight:600");
-  for (var i = SEASONS.length - 1; i >= 0; i--) {
-    var target = BVBBPP.otherYearURL(SEASONS[i]);
-    var link = create("a", "Saison " + toSeasonName(SEASONS[i]), "href", target);
+  for (var i = BvbbLeague.SEASONS.length - 1; i >= 0; i--) {
+    var target = BVBBPP.otherYearURL(BvbbLeague.SEASONS[i]);
+    var link = create("a", "Saison " + toSeasonName(BvbbLeague.SEASONS[i]), "href", target);
     ulSeason.appendChild(newParentElement("li", link));
   }
 
@@ -2147,7 +2156,7 @@ function makeHeadLine(groupNum, teamNum) {
     }
   }
 
-  if (year !== CURRENT_SEASON) {
+  if (year !== BvbbLeague.CURRENT_SEASON) {
     var centerDiv = document.getElementById("centerstyle");
     if (centerDiv) {
       var h1 = newElement(document, "h1", "Saison " + toSeasonName(year), "class", "title",
