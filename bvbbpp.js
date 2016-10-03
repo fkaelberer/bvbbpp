@@ -2209,7 +2209,7 @@ function parseAnsetzungen(doc, ansetzungen) {
       num1 = parseInt(ex[1], 10);
       num2 = parseInt(ex[2], 10);
     }
-    if (/\d\d.\d\d.\d\d\d\d/.test(text)) {
+    if (/^\s+\d\d.\d\d.\d\d\d\d\s+$/.test(text)) {
       // num1 und num2 sind noch von der letzten Zelle belegt
       ansetzung[numAns++] = {
         t1: teamObj[num1 - 1].tabellenPlatz,
