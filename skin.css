@@ -118,7 +118,7 @@ a.icon {
 	height: 22px;
 	border-radius: 3px;
 	margin: 7px 2px 2px 8px;
-	background-image: -moz-linear-gradient(center top , #FFF 0px, #EEE 100%);
+	background-image: linear-gradient(#FFF, #EEE);
 	text-decoration: none;
 	text-align: center;
 	display: block;
