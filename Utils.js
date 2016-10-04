@@ -187,3 +187,8 @@ function hashCode(str) {
   return hash >>> 0;
 }
 
+function getProtocolAndDomain(url) {
+  var protocol = url.indexOf("//") >= 0 ? url.split("//")[0] + "//" : "";
+  var domain = url.replace(/.*\/\//, "").split('/')[0];
+  return protocol + domain;
+}
