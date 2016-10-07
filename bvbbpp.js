@@ -33,63 +33,102 @@ var PREFS = [{
   def: MOBILE
 }];
 
+var BvbbLeague = (function() {
+  var my = {};
+  
+  var BB = "BB";
+  var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
+  var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
+  var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
+  var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
+  var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
+  var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
+  var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
+  var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
+  var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
+  
+  var DIVISIONS = [];
+  my.DIVISIONS = DIVISIONS;
+  // keine Gegenueberstellung 2006/07
+  // DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
+  // keine Spieltermine 2007/08, 2008/09
+  // DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
+  // DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
 
-var BB = "BB";
-var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
-var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
-var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
-var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
-var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
-var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
-var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
-var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
-var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
+  // Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
+  DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
+  DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
+  DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
+  DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-var DIVISIONS = [];
-// keine Gegenueberstellung 2006/07
-// DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
-// keine Spieltermine 2007/08, 2008/09
-// DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-// DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-
-// Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
-DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
-DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
-DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-
-var FIRST_SEASON = 9
-var CURRENT_SEASON = getCurrentSeasonYear();
-var SEASONS = [];
-for (var i = FIRST_SEASON; i <= CURRENT_SEASON; i++ ) {
-  SEASONS.push(i);
-  if (!DIVISIONS[i]) {
-    DIVISIONS[i] = DIVISIONS[i - 1];
+  var FIRST_SEASON = 9
+  my.CURRENT_SEASON = getCurrentSeasonYear();
+  my.SEASONS = [];
+  for (var i = FIRST_SEASON; i <= my.CURRENT_SEASON; i++ ) {
+    my.SEASONS.push(i);
+    if (!DIVISIONS[i]) {
+      DIVISIONS[i] = DIVISIONS[i - 1];
+    }
+  }  
+  
+  function getCurrentSeasonYear() {
+    // lässt die neue Saison ab August starten
+    var d = new Date();
+    var year = d.getFullYear() - 2000;
+    var august = 7
+    if (d.getMonth() < august) {
+      year -= 1
+    }
+    return year
   }
-}
+  
+  return my;
 
-function toColorObject(color) {
-  return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
-}
+}());
 
-var LIGHT_YELLOW = toColorObject("FFFFCC");
-var YELLOW       = toColorObject("FFFF66");
-var MIX_YELLOW   = toColorObject("FAFA44");
-var DARK_YELLOW  = toColorObject("F0F000");
-var LIGHT_ORANGE = toColorObject("FFCC33");
-var ORANGE       = toColorObject("FF9900");
-var DARK_ORANGE  = toColorObject("CC9933");
-var AUFSTEIGER   = toColorObject("00CC00");
-var ABSTEIGER    = toColorObject("FF6633");
-var ZURUECK      = toColorObject("FF0022");
-var WIN          = toColorObject("33FF00");
-var LOSE         = toColorObject("FF0000");
-var FRAME_TOP    = toColorObject("D8D8D8");
-var FRAME_BOTTOM = toColorObject("474747");
-var KAMPFLOS     = toColorObject("FF6600");
+var Styles = (function(){ 
+  function toColorObject(color) {
+    return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
+  }
 
-var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
-              AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+  var LIGHT_YELLOW = toColorObject("FFFFCC");
+  var YELLOW       = toColorObject("FFFF66");
+  var MIX_YELLOW   = toColorObject("FAFA44");
+  var DARK_YELLOW  = toColorObject("F0F000");
+  var LIGHT_ORANGE = toColorObject("FFCC33");
+  var ORANGE       = toColorObject("FF9900");
+  var DARK_ORANGE  = toColorObject("CC9933");
+  var AUFSTEIGER   = toColorObject("00CC00");
+  var ABSTEIGER    = toColorObject("FF6633");
+  var ZURUECK      = toColorObject("FF0022");
+  var FRAME_TOP    = toColorObject("D8D8D8");
+  var FRAME_BOTTOM = toColorObject("474747");
+  var KAMPFLOS     = toColorObject("FF6600");
+  var LOSE         = toColorObject("FF0000");
+  var WIN          = toColorObject("33FF00");
+
+  var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
+                AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+  
+  return {
+    COLORS: COLORS,
+    LIGHT_YELLOW: LIGHT_YELLOW,
+    YELLOW: YELLOW,
+    MIX_YELLOW: MIX_YELLOW,  
+    DARK_YELLOW: DARK_YELLOW, 
+    LIGHT_ORANGE: LIGHT_ORANGE,
+    ORANGE: ORANGE,      
+    DARK_ORANGE: DARK_ORANGE, 
+    AUFSTEIGER: AUFSTEIGER,  
+    ABSTEIGER: ABSTEIGER,   
+    ZURUECK: ZURUECK,     
+    FRAME_TOP: FRAME_TOP,   
+    FRAME_BOTTOM: FRAME_BOTTOM,
+    KAMPFLOS: KAMPFLOS,    
+    LOSE: LOSE,        
+    WIN: WIN         
+  }
+}());
 
 var BODY = null;
 var BVBBPP;
@@ -119,8 +158,8 @@ function Bvbbpp(document) {
     name: toSeasonName(this.year)
   };
   this.divisions = {
-    shortNames: DIVISIONS[this.year],
-    names: DIVISIONS[this.year].map(toLongName)
+    shortNames: BvbbLeague.DIVISIONS[this.year],
+    names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
   };
   this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
   this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
@@ -195,23 +234,12 @@ Bvbbpp.prototype = {
 function getYear(url) {
   var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
   if (seasonString === "schuch") {
-    return CURRENT_SEASON;
+    return BvbbLeague.CURRENT_SEASON;
   }
   if (seasonString.indexOf("saison") >= 0) {
     return parseInt(seasonString.substr("saison".length, 2), 10);
   }
-  return CURRENT_SEASON;
-}
-
-function getCurrentSeasonYear() {
-  // lässt die neue Saison ab August starten
-  var d = new Date();
-  var year = d.getFullYear() - 2000;
-  var august = 7
-  if (d.getMonth() < august) {
-    year -= 1
-  }
-  return year
+  return BvbbLeague.CURRENT_SEASON;
 }
 
 function toSeasonName(year) {
@@ -219,7 +247,7 @@ function toSeasonName(year) {
 }
 
 function toWebName(year) {
-  if (year === CURRENT_SEASON) {
+  if (year === BvbbLeague.CURRENT_SEASON) {
     return "schuch";
   }
   return "saison" + twoDigits(year) + twoDigits(year + 1);
@@ -489,12 +517,12 @@ function makeVerein() {
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
     getPref("hideDoodle", function(value) {
-      if (!value && BVBBPP.year === CURRENT_SEASON) {
+      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
         (makeDoodleLinks.bind(this.this_))(doc, spiele);
       }
     }.bind({this_: this}));
     getPref("hideICS", function(value) {
-      if (!value && BVBBPP.year === CURRENT_SEASON) {
+      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
         (makeICalendar.bind(this.this_))(doc, spiele);
       }
     }.bind({this_: this}));
@@ -559,11 +587,11 @@ function makeHallenbelegung(doc, spiele, hallen) {
     var td, tr;
     var tds = [];
     var tbody = newElement(doc, "tbody", null, "style", "text-align: center; padding: 30 30");
-    var table = newParentElement("table", tbody, "class", YELLOW.bg , "style", "max-width: 860px");
+    var table = newParentElement("table", tbody, "class",Styles.YELLOW.bg , "style", "max-width: 860px");
 
     // first row: Date
-    tbody.appendChild(tr = newElement(doc, "tr", null, "class", DARK_YELLOW.bg));
-    td = newElement(doc, "td", loc, "class", DARK_YELLOW.bg, "style", "font-weight:bold");
+    tbody.appendChild(tr = newElement(doc, "tr", null, "class", Styles.DARK_YELLOW.bg));
+    td = newElement(doc, "td", loc, "class", Styles.DARK_YELLOW.bg, "style", "font-weight:bold");
     tr.appendChild(td); // upper left
     for (var i = 0; i < dates.length; i++) {
       var day = new Date(dates[i].substr(6,4),
@@ -583,7 +611,7 @@ function makeHallenbelegung(doc, spiele, hallen) {
     // table
     for (var j = 0; j < times.length; j++) {
       tbody.appendChild(tr = newElement(doc, "tr"));
-      tds[times[j]] = newElement(doc, "td", times[j], "class", ORANGE.bg, "style", "padding: 2 3");
+      tds[times[j]] = newElement(doc, "td", times[j], "class", Styles.ORANGE.bg, "style", "padding: 2 3");
       tr.appendChild(tds[times[j]]); // left
       for (var i = 0; i < dates.length; i++) {
         key = loc + dates[i] + times[j];
@@ -878,7 +906,7 @@ function makeCurrentSpieltermine(doc, spiele) {
                   "colspan", "2",
                   "style", "font-size:11pt; font-weight:bold; padding: 3 8");
   var tr = newParentElement("tr", td,
-                            "class", DARK_YELLOW.bg,
+                            "class", Styles.DARK_YELLOW.bg,
                             "style", "font-size:11pt; font-weight:bold");
   tr.appendChild(create("td", "Demn\u00E4chst",
                         "colspan", "4",
@@ -966,7 +994,7 @@ function makeCurrentSpieltermine(doc, spiele) {
     var resultLink = resultCell.parentNode.parentNode.firstChild;
     var heimspiel = result.teamNr1 === this.bvbbpp.URL.substr(-7, 2);
     var points = result.spielErgebnisText ? +result.spielErgebnisText.substr(0, 1) : 4;
-    var colorClass = points === 4 ? ORANGE.bg : (heimspiel === (points > 4) ? WIN.bg : LOSE.bg);
+    var colorClass = points === 4 ? Styles.ORANGE.bg : (heimspiel === (points > 4) ? Styles.WIN.bg : Styles.LOSE.bg);
     resultLink.setAttribute("class", colorClass);
     resultCell.textContent = "\u00A0\u00A0\u00A0(" + result.spielErgebnisText + ")";
   }
@@ -1067,7 +1095,7 @@ function makeGegenueberStats() {
   var table1 = newParentElement("table", tbody1, "class", "borderless", "style", "border:0");
   h2.appendChild(table1);
 
-  var tr2 = newElement(doc, "tr", null, "class", LIGHT_ORANGE.bg, "align", "center");
+  var tr2 = newElement(doc, "tr", null, "class", Styles.LIGHT_ORANGE.bg, "align", "center");
   tr2.appendChild(newElement(doc, "td", "Gegnerischer Verein", "style", "font-size: 10pt"));
   tr2.appendChild(newElement(doc, "td", "Datum", "style", "font-size: 10pt"));
   tr2.appendChild(newElement(doc, "td", "Ort", "style", "font-size: 10pt"));
@@ -1076,7 +1104,7 @@ function makeGegenueberStats() {
   tr2.appendChild(newElement(doc, "td", "S\u00E4tze", "style", "font-size: 10pt"));
   tr2.appendChild(newElement(doc, "td", "Punkte", "style", "font-size: 10pt", "colspan", 3));
   var tbody = newParentElement("tbody", tr2, "id", "gegenueberstats");
-  var table = newParentElement("table", tbody, "class", YELLOW.bg, "border", 1, "cellpadding", 6);
+  var table = newParentElement("table", tbody, "class", Styles.YELLOW.bg, "border", 1, "cellpadding", 6);
   h2.appendChild(table);
 
   h2.appendChild(newElement(doc,
@@ -1148,12 +1176,12 @@ function makeTrForGegenueberStats(bericht) {
   var wir = this.heim; // 0 bei heimspiel, 1 bei gast
   var die = 1 - wir;
   var sieg = spiel.sieg[wir];
-  var hclass = (sieg ? WIN.bg : LOSE.bg);
+  var hclass = (sieg ? Styles.WIN.bg : Styles.LOSE.bg);
 
   var tl = doc.createTextNode(this.teamLink);
   var berichtLink = newParentElement("a", newParentElement("b", tl), "href", bericht.url);
 
-  row.appendChild(newParentElement("td", berichtLink, "width", "152px", "class", DARK_YELLOW.bg));
+  row.appendChild(newParentElement("td", berichtLink, "width", "152px", "class", Styles.DARK_YELLOW.bg));
   row.appendChild(newElement(doc, "td", bericht.datum));
   row.appendChild(newElement(doc, "td", (wir ? "Ausw." : "Heim"),
                              "align", "center", "width", "38px"));
@@ -1635,8 +1663,8 @@ function loadPlayerStats() {
       e.title = stamm + fest;
     }
     var tr = newElement(doc, "tr");
-    tr.appendChild(newElement(doc, "td", null, "class", WIN.bg, "width", "" + wins + "%"));
-    tr.appendChild(newElement(doc, "td", null, "class", LOSE.bg, "width", "" + (100 - wins) + "%"));
+    tr.appendChild(newElement(doc, "td", null, "class", Styles.WIN.bg, "width", "" + wins + "%"));
+    tr.appendChild(newElement(doc, "td", null, "class", Styles.LOSE.bg, "width", "" + (100 - wins) + "%"));
     var table = newParentElement("table", tr, "height", 5, "width", 100, "class", "stats");
     e.parentNode.insertBefore(table, e.nextSibling);
     removeElements(e.parentNode, "br");
@@ -1793,7 +1821,7 @@ function makeSpieler() {
   // ergebnistabelle[4] ist in eine weitere Tabelle[2] geschachtelt -->
   // aeussere Tabelle durch innere ersetzen, und die ueberschrift neumachen.
   table[1].parentNode.replaceChild(table[3], table[1]);
-  var t = create("tr", null, "class", LIGHT_ORANGE.bg);
+  var t = create("tr", null, "class", Styles.LIGHT_ORANGE.bg);
   t.appendChild(create("td", "H e i m m a n n s c h a f t", "colspan", 8,
                        "style", "font-size:11pt; font-weight:bold"));
   t.appendChild(create("td", " ", "class", DARK_ORANGE.bg, "style", "border:0"));
@@ -1808,7 +1836,7 @@ function makeSpieler() {
   for (var i = 0; i < td.length; i++) {
     var reg = /(\d) : (\d)/.exec(td[i].textContent);
     if (reg) {
-      td[i].setAttribute("class", (reg[1] > reg[2] ? WIN.bg : LOSE.bg));
+      td[i].setAttribute("class", (reg[1] > reg[2] ? Styles.WIN.bg : Styles.LOSE.bg));
       td[i].id = reg[1] > reg[2] ? "win" : "lose";
     }
   }
@@ -1856,7 +1884,7 @@ function makeSpieler() {
 
   // table[2], table[3] sind text, table[4] die aeussere Tabelle, table[5] ueberschrift
   tr = table[3].getElementsByTagName("tr")[0];
-  tr.setAttribute("class", DARK_YELLOW.bg);
+  tr.setAttribute("class", Styles.DARK_YELLOW.bg);
   var td = tr.getElementsByTagName("td");
   td[2].setAttribute("colspan", 2);
   td[3].setAttribute("colspan", 2);
@@ -2070,9 +2098,9 @@ function makeHeadLine(groupNum, teamNum) {
 
   var aSeason = create("a", BVBBPP.season.name, "class", "navigationSelected", "style",
                        "font-weight:600");
-  for (var i = SEASONS.length - 1; i >= 0; i--) {
-    var target = BVBBPP.otherYearURL(SEASONS[i]);
-    var link = create("a", "Saison " + toSeasonName(SEASONS[i]), "href", target);
+  for (var i = BvbbLeague.SEASONS.length - 1; i >= 0; i--) {
+    var target = BVBBPP.otherYearURL(BvbbLeague.SEASONS[i]);
+    var link = create("a", "Saison " + toSeasonName(BvbbLeague.SEASONS[i]), "href", target);
     ulSeason.appendChild(newParentElement("li", link));
   }
 
@@ -2154,7 +2182,7 @@ function makeHeadLine(groupNum, teamNum) {
     }
   }
 
-  if (year !== CURRENT_SEASON) {
+  if (year !== BvbbLeague.CURRENT_SEASON) {
     var centerDiv = document.getElementById("centerstyle");
     if (centerDiv) {
       var h1 = newElement(document, "h1", "Saison " + toSeasonName(year), "class", "title",
@@ -2395,10 +2423,10 @@ function insertAnsetzungen(doc, currentSpiele) {
   var tbody = create("tbody");
 
   var head = create("td", "Aktuelle Termine (laut Ansetzung)", "colspan", 2,
-                    "style", "font-size: 11pt; font-weight: bold", "class", DARK_YELLOW.bg);
+                    "style", "font-size: 11pt; font-weight: bold", "class", Styles.DARK_YELLOW.bg);
 
   tbody.appendChild(newParentElement("tr", head));
-  var tr = create("tr", null, "class", DARK_YELLOW.bg);
+  var tr = create("tr", null, "class", Styles.DARK_YELLOW.bg);
   tbody.appendChild(tr);
   tr.appendChild(create("td", "K\u00FCrzlich", "style", "font-size: 9pt; font-weight: bold"));
   tr.appendChild(create("td", "Demn\u00E4chst", "style", "font-size: 9pt; font-weight: bold"));
@@ -2450,7 +2478,7 @@ function dateFromSpiele(spiele, i, j) {
     return;
   }
   var date = spiel.date.substr(0, spiel.date.length - 4);
-  return create("a", date, "class", ORANGE.fg);
+  return create("a", date, "class", Styles.ORANGE.fg);
 }
 
 /**
@@ -2480,12 +2508,12 @@ function makeStyle() {
     }
     var bgcol = e.getAttribute("bgcolor");
     var fgcol = e.getAttribute("color");
-    for (var i = 0; i < COLORS.length; i++) {
-      if (bgcol === COLORS[i].css) {
-        e.setAttribute("class", COLORS[i].bg);
+    for (var i = 0; i < Styles.COLORS.length; i++) {
+      if (bgcol === Styles.COLORS[i].css) {
+        e.setAttribute("class", Styles.COLORS[i].bg);
       }
-      if (fgcol === COLORS[i].css) {
-        e.setAttribute("class", e.getAttribute("class") + " " + COLORS[i].col);
+      if (fgcol === Styles.COLORS[i].css) {
+        e.setAttribute("class", e.getAttribute("class") + " " + Styles.COLORS[i].col);
       }
     }
   }
