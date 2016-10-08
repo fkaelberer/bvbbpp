@@ -172,3 +172,23 @@ function romanize(num) {
   var r = Array(+digits.join("") + 1).join("M") + roman;
   return r;
 }
+
+
+function hashCode(str) {
+  var hash = 0, i, char, len = str.length;
+  if (len === 0) {
+    return hash;
+  }
+  for (i = 0; i < len; i++) {
+    char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash >>> 0;
+}
+
+function getProtocolAndDomain(url) {
+  var protocol = url.indexOf("//") >= 0 ? url.split("//")[0] + "//" : "";
+  var domain = url.replace(/.*\/\//, "").split('/')[0];
+  return protocol + domain;
+}

@@ -20,6 +20,7 @@ var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAA
 
 var MOBILE = false;
 
+// TODO store defaults (relict from old firefox extension)
 // preferences and defaults
 var PREFS = [{
   name: "useIframe",
@@ -32,63 +33,102 @@ var PREFS = [{
   def: MOBILE
 }];
 
+var BvbbLeague = (function() {
+  var my = {};
+  
+  var BB = "BB";
+  var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
+  var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
+  var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
+  var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
+  var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
+  var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
+  var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
+  var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
+  var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
+  
+  var DIVISIONS = [];
+  my.DIVISIONS = DIVISIONS;
+  // keine Gegenueberstellung 2006/07
+  // DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
+  // keine Spieltermine 2007/08, 2008/09
+  // DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
+  // DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
 
-var BB = "BB";
-var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
-var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
-var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
-var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
-var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
-var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
-var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
-var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
-var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
+  // Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
+  DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
+  DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
+  DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
+  DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-var DIVISIONS = [];
-// keine Gegenueberstellung 2006/07
-// DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
-// keine Spieltermine 2007/08, 2008/09
-// DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-// DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
+  var FIRST_SEASON = 9
+  my.CURRENT_SEASON = getCurrentSeasonYear();
+  my.SEASONS = [];
+  for (var i = FIRST_SEASON; i <= my.CURRENT_SEASON; i++ ) {
+    my.SEASONS.push(i);
+    if (!DIVISIONS[i]) {
+      DIVISIONS[i] = DIVISIONS[i - 1];
+    }
+  }  
+  
+  function getCurrentSeasonYear() {
+    // lässt die neue Saison ab August starten
+    var d = new Date();
+    var year = d.getFullYear() - 2000;
+    var august = 7
+    if (d.getMonth() < august) {
+      year -= 1
+    }
+    return year
+  }
+  
+  return my;
 
-// Nur diejenigen Staffeln müssen angegeben werden, die sich von der Vorsaison unterscheiden.
-DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
-DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
-DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
+}());
 
-var FIRST_SEASON = 9
-var CURRENT_SEASON = getCurrentSeasonYear();
-var SEASONS = [];
-for (var i = FIRST_SEASON; i <= CURRENT_SEASON; i++ ) {
-	SEASONS.push(i);
-	if (!DIVISIONS[i]) {
-		DIVISIONS[i] = DIVISIONS[i - 1];
-	}
-}
+var Styles = (function(){ 
+  function toColorObject(color) {
+    return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
+  }
 
-function toColorObject(color) {
-  return { css: "#" + color, bg: "bg" + color, fg: "col" + color };
-}
+  var LIGHT_YELLOW = toColorObject("FFFFCC");
+  var YELLOW       = toColorObject("FFFF66");
+  var MIX_YELLOW   = toColorObject("FAFA44");
+  var DARK_YELLOW  = toColorObject("F0F000");
+  var LIGHT_ORANGE = toColorObject("FFCC33");
+  var ORANGE       = toColorObject("FF9900");
+  var DARK_ORANGE  = toColorObject("CC9933");
+  var AUFSTEIGER   = toColorObject("00CC00");
+  var ABSTEIGER    = toColorObject("FF6633");
+  var ZURUECK      = toColorObject("FF0022");
+  var FRAME_TOP    = toColorObject("D8D8D8");
+  var FRAME_BOTTOM = toColorObject("474747");
+  var KAMPFLOS     = toColorObject("FF6600");
+  var LOSE         = toColorObject("FF0000");
+  var WIN          = toColorObject("33FF00");
 
-var LIGHT_YELLOW = toColorObject("FFFFCC");
-var YELLOW       = toColorObject("FFFF66");
-var MIX_YELLOW   = toColorObject("FAFA44");
-var DARK_YELLOW  = toColorObject("F0F000");
-var LIGHT_ORANGE = toColorObject("FFCC33");
-var ORANGE       = toColorObject("FF9900");
-var DARK_ORANGE  = toColorObject("CC9933");
-var AUFSTEIGER   = toColorObject("00CC00");
-var ABSTEIGER    = toColorObject("FF6633");
-var ZURUECK      = toColorObject("FF0022");
-var WIN          = toColorObject("33FF00");
-var LOSE         = toColorObject("FF0000");
-var FRAME_TOP    = toColorObject("D8D8D8");
-var FRAME_BOTTOM = toColorObject("474747");
-var KAMPFLOS     = toColorObject("FF6600");
-
-var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
-              AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+  var COLORS = [YELLOW, LIGHT_YELLOW, MIX_YELLOW, DARK_YELLOW, LIGHT_ORANGE, ORANGE, DARK_ORANGE,
+                AUFSTEIGER, ABSTEIGER, ZURUECK, WIN, LOSE, FRAME_TOP, FRAME_BOTTOM];
+  
+  return {
+    COLORS: COLORS,
+    LIGHT_YELLOW: LIGHT_YELLOW,
+    YELLOW: YELLOW,
+    MIX_YELLOW: MIX_YELLOW,  
+    DARK_YELLOW: DARK_YELLOW, 
+    LIGHT_ORANGE: LIGHT_ORANGE,
+    ORANGE: ORANGE,      
+    DARK_ORANGE: DARK_ORANGE, 
+    AUFSTEIGER: AUFSTEIGER,  
+    ABSTEIGER: ABSTEIGER,   
+    ZURUECK: ZURUECK,     
+    FRAME_TOP: FRAME_TOP,   
+    FRAME_BOTTOM: FRAME_BOTTOM,
+    KAMPFLOS: KAMPFLOS,    
+    LOSE: LOSE,        
+    WIN: WIN         
+  }
+}());
 
 var BODY = null;
 var BVBBPP;
@@ -109,6 +149,7 @@ function Bvbbpp(document) {
   if (!this.valid) {
     return;
   }
+  this.domain = getProtocolAndDomain(this.URL);
   this.doc = document;
   this.body = document.body;
   this.year = getYear(this.URL);
@@ -117,10 +158,11 @@ function Bvbbpp(document) {
     name: toSeasonName(this.year)
   };
   this.divisions = {
-    shortNames: DIVISIONS[this.year],
-    names: DIVISIONS[this.year].map(toLongName)
+    shortNames: BvbbLeague.DIVISIONS[this.year],
+    names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
   };
-  this.web = "http://bvbb.net/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
+  this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
+  this.webSpielerstatistik = this.web + "spielerstatistik/"
   this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
   this.webAufstellung = this.web + "aufstellung/";
   this.webHallen = this.web + "Hallen.HTML";
@@ -137,7 +179,7 @@ Bvbbpp.prototype = {
   getGroupNum: function bvbbpp_getGroupNum() {
     var groupName = this.URL.substr(-9, 4);
     for (var i = 0; i < this.divisions.shortNames.length; i++) {
-      if (this.divisions.shortNames[i] == groupName) {
+      if (this.divisions.shortNames[i] === groupName) {
         return i;
       }
     }
@@ -193,23 +235,12 @@ Bvbbpp.prototype = {
 function getYear(url) {
   var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
   if (seasonString === "schuch") {
-    return CURRENT_SEASON;
+    return BvbbLeague.CURRENT_SEASON;
   }
   if (seasonString.indexOf("saison") >= 0) {
     return parseInt(seasonString.substr("saison".length, 2), 10);
   }
-  return CURRENT_SEASON;
-}
-
-function getCurrentSeasonYear() {
-	// lässt die neue Saison ab August starten
-	var d = new Date();
-	var year = d.getFullYear() - 2000;
-	var august = 7
-	if (d.getMonth() < august) {
-	  year -= 1
-	}
-	return year
+  return BvbbLeague.CURRENT_SEASON;
 }
 
 function toSeasonName(year) {
@@ -217,7 +248,7 @@ function toSeasonName(year) {
 }
 
 function toWebName(year) {
-  if (year === CURRENT_SEASON) {
+  if (year === BvbbLeague.CURRENT_SEASON) {
     return "schuch";
   }
   return "saison" + twoDigits(year) + twoDigits(year + 1);
@@ -261,22 +292,38 @@ function errorMsg(e, msg) {
 }
 
 /**
- * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, create the preference
- * with default setting.
+ * @param name 
+ *            name of the preference
+ * @returns the default value of the preference if it exists, 'undefined' otherwise. 
+ */
+function getDefaultPrefValue(name) {
+  var defaultPreference = PREFS.find(element => (element.name === name));
+  return defaultPreference ? defaultPreference.def : undefined;
+}
+
+/**
+ * Get a preference from the branch "extensions.bvbbpp.". If it doesn't exist, return the preference's
+ * default setting. If the default setting doesn't exist either, return undefined. 
+ * 
+ * TODO https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Implement_a_settings_page
  *
  * @param name
  *            pref name
- * @returns pref value
+ * @param callback
+ *            callback function which is called with pref value as argument
  */
 function getPref(name, callback) {
-	return false;
-	return chrome.storage.local.set(name, callback);
+  if (!callback) return false;
+  return chrome.storage.local.get(name, value => {
+    var prefValue = (value[name] !== undefined) ? value[name] : getDefaultPrefValue(name);
+    callback(prefValue);
+  });
 }
 
 function setPref(name, value) {
-		var pref = {};
-		pref[name] = value;
-		chrome.storage.local.set(pref);
+    var pref = {};
+    pref[name] = value;
+    chrome.storage.local.set(pref);
 }
 
 function makeAufstellung() {
@@ -306,7 +353,7 @@ function makeAufstellung() {
   button.setAttribute("style", "margin: auto 320px"); // wie geht's besser?
   h2[0].parentNode.appendChild(button);
 
-  var playerListURL = BVBBPP.web + "spielerstatistik/P-Drop-down-Spieler.HTML";
+  var playerListURL = BVBBPP.webSpielerstatistik + "/P-Drop-down-Spieler.HTML";
   getDocument(playerListURL).then(makePlayerLinksCallback.bind(BVBBPP.this_));
 
   var f = BODY.getElementsByTagName("font");
@@ -331,19 +378,21 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
 
   function toggle() {
     var doc = this.bvbbpp.doc;
-    if (getPref(this.storage + this.num)) {
-      setPref(this.storage + this.num, false);
-      this.node.style.color = OFF;
-      this.node.style.textShadow = OFF_SHADOW;
-      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
-      doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
-    } else {
-      setPref(this.storage + this.num, true);
-      this.node.style.color = ON;
-      this.node.style.textShadow = ON_SHADOW;
-      doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
-      doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
-    }
+    getPref(this.storage + this.num, (value) => {
+      if (value) {
+        setPref(this.storage + this.num, false);
+        this.node.style.color = OFF;
+        this.node.style.textShadow = OFF_SHADOW;
+        doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "");
+        doc.getElementById("menuVerein" + this.num).setAttribute("class", "");
+      } else {
+        setPref(this.storage + this.num, true);
+        this.node.style.color = ON;
+        this.node.style.textShadow = ON_SHADOW;
+        doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
+        doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
+      }
+    })
   }
 
   var doc = bvbbpp.doc;
@@ -367,9 +416,12 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: teamNum,
       storage: "verein"
     });
-    star.style.color = getPref("verein" + teamNum) ? ON : OFF;
-    star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
+    getPref("verein" + teamNum, function(value) {
+      document.getElementById("favorite").style.color = value ? ON : OFF;
+      this.star.style.textShadow = value ? ON_SHADOW : OFF_SHADOW;
+    }.bind({star: star}));
   }
+  
   if (groupNum >= 0) {
     star.onclick = toggle.bind({
       bvbbpp: bvbbpp,
@@ -377,8 +429,10 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
       num: groupNum,
       storage: "gruppe"
     });
-    star.style.color = getPref("gruppe" + teamNum) ? ON : OFF;
-    star.style.textShadow = getPref("verein" + teamNum) ? ON_SHADOW : OFF_SHADOW;
+    getPref("gruppe" + groupNum, function(value) {
+      document.getElementById("favorite").style.color = value ? ON : OFF;
+      this.star.style.textShadow = value ? ON_SHADOW : OFF_SHADOW;
+    }.bind({star: star}));
   }
   return star;
 }
@@ -408,7 +462,7 @@ function makeVerein() {
   var span = BODY.getElementsByTagName("span");
   var i;
   for (i = span.length - 1; i >= 0; i--) {
-    if (span[i].id == "headline") {
+    if (span[i].id === "headline") {
       continue;
     }
     var font = create("font", null, "size", 2);
@@ -424,7 +478,7 @@ function makeVerein() {
     b[i].textContent = b[i].textContent.replace(/^\s+|\s+$/g, "");
   }
 
-  // Vereine Verlinken
+  // Vereine verlinken
   var vereineVerlinken = function(vereine) {
     var doc = this.bvbbpp.doc;
     var tds = doc.body.getElementsByTagName("td");
@@ -463,12 +517,16 @@ function makeVerein() {
     vereineVerlinken(vereine);
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
-    if (!getPref("hideDoodle") && BVBBPP.year === CURRENT_SEASON) {
-      (makeDoodleLinks.bind(this))(doc, spiele);
-    }
-    if (!getPref("hideICS") && BVBBPP.year === CURRENT_SEASON) {
-      (makeICalendar.bind(this))(doc, spiele);
-    }
+    getPref("hideDoodle", function(value) {
+      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
+        (makeDoodleLinks.bind(this.this_))(doc, spiele);
+      }
+    }.bind({this_: this}));
+    getPref("hideICS", function(value) {
+      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
+        (makeICalendar.bind(this.this_))(doc, spiele);
+      }
+    }.bind({this_: this}));
     makeCurrentSpieltermine(doc, spiele);
     makeHallenbelegung(doc, spiele, hallen);
 //  disable catch because it doesn't compile in eclipse
@@ -493,10 +551,9 @@ function makeHallenbelegung(doc, spiele, hallen) {
   var numLocations = 0;
   var spiel, key;
 
-  // we are only interested in home matches
-  spiele = spiele.filter(function(s) {
-    return s.heimspiel;
-  });
+  // we are only interested in matches in our home location
+  var homeLoc = getHomeLocKey(spiele);
+  spiele = spiele.filter(spiel => spiel.locKey === homeLoc);
 
   for (var s in spiele) {
     spiel = spiele[s];
@@ -517,25 +574,25 @@ function makeHallenbelegung(doc, spiele, hallen) {
     var dates = dateLists[loc];
     times = Object.keys(times); // convert keys to array;
     dates = Object.keys(dates); // convert keys to array;
-    times.sort(function(a, b) {
+    times.sort((a, b) => {
       if (a.length < "00:00".length) {
         a = "0" + a;
       }
       if (b.length < "00:00".length) {
         b = "0" + b;
       }
-      return a != b ? (a < b ? -1 : 1) : 0;
+      return a !== b ? (a < b ? -1 : 1) : 0;
     });
     // dates sind schon sortiert
 
     var td, tr;
     var tds = [];
     var tbody = newElement(doc, "tbody", null, "style", "text-align: center; padding: 30 30");
-    var table = newParentElement("table", tbody, "class", YELLOW.bg , "style", "max-width: 860px");
+    var table = newParentElement("table", tbody, "class",Styles.YELLOW.bg , "style", "max-width: 860px");
 
     // first row: Date
-    tbody.appendChild(tr = newElement(doc, "tr", null, "class", DARK_YELLOW.bg));
-    td = newElement(doc, "td", loc, "class", DARK_YELLOW.bg, "style", "font-weight:bold");
+    tbody.appendChild(tr = newElement(doc, "tr", null, "class", Styles.DARK_YELLOW.bg));
+    td = newElement(doc, "td", loc, "class", Styles.DARK_YELLOW.bg, "style", "font-weight:bold");
     tr.appendChild(td); // upper left
     for (var i = 0; i < dates.length; i++) {
       var day = new Date(dates[i].substr(6,4),
@@ -555,22 +612,22 @@ function makeHallenbelegung(doc, spiele, hallen) {
     // table
     for (var j = 0; j < times.length; j++) {
       tbody.appendChild(tr = newElement(doc, "tr"));
-      tds[times[j]] = newElement(doc, "td", times[j], "class", ORANGE.bg, "style", "padding: 2 3");
+      tds[times[j]] = newElement(doc, "td", times[j], "class", Styles.ORANGE.bg, "style", "padding: 2 3");
       tr.appendChild(tds[times[j]]); // left
       for (var i = 0; i < dates.length; i++) {
         key = loc + dates[i] + times[j];
-		var date = new Date(dates[i].substr(6,4), dates[i].substr(3,2) - 1, dates[i].substr(0,2));
-		if (date < new Date(new Date().getYear() + 1900, new Date().getMonth(), new Date().getDate()))
-		  tds[key] = newElement(doc, "td", null, "style", "padding: 0 0; color: #aaa");
-		else
-		  tds[key] = newElement(doc, "td", null, "style", "padding: 0 0");
+    var date = new Date(dates[i].substr(6,4), dates[i].substr(3,2) - 1, dates[i].substr(0,2));
+    if (date < new Date(new Date().getYear() + 1900, new Date().getMonth(), new Date().getDate()))
+      tds[key] = newElement(doc, "td", null, "style", "padding: 0 0; color: #aaa");
+    else
+      tds[key] = newElement(doc, "td", null, "style", "padding: 0 0");
         tr.appendChild(tds[key]); // left
       }
     }
 
     for (var s in spiele) {
       spiel = spiele[s];
-      if (spiel.locKey != loc) {
+      if (spiel.locKey !== loc) {
         continue;
       }
       key = loc + spiel.date + spiel.time;
@@ -613,6 +670,12 @@ function makeHallenbelegung(doc, spiele, hallen) {
   }
 }
 
+function getHomeLocKey(spiele) {
+  var someHomeMatch = spiele.find(spiel => {
+    return spiel.heimspiel;
+  });
+  return someHomeMatch.locKey;
+}
 
 function toDate(spiel) {
   var d = spiel.date;
@@ -624,13 +687,11 @@ function toDate(spiel) {
 function parseSpieltermine(doc, vereine) {
   var spiele = [];
   var tables = doc.getElementsByTagName("table");
-  for (var i=0; i<tables.length; i += 2) {
+  for (var i = 0; i < tables.length; i += 2) {
     var zurueckgezogen = /ckgezogen/.test(tables[i].textContent);
     // even table contains the number of the team "x. Mannschaft"
     var teamName = tables[i].textContent.match(/\d+/);
-    var verein = vereine.filter( function (v) {
-      return v.href.substr(-14) == BVBBPP.URL.substr(-14);
-    } );
+    var verein = vereine.filter(v => v.href.substr(-14) === BVBBPP.URL.substr(-14));
     var shortName = verein[0].shortName;
     var teamNumber = romanize(teamName);
     teamName = shortName + " " + teamNumber;
@@ -645,7 +706,7 @@ function parseSpieltermine(doc, vereine) {
         var heimspiel = tds[offset].textContent === "H";
         var heimSpieler = create("b", teamName);
         var gast = tds[offset + 2].firstChild.cloneNode(true);
-        if (tds[offset].textContent == 'A') {
+        if (tds[offset].textContent === 'A') {
           heimSpieler = gast;
           gast = create("b", teamName);
         }
@@ -667,9 +728,9 @@ function parseSpieltermine(doc, vereine) {
     }
   }
 
-  spiele.sort(function(spiel1, spiel2) {
-    return toDate(spiel1).getTime() - toDate(spiel2).getTime();
-  });
+  spiele.sort(
+      (spiel1, spiel2) => toDate(spiel1).getTime() - toDate(spiel2).getTime()
+  );
   return spiele;
 }
 
@@ -711,20 +772,6 @@ function makeDoodleLinks(doc, spiele) {
     a.appendChild(newElement(doc, "span", "d", "style", doodleStyle));
     getIconBar(i / 2, tables[i+1], doc).appendChild(a);
   }
-}
-
-
-function hashCode(str) {
-  var hash = 0, i, char, len = str.length;
-  if (len === 0) {
-    return hash;
-  }
-  for (i = 0; i < len; i++) {
-    char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash >>> 0;
 }
 
 
@@ -836,7 +883,7 @@ function makeCurrentSpieltermine(doc, spiele) {
   var sixHoursAgo = new Date();
   sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
 
-  var soon = spiele.filter(function(spiel) {
+  var soon = spiele.filter(spiel => {
     var href = spiel.dateNode.firstChild.href;
     if (href && href.indexOf("zurueckgezogen") >= 0) {
       return false;
@@ -845,7 +892,7 @@ function makeCurrentSpieltermine(doc, spiele) {
     return !href && !spiel.zurueck && (toDate(spiel) > sixHoursAgo);
   });
 
-  var past = spiele.filter(function(spiel) {
+  var past = spiele.filter(spiel => {
     var href = spiel.dateNode.firstChild.href;
     if (href && href.indexOf("zurueckgezogen") >= 0) {
       return false;
@@ -860,7 +907,7 @@ function makeCurrentSpieltermine(doc, spiele) {
                   "colspan", "2",
                   "style", "font-size:11pt; font-weight:bold; padding: 3 8");
   var tr = newParentElement("tr", td,
-                            "class", DARK_YELLOW.bg,
+                            "class", Styles.DARK_YELLOW.bg,
                             "style", "font-size:11pt; font-weight:bold");
   tr.appendChild(create("td", "Demn\u00E4chst",
                         "colspan", "4",
@@ -947,13 +994,13 @@ function makeCurrentSpieltermine(doc, spiele) {
     var resultCell = doc.getElementById("result" + result.url.substr(-16));
     var resultLink = resultCell.parentNode.parentNode.firstChild;
     var heimspiel = result.teamNr1 === this.bvbbpp.URL.substr(-7, 2);
-    var points = result.spielErgebnisText.substr(0, 1) | 0;
-    var colorClass = points === 4 ? ORANGE.bg : (heimspiel == (points > 4) ? WIN.bg : LOSE.bg);
+    var points = result.spielErgebnisText ? +result.spielErgebnisText.substr(0, 1) : 4;
+    var colorClass = points === 4 ? Styles.ORANGE.bg : (heimspiel === (points > 4) ? Styles.WIN.bg : Styles.LOSE.bg);
     resultLink.setAttribute("class", colorClass);
     resultCell.textContent = "\u00A0\u00A0\u00A0(" + result.spielErgebnisText + ")";
   }
 
-  for (i = 0; i<resultsToLoad.length; i++) {
+  for (i = 0; i < resultsToLoad.length; i++) {
     loadSpielbericht(resultsToLoad[i]).then(fillResults.bind(BVBBPP.this_));
   }
 
@@ -979,7 +1026,6 @@ function onNotFound(dueText, futureText) {
     notFound.textContent = "Webseite nicht gefunden.";
     parent.insertBefore(create("h2", isDue() ? dueText : futureText), notFound.nextSibling);
     return notFound;
-
   }
 }
 
@@ -1050,7 +1096,7 @@ function makeGegenueberStats() {
   var table1 = newParentElement("table", tbody1, "class", "borderless", "style", "border:0");
   h2.appendChild(table1);
 
-  var tr2 = newElement(doc, "tr", null, "class", LIGHT_ORANGE.bg, "align", "center");
+  var tr2 = newElement(doc, "tr", null, "class", Styles.LIGHT_ORANGE.bg, "align", "center");
   tr2.appendChild(newElement(doc, "td", "Gegnerischer Verein", "style", "font-size: 10pt"));
   tr2.appendChild(newElement(doc, "td", "Datum", "style", "font-size: 10pt"));
   tr2.appendChild(newElement(doc, "td", "Ort", "style", "font-size: 10pt"));
@@ -1059,7 +1105,7 @@ function makeGegenueberStats() {
   tr2.appendChild(newElement(doc, "td", "S\u00E4tze", "style", "font-size: 10pt"));
   tr2.appendChild(newElement(doc, "td", "Punkte", "style", "font-size: 10pt", "colspan", 3));
   var tbody = newParentElement("tbody", tr2, "id", "gegenueberstats");
-  var table = newParentElement("table", tbody, "class", YELLOW.bg, "border", 1, "cellpadding", 6);
+  var table = newParentElement("table", tbody, "class", Styles.YELLOW.bg, "border", 1, "cellpadding", 6);
   h2.appendChild(table);
 
   h2.appendChild(newElement(doc,
@@ -1131,12 +1177,12 @@ function makeTrForGegenueberStats(bericht) {
   var wir = this.heim; // 0 bei heimspiel, 1 bei gast
   var die = 1 - wir;
   var sieg = spiel.sieg[wir];
-  var hclass = (sieg ? WIN.bg : LOSE.bg);
+  var hclass = (sieg ? Styles.WIN.bg : Styles.LOSE.bg);
 
   var tl = doc.createTextNode(this.teamLink);
   var berichtLink = newParentElement("a", newParentElement("b", tl), "href", bericht.url);
 
-  row.appendChild(newParentElement("td", berichtLink, "width", "152px", "class", DARK_YELLOW.bg));
+  row.appendChild(newParentElement("td", berichtLink, "width", "152px", "class", Styles.DARK_YELLOW.bg));
   row.appendChild(newElement(doc, "td", bericht.datum));
   row.appendChild(newElement(doc, "td", (wir ? "Ausw." : "Heim"),
                              "align", "center", "width", "38px"));
@@ -1339,7 +1385,7 @@ function replaceTeamLinks(tabelle) {
       if (name.length < 6) {
         continue;
       }
-      if (name == teamname) {
+      if (name === teamname) {
         var href = a[j].href;
         var newA = create("a", name, "href", href);
         team[i].replaceChild(newA, team[i].firstChild);
@@ -1400,89 +1446,89 @@ function ensureHallenschluessel() {
     }.bind(BVBBPP.this_));
   }
 
- return new Promise(function(resolve, reject) {
-  getDocument(this.bvbbpp.webHallen).then(function(hallenDoc) {
-    var tr = hallenDoc.getElementsByTagName("tr");
-    var hallenschluessel;
-    hallenschluessel = [];
+  return new Promise(function(resolve, reject) {
+    getDocument(this.bvbbpp.webHallen).then(function(hallenDoc) {
+      var tr = hallenDoc.getElementsByTagName("tr");
+      var hallenschluessel;
+      hallenschluessel = [];
 
-    // speichere hallenschluessel in arrays
-    for (var i = 0; i < tr.length; i++) {
-      var f = tr[i].getElementsByTagName("font")[0];
-      var d = tr[i].getElementsByTagName("div");
-      if (f && d[1] && d[2] && d[3]) {
-        var key = f.textContent;
-        if (key.length !== 2) {
-          continue;
-        }
-        var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
-                                     .replace(/(&nbsp;){2,}/g, " ")
-                                     .replace(/str\./, "stra\u00DFe")
-                                     .replace(/Str\./, "Stra\u00DFe");
-        var shortStreet = street.replace(/\s*\n.+/g, "");
-        var PLZ = d[1].textContent.replace(/^\s+/, "")
-            + d[2].textContent.replace("(", " ").replace(")", "");
+      // speichere hallenschluessel in arrays
+      for (var i = 0; i < tr.length; i++) {
+        var f = tr[i].getElementsByTagName("font")[0];
+        var d = tr[i].getElementsByTagName("div");
+        if (f && d[1] && d[2] && d[3]) {
+          var key = f.textContent;
+          if (key.length !== 2) {
+            continue;
+          }
+          var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
+          .replace(/(&nbsp;){2,}/g, " ")
+          .replace(/str\./, "stra\u00DFe")
+          .replace(/Str\./, "Stra\u00DFe");
+          var shortStreet = street.replace(/\s*\n.+/g, "");
+          var PLZ = d[1].textContent.replace(/^\s+/, "")
+          + d[2].textContent.replace("(", " ").replace(")", "");
 
-        // street corrections
-        if (/-Nydal-/.test(street)) {
-          street = street.replace("-Nydal-", "-Nydahl-");
-          shortStreet = street.replace(/\s*\n.+/g, "");
-        }
-        if (/Sportcenter\sPreu.enpark/.test(street)) {
-          shortStreet = "Kamenzer Damm 34";
-        }
-        if (/Pfalzburger\sStr/.test(street)) {
-          shortStreet = "G\u00FCntzelstra\u00DFe 34-35";
-        }
-        if (/Gr.ner\sWeg/.test(street)) {
-          shortStreet = "Gr\u00FCner Weg";
-        }
-        if (/Neuendorfer\sSand/.test(street)) {
-          shortStreet = shortStreet.replace(/Ecke\s/, "");
-        }
-        if (/Schwyzer.Stra.e/.test(street)) {
-          shortStreet = shortStreet.replace(/,\suntere\sHalle/, "");
-        }
-        if (/Sporthalle.Dabendorf/.test(street)) {
-          shortStreet += ", J\u00E4gerstra\u00DFe";
-        }
-        if (/Sporthalle\s+Saarlandstr/.test(street)) {
-          shortStreet = "Saarlandstra\u00DFe 14";
-        }
-        if (/Hausburgstr/.test(street) && !/Hausburgstra.e\s20/.test(street)) {
-          street = street.replace(/Hausburgstra.e/, "Hausburgstra\u00DFe 20");
-          shortStreet = street.replace(/\s*\n.+/g, "");
-        }
-        if (/Immanuel-Kant-Gesamtschule/.test(street)) {
-          shortStreet = "Kantstra\u00DFe 17";
-        }
-        if (/Kuno-Fischer-Stra.e\s27/.test(shortStreet)) {
-          shortStreet = "Kuno-Fischer-Stra\u00DFe 27";
-        }
-        if (/L.tzowstra.e.83-85/.test(shortStreet)) {
-          shortStreet = shortStreet.replace(/,..ber.Parkplatzeinf./, "");
-        }
-        var url = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
+          // street corrections
+          if (/-Nydal-/.test(street)) {
+            street = street.replace("-Nydal-", "-Nydahl-");
+            shortStreet = street.replace(/\s*\n.+/g, "");
+          }
+          if (/Sportcenter\sPreu.enpark/.test(street)) {
+            shortStreet = "Kamenzer Damm 34";
+          }
+          if (/Pfalzburger\sStr/.test(street)) {
+            shortStreet = "G\u00FCntzelstra\u00DFe 34-35";
+          }
+          if (/Gr.ner\sWeg/.test(street)) {
+            shortStreet = "Gr\u00FCner Weg";
+          }
+          if (/Neuendorfer\sSand/.test(street)) {
+            shortStreet = shortStreet.replace(/Ecke\s/, "");
+          }
+          if (/Schwyzer.Stra.e/.test(street)) {
+            shortStreet = shortStreet.replace(/,\suntere\sHalle/, "");
+          }
+          if (/Sporthalle.Dabendorf/.test(street)) {
+            shortStreet += ", J\u00E4gerstra\u00DFe";
+          }
+          if (/Sporthalle\s+Saarlandstr/.test(street)) {
+            shortStreet = "Saarlandstra\u00DFe 14";
+          }
+          if (/Hausburgstr/.test(street) && !/Hausburgstra.e\s20/.test(street)) {
+            street = street.replace(/Hausburgstra.e/, "Hausburgstra\u00DFe 20");
+            shortStreet = street.replace(/\s*\n.+/g, "");
+          }
+          if (/Immanuel-Kant-Gesamtschule/.test(street)) {
+            shortStreet = "Kantstra\u00DFe 17";
+          }
+          if (/Kuno-Fischer-Stra.e\s27/.test(shortStreet)) {
+            shortStreet = "Kuno-Fischer-Stra\u00DFe 27";
+          }
+          if (/L.tzowstra.e.83-85/.test(shortStreet)) {
+            shortStreet = shortStreet.replace(/,..ber.Parkplatzeinf./, "");
+          }
+          var url = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
 
-        // url corrections
-        if (street.indexOf("Giebelseehalle") >= 0) {
-          url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
-            + "15370+Petershagen/@52.5288403,13.7847762,17z/"
-            + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
-        }
+          // url corrections
+          if (street.indexOf("Giebelseehalle") >= 0) {
+            url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
+              + "15370+Petershagen/@52.5288403,13.7847762,17z/"
+              + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
+          }
 
-        hallenschluessel[key] = {
-          street: street,
-          PLZ: PLZ,
-          shortStreet: shortStreet,
-          URL: url
-        };
+          hallenschluessel[key] = {
+              street: street,
+              PLZ: PLZ,
+              shortStreet: shortStreet,
+              URL: url
+          };
+        }
       }
-    }
-    this.bvbbpp.hallenschluessel = hallenschluessel;
-    resolve(this.bvbbpp.hallenschluessel);
-  }.bind(this.bvbbpp.this_));
-}.bind(BVBBPP.this_));
+      this.bvbbpp.hallenschluessel = hallenschluessel;
+      resolve(this.bvbbpp.hallenschluessel);
+    }.bind(this.bvbbpp.this_));
+  }.bind(BVBBPP.this_));
 }
 
 function replaceHallenschluessel(halle) {
@@ -1595,14 +1641,14 @@ function loadPlayerStats() {
       return;
     }
     var stamm = f[0] > 0 ? "Stammmannschaft " + romanize(f[0]) : "Ersatz";
-    var fest = (f[1] > 0 && f[1] != f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
+    var fest = (f[1] > 0 && f[1] !== f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
     // mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
     if (isBericht && staemme) {
       var mannschaft = (parseInt(staemme[1], 10) == f[2]) ? parseInt(staemme[2], 10)
                                                           : parseInt(staemme[4], 10);
     }
     var slash = (/\//.test(e.textContent)) ? "  /" : "";
-    if (isBericht && (f[0] != mannschaft && staemme || !staemme && f[0] === 0)) {
+    if (isBericht && (f[0] !== mannschaft && staemme || !staemme && f[0] === 0)) {
       if (f[1] === 0) {
         e.textContent = e.textContent.replace(/\s+\//, "") + " (E)" + slash;
         e.title = "Ersatz";
@@ -1612,14 +1658,14 @@ function loadPlayerStats() {
         e.title = stamm + fest;
       }
     }
-    if (!isBericht && (f[1] != 0 && f[1] != f[0])) {
+    if (!isBericht && (f[1] !== 0 && f[1] !== f[0])) {
       e.textContent = e.textContent.replace(/\s\(\d\)/, "") +
                       (f[0] === 0 ? " (E" : " (") + f[1] + ")";
       e.title = stamm + fest;
     }
     var tr = newElement(doc, "tr");
-    tr.appendChild(newElement(doc, "td", null, "class", WIN.bg, "width", "" + wins + "%"));
-    tr.appendChild(newElement(doc, "td", null, "class", LOSE.bg, "width", "" + (100 - wins) + "%"));
+    tr.appendChild(newElement(doc, "td", null, "class", Styles.WIN.bg, "width", "" + wins + "%"));
+    tr.appendChild(newElement(doc, "td", null, "class", Styles.LOSE.bg, "width", "" + (100 - wins) + "%"));
     var table = newParentElement("table", tr, "height", 5, "width", 100, "class", "stats");
     e.parentNode.insertBefore(table, e.nextSibling);
     removeElements(e.parentNode, "br");
@@ -1709,7 +1755,7 @@ function highlightPlayerStats() {
     td[4].firstChild.textContent = lose;
     td[5].firstChild.textContent = (100 * lose / sum).toFixed(1).replace(".", ",") + "%";
     for (var j = 0; j < td.length; j++) {
-      if (td[j].getAttribute("bgcolor") == WIN.css) {
+      if (td[j].getAttribute("bgcolor") === Styles.WIN.css) {
         var w = Math.round(100 * win / sum);
         td[j].setAttribute("width", " " + (w === 0 ? 1 : w) + "%");
       }
@@ -1765,7 +1811,7 @@ function makeSpieler() {
   for (var i = 0; i < BVBBPP.divisions.names.length; i++) {
     var name1 = BVBBPP.divisions.names[i].toLowerCase().replace(/\s+/g, "");
     var name2 = klasse.textContent.toLowerCase().replace(/\s+/g, "");
-    if (name1 == name2) {
+    if (name1 === name2) {
       var a = create("a", klasse.textContent, "href", BVBBPP.web + "tabellen/uebersicht-"
                      + twoDigits(i + 1) + ".HTML");
       klasse.replaceChild(a, klasse.firstChild);
@@ -1776,7 +1822,7 @@ function makeSpieler() {
   // ergebnistabelle[4] ist in eine weitere Tabelle[2] geschachtelt -->
   // aeussere Tabelle durch innere ersetzen, und die ueberschrift neumachen.
   table[1].parentNode.replaceChild(table[3], table[1]);
-  var t = create("tr", null, "class", LIGHT_ORANGE.bg);
+  var t = create("tr", null, "class", Styles.LIGHT_ORANGE.bg);
   t.appendChild(create("td", "H e i m m a n n s c h a f t", "colspan", 8,
                        "style", "font-size:11pt; font-weight:bold"));
   t.appendChild(create("td", " ", "class", DARK_ORANGE.bg, "style", "border:0"));
@@ -1791,7 +1837,7 @@ function makeSpieler() {
   for (var i = 0; i < td.length; i++) {
     var reg = /(\d) : (\d)/.exec(td[i].textContent);
     if (reg) {
-      td[i].setAttribute("class", (reg[1] > reg[2] ? WIN.bg : LOSE.bg));
+      td[i].setAttribute("class", (reg[1] > reg[2] ? Styles.WIN.bg : Styles.LOSE.bg));
       td[i].id = reg[1] > reg[2] ? "win" : "lose";
     }
   }
@@ -1839,7 +1885,7 @@ function makeSpieler() {
 
   // table[2], table[3] sind text, table[4] die aeussere Tabelle, table[5] ueberschrift
   tr = table[3].getElementsByTagName("tr")[0];
-  tr.setAttribute("class", DARK_YELLOW.bg);
+  tr.setAttribute("class", Styles.DARK_YELLOW.bg);
   var td = tr.getElementsByTagName("td");
   td[2].setAttribute("colspan", 2);
   td[3].setAttribute("colspan", 2);
@@ -1912,7 +1958,7 @@ function getFestgespielt(doc1, doc) {
   if (mannschaft.length < 3) {
     return [stamm, 0, verein];
   }
-  var playedInTeams = mannschaft.map(function(e) { return e.mann; });
+  var playedInTeams = mannschaft.map(e => e.mann);
   playedInTeams.sort();
   var fest = playedInTeams[2];
   if (stamm !== 0 && fest !== 0 && stamm < fest) {
@@ -1921,50 +1967,58 @@ function getFestgespielt(doc1, doc) {
   return [stamm, fest, verein];
 }
 
+function getPlayersFromDocument(playerDoc) {
+  // Load player links from options element and convert it to an array of objects.
+  return [].map.call(playerDoc.getElementsByTagName("option"),
+      e => {
+      	var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
+      	return {
+	        name : captures[1],
+	        club : captures[2],
+	        link : BVBBPP.webSpielerstatistik + e.value
+	      }
+      }
+  );
+}
+
+
 function makePlayerLinksCallback(playerDoc) {
+  var players = getPlayersFromDocument(playerDoc);
   var doc = this.bvbbpp.doc;
   var td = doc.getElementsByTagName("td");
-  // load player links from options element and convert to array
-  var p = playerDoc.getElementsByTagName("option");
-  // convert entries to objects
-  p = Array.prototype.map.call(p, function(e) {
-    return {
-      name : e.innerHTML.replace(/&nbsp;&nbsp;+\(.*\)/, ""),
-      link : e.value
-    };
-  });
 
   // loop over player names in the document
   for (var i = 0; td && i < td.length; i++) {
-    var name = td[i].textContent.replace(/^\s+|\s+$|(\s\(\d\))/g, "");
-    var ext = RegExp.$1 ? RegExp.$1 : "";
+    var name = td[i].textContent.replace(/^(\s*\(\d+\)\s*)|^\s+|\s+$|(\s\(\d\))/g, "");
+    var prependedNumber = RegExp.$1 || "";
+    var ext = RegExp.$2 || "";
+    var displayName = prependedNumber + name + ext;
     if (!name || name.length < 5 || /</.test(name) || /Additionsregeln/.test(name)) {
       continue;
     }
-    for (var j = 0; j < p.length; j++) {
+    for (var j = 0; j < players.length; j++) {
       // does player name from players list match player name in document?
-      if (p[j].name == name) {
+      if (players[j].name === name) {
         // is player name unique in list?
-        var link = this.bvbbpp.web + "spielerstatistik/" + p[j].link;
-        if ((!p[j - 1] || p[j - 1].name != p[j].name) &&
-            (!p[j + 1] || p[j + 1].name != p[j].name)) {
-          replaceChildren(td[i], newElement(doc, "a", name + ext, "href", link));
+        if ((!players[j - 1] || players[j - 1].name !== players[j].name) &&
+            (!players[j + 1] || players[j + 1].name !== players[j].name)) {
+          replaceChildren(td[i], newElement(doc, "a", displayName, "href", players[j].link));
           break;
         }
         // name is not unique. Load player's page and check the team name
         if (/aufstellung-\d{2,3}/.test(doc.URL)) {
-          getDocument(link).then(function(playerPage) {
+          getDocument(players[j].link).then(function(playerPage) {
             try {
               var ref = playerPage.body.getElementsByTagName("a")[0].href;
-              if (ref.substr(-7) == this.doc.URL.substr(-7)) {
-                var a = newElement(this.doc, "a", this.name_ext, "href", this.link);
+              if (ref.substr(-7) === this.doc.URL.substr(-7)) {
+                var a = newElement(this.doc, "a", this.displayName, "href", this.link);
                 replaceChildren(this.di, a);
               }
             } catch (err) {
               var msg = "Fehler beim Verlinken von doppelt vorkommenden Spielernamen: ";
               Cu.reportError(errorMsg(err, msg + playerPage.URL));
             }
-          }.bind( {doc: doc, name_ext: name + ext, di: td[i], link: link} ));
+          }.bind( {doc: doc, displayName: displayName, di: td[i], link: players[j].link} ));
         }
       }
     }
@@ -1990,18 +2044,14 @@ function parseVereine(vereineURL) {
         var a = td[i + 1].getElementsByTagName("a")[0];
         vereine.push({
           nr: parseInt(textContent, 10),
-          href: "http://bvbb.net/" + a.href.substring(a.href.lastIndexOf("fileadmin")),
+          href: getProtocolAndDomain(vereineURL) + "/" + a.href.substring(a.href.lastIndexOf("fileadmin")),
           shortName: a.textContent,
           name: td[i + 2].textContent
         });
       }
     }
-    vereine = vereine.filter(function(e) {
-      return e;
-    });
-    vereine.sort(function(v, w) {
-      return v.name != w.name ? v.name < w.name ? -1 : 1 : 0;
-    });
+    vereine = vereine.filter(e => e);
+    vereine.sort((v, w) => v.name !== w.name ? (v.name < w.name ? -1 : 1) : 0);
     return vereine;
   });
 }
@@ -2019,16 +2069,22 @@ function fillMenuWithTeams(vereine) {
                        "href",
                        bvbbpp.webAufstellung + "aufstellung-" + twoDigits(verein.nr) + ".HTML");
     this.ulAuf.appendChild(newParentElement("li", a));
-    if (getPref("verein" + verein.nr)) {
-      a.setAttribute("class", "favorite");
-    }
-
+    
+    getPref("verein" + verein.nr, function(value) {
+      if (value) {
+        this.a.setAttribute("class", "favorite");
+      }
+    }.bind({ a: a }));
+    
     a = newElement(doc, "a", verein.name, "id", "menuVerein" + verein.nr,
                    "href",
                    bvbbpp.webSpielberichteVereine + "verein-" + twoDigits(verein.nr) + ".HTML");
-    if (getPref("verein" + verein.nr)) {
-      a.setAttribute("class", "favorite");
-    }
+    getPref("verein" + verein.nr, function(value) {
+      if (value) {
+        this.a.setAttribute("class", "favorite");
+      }
+    }.bind({ a: a }));
+
     this.ulSpi.appendChild(newParentElement("li", a));
   }
 }
@@ -2051,9 +2107,9 @@ function makeHeadLine(groupNum, teamNum) {
 
   var aSeason = create("a", BVBBPP.season.name, "class", "navigationSelected", "style",
                        "font-weight:600");
-  for (var i = SEASONS.length - 1; i >= 0; i--) {
-    var target = BVBBPP.otherYearURL(SEASONS[i]);
-    var link = create("a", "Saison " + toSeasonName(SEASONS[i]), "href", target);
+  for (var i = BvbbLeague.SEASONS.length - 1; i >= 0; i--) {
+    var target = BVBBPP.otherYearURL(BvbbLeague.SEASONS[i]);
+    var link = create("a", "Saison " + toSeasonName(BvbbLeague.SEASONS[i]), "href", target);
     ulSeason.appendChild(newParentElement("li", link));
   }
 
@@ -2135,7 +2191,7 @@ function makeHeadLine(groupNum, teamNum) {
     }
   }
 
-  if (year !== CURRENT_SEASON) {
+  if (year !== BvbbLeague.CURRENT_SEASON) {
     var centerDiv = document.getElementById("centerstyle");
     if (centerDiv) {
       var h1 = newElement(document, "h1", "Saison " + toSeasonName(year), "class", "title",
@@ -2172,7 +2228,7 @@ function parseAnsetzungen(doc, ansetzungen) {
       var nameJ = a.innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, "");
       if (nameJ.length < 6)
         continue;
-      if (nameJ == nameI) {
+      if (nameJ === nameI) {
         var href = a.getAttribute("href");
         teamObj[teamNumber] = {
           rank : deromanize(nameJ.substring(nameJ.lastIndexOf(" ") + 1)),
@@ -2183,9 +2239,7 @@ function parseAnsetzungen(doc, ansetzungen) {
       }
     }
   }
-  teamObj = teamObj.filter(function(e) {
-    return e;
-  });
+  teamObj = teamObj.filter(e => e);
 
   var num1;
   var num2;
@@ -2199,7 +2253,7 @@ function parseAnsetzungen(doc, ansetzungen) {
       num1 = parseInt(ex[1], 10);
       num2 = parseInt(ex[2], 10);
     }
-    if (/\d\d.\d\d.\d\d\d\d/.test(text)) {
+    if (/^\s+\d\d.\d\d.\d\d\d\d\s+$/.test(text)) {
       // num1 und num2 sind noch von der letzten Zelle belegt
       ansetzung[numAns++] = {
         t1: teamObj[num1 - 1].tabellenPlatz,
@@ -2210,9 +2264,7 @@ function parseAnsetzungen(doc, ansetzungen) {
       };
     }
   }
-  return ansetzung.filter(function(e) {
-    return e;
-  });
+  return ansetzung.filter(e => e);
 }
 
 function makeTabelle() {
@@ -2227,7 +2279,7 @@ function makeTabelle() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2")[0]; // uebersicht
+  var h2 = BODY.getElementsByTagName("h2")[0]; // Uebersicht
   var groupTitle = makeGroupTitle("Spielstand " + BVBBPP.divisions.names[groupNum], true);
   h2.parentNode.replaceChild(groupTitle, h2);
 
@@ -2242,7 +2294,7 @@ function makeTabelle() {
   var td = BODY.getElementsByTagName("td");
   var kampflos = false; // erschien "kampflos" schon in einer Zelle?
   for (var i = 0; i < td.length; i++) {
-    if (td[i].width && td[i].width == 30) {
+    if (td[i].width && td[i].width === 30) {
       td[i].width = 40;
     }
     if (kampflos) {
@@ -2253,23 +2305,32 @@ function makeTabelle() {
 
   removeParents(document, "b");
 
+  // Fix the domain name in all links in the table to match the current domain name. 
+  // Otherwise opening the iFrame would be hindered by same-origin-policy
+  [].slice.call(BODY.querySelectorAll("h2 table a")).map(
+      a => { a.href = a.href.replace(getProtocolAndDomain(a.href), BVBBPP.domain) } 
+  );
+  
   // iFrame hinzufuegen
-  if (getPref("useIframe")) {
-    var ifrm = create("iframe", null, "id", "ifrmErgebnis", "class", "ifrmErgebnis", "name",
-                      "Ergebnis", "seamless", "true");
-    document.getElementById("centerstyle").appendChild(ifrm);
-
-    // setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
-    var links = BODY.getElementsByTagName("a");
-    for (var i = 0; i < links.length; i++) {
-      if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) {
-        links[i].target = "Ergebnis";
+  getPref("useIframe", function(value) {
+    if (value) {
+      var ifrm = create("iframe", null, "id", "ifrmErgebnis", "class", "ifrmErgebnis", "name",
+                        "Ergebnis", "seamless", "true");
+      document.getElementById("centerstyle").appendChild(ifrm);
+  
+      // setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
+      var links = BODY.getElementsByTagName("a");
+      for (var i = 0; i < links.length; i++) {
+        if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) {
+          links[i].target = "Ergebnis";
+        }
       }
     }
-  }
-  var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
-                                  "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
-  getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
+    var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
+        "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
+    getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
+  });
+  
 }
 
 function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
@@ -2285,7 +2346,7 @@ function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
       var cell = td[j + 6];
       var div = cell.getElementsByTagName("div")[0];
       // faellt aus oder beide gespielt
-      if (cell.getAttribute("bgcolor") === ORANGE.css) {
+      if (cell.getAttribute("bgcolor") === Styles.ORANGE.css) {
         gespielt[i][j] = -1;
         continue;
       }
@@ -2326,18 +2387,16 @@ function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
     }
   }
 
-  spiele = spiele.sort(function(spiel1, spiel2) {
-    return spiel1.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel1.time >
-           spiel2.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel2.time;
-  });
+  spiele = spiele.sort((spiel1, spiel2) => 
+    spiel1.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel1.time >
+    spiel2.date.replace(/(\d\d).(\d\d).(\d\d\d\d)/, "$3$2$1") + spiel2.time
+  );
 
-  var bald = spiele.filter(function(spiel) {
-    return !gespielt[spiel.t1][spiel.t2];
-  });
+  var bald = spiele.filter(spiel => !gespielt[spiel.t1][spiel.t2]);
 
-  var vorbei = spiele.filter(function(spiel) {
-    return gespielt[spiel.t1][spiel.t2] && gespielt[spiel.t1][spiel.t2] !== -1;
-  });
+  var vorbei = spiele.filter(
+    spiel => gespielt[spiel.t1][spiel.t2] && gespielt[spiel.t1][spiel.t2] !== -1
+  );
 
   return {
     bald: bald,
@@ -2373,10 +2432,10 @@ function insertAnsetzungen(doc, currentSpiele) {
   var tbody = create("tbody");
 
   var head = create("td", "Aktuelle Termine (laut Ansetzung)", "colspan", 2,
-                    "style", "font-size: 11pt; font-weight: bold", "class", DARK_YELLOW.bg);
+                    "style", "font-size: 11pt; font-weight: bold", "class", Styles.DARK_YELLOW.bg);
 
   tbody.appendChild(newParentElement("tr", head));
-  var tr = create("tr", null, "class", DARK_YELLOW.bg);
+  var tr = create("tr", null, "class", Styles.DARK_YELLOW.bg);
   tbody.appendChild(tr);
   tr.appendChild(create("td", "K\u00FCrzlich", "style", "font-size: 9pt; font-weight: bold"));
   tr.appendChild(create("td", "Demn\u00E4chst", "style", "font-size: 9pt; font-weight: bold"));
@@ -2423,14 +2482,12 @@ function insertAnsetzungen(doc, currentSpiele) {
 }
 
 function dateFromSpiele(spiele, i, j) {
-  var spiel = spiele.filter(function(el) {
-    return el.t1 == i && el.t2 == j;
-  })[0];
+  var spiel = spiele.filter(el => el.t1 === i && el.t2 === j)[0];
   if (!spiel) {
     return;
   }
   var date = spiel.date.substr(0, spiel.date.length - 4);
-  return create("a", date, "class", ORANGE.fg);
+  return create("a", date, "class", Styles.ORANGE.fg);
 }
 
 /**
@@ -2455,17 +2512,17 @@ function makeStyle() {
   var elem = BODY.getElementsByTagName("*");
   for (var j = 0; j < elem.length; j++) {
     var e = elem[j];
-    if (e.getAttribute("border") == "0" || e.getAttribute("style") == "border: 0") {
+    if (e.getAttribute("border") === "0" || e.getAttribute("style") === "border: 0") {
       e.setAttribute("class", "borderless");
     }
     var bgcol = e.getAttribute("bgcolor");
     var fgcol = e.getAttribute("color");
-    for (var i = 0; i < COLORS.length; i++) {
-      if (bgcol == COLORS[i].css) {
-        e.setAttribute("class", COLORS[i].bg);
+    for (var i = 0; i < Styles.COLORS.length; i++) {
+      if (bgcol === Styles.COLORS[i].css) {
+        e.setAttribute("class", Styles.COLORS[i].bg);
       }
-      if (fgcol == COLORS[i].css) {
-        e.setAttribute("class", e.getAttribute("class") + " " + COLORS[i].col);
+      if (fgcol === Styles.COLORS[i].css) {
+        e.setAttribute("class", e.getAttribute("class") + " " + Styles.COLORS[i].col);
       }
     }
   }

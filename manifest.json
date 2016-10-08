@@ -15,7 +15,8 @@
     {
       "matches": ["*://*.bvbb.net/*", "*://bvbb.net/*"],
       "js": ["Utils.js", "bvbbpp.js"],
-      "css": ["skin.css"]
+      "css": ["skin.css"],
+      "all_frames": true
     }
   ],
 
