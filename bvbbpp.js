@@ -1178,12 +1178,12 @@ function makeTrForGegenueberStats(bericht) {
 function loadSpielbericht(url) {
   return getDocument(url).then(function(doc) {
     if (!doc) {
-        Cu.reportError("Konnte Dokument " + url + " nicht laden.");
+        console.log("Konnte Dokument " + url + " nicht laden.");
         return;
       }
       var h2 = doc.body.getElementsByTagName("h2")[2];
       if (!h2) {
-        Cu.reportError("Fehler beim Lesen des Dokuments " + url +
+        console.log("Fehler beim Lesen des Dokuments " + url +
                        ": Konnte kein h2-Element finden.");
         return;
       }
@@ -1942,12 +1942,12 @@ function getPlayersFromDocument(playerDoc) {
   // Load player links from options element and convert it to an array of objects.
   return [].map.call(playerDoc.getElementsByTagName("option"),
       e => {
-      	var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
-      	return {
-	        name : captures[1],
-	        club : captures[2],
-	        link : BVBBPP.webSpielerstatistik + e.value
-	      }
+        var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
+        return {
+          name : captures[1],
+          club : captures[2],
+          link : BVBBPP.webSpielerstatistik + e.value
+        }
       }
   );
 }
@@ -1987,7 +1987,7 @@ function makePlayerLinksCallback(playerDoc) {
               }
             } catch (err) {
               var msg = "Fehler beim Verlinken von doppelt vorkommenden Spielernamen: ";
-              Cu.reportError(errorMsg(err, msg + playerPage.URL));
+              console.log(errorMsg(err, msg + playerPage.URL));
             }
           }.bind( {doc: doc, displayName: displayName, di: td[i], link: players[j].link} ));
         }
@@ -2220,7 +2220,7 @@ function parseAnsetzungen(doc, ansetzungen) {
   var numAns = 0;
   var div = ansetzungen.body.getElementsByTagName("div");
   for (var j = 0; j < div.length; j++) {
-  	var text = div[j].textContent;
+    var text = div[j].textContent;
     var capture = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
     if (capture) {
       num1 = +capture[1];
@@ -2491,7 +2491,7 @@ function makeStyle() {
     var bgcolor = e.getAttribute("bgcolor");
     var fgcolor = e.getAttribute("color");
     for (var col in Styles) {
-    	var color = Styles[col];
+      var color = Styles[col];
       if (bgcolor === color.css) {
         e.setAttribute("class", color.bg);
       }
