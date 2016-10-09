@@ -132,15 +132,6 @@ var Styles = (function(){
 
 var BODY = null;
 var BVBBPP;
-var URL_TEST = /bvbb\.net\/fileadmin\/user_upload\/(schuch|saison\d\d\d\d)\/meisterschaft/;
-
-
-addEventListener("DOMContentLoaded", function(event) {
-  var doc = event.originalTarget;
-  if (doc.nodeName === "#document" && URL_TEST.test(doc.URL)) {
-    new Bvbbpp(doc).run();
-  }
-});
 
 
 function Bvbbpp(document) {
@@ -1825,7 +1816,7 @@ function makeSpieler() {
   var t = create("tr", null, "class", Styles.LIGHT_ORANGE.bg);
   t.appendChild(create("td", "H e i m m a n n s c h a f t", "colspan", 8,
                        "style", "font-size:11pt; font-weight:bold"));
-  t.appendChild(create("td", " ", "class", DARK_ORANGE.bg, "style", "border:0"));
+  t.appendChild(create("td", " ", "class", Styles.DARK_ORANGE.bg, "style", "border:0"));
   t.appendChild(create("td", "G a s t m a n n s c h a f t", "colspan", 2,
                        "style", "font-size:11pt; font-weight:bold"));
   table[1].insertBefore(t, table[1].firstChild);
@@ -2204,11 +2195,13 @@ function makeHeadLine(groupNum, teamNum) {
 }
 
 function parseAnsetzungen(doc, ansetzungen) {
-  var tr = doc.getElementsByTagName("h2")[0].getElementsByTagName("tr");
-  if (!ansetzungen)
+  if (!ansetzungen) {
     return;
+  }
+	
+  var tr = doc.querySelectorAll("h2:first-of-type tr");
   // team-Tabelle parsen und die Teamlinks speichern
-  var div = ansetzungen.body.getElementsByTagName("h2")[1].getElementsByTagName("div");
+  var div = ansetzungen.body.querySelectorAll("h2:nth-of-type(2) div");
 
   // rank: nummer innerhalb des vereins (I,II, ...), verein: globale nummer, link: link zu
   // ansetzungen
@@ -2243,15 +2236,15 @@ function parseAnsetzungen(doc, ansetzungen) {
 
   var num1;
   var num2;
-  var ansetzung = new Array(200);
+  var ansetzung = [];
   var numAns = 0;
   var div = ansetzungen.body.getElementsByTagName("div");
   for (var j = 0; j < div.length; j++) {
-    var text = div[j].textContent;
-    var ex = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
-    if (ex) {
-      num1 = parseInt(ex[1], 10);
-      num2 = parseInt(ex[2], 10);
+  	var text = div[j].textContent;
+    var capture = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
+    if (capture) {
+      num1 = +capture[1];
+      num2 = +capture[2];
     }
     if (/^\s*\d\d.\d\d.\d\d\d\d\s*$/.test(text)) {
       // num1 und num2 sind noch von der letzten Zelle belegt
@@ -2326,11 +2319,11 @@ function makeTabelle() {
         }
       }
     }
-    var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
-        "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
-    getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
   });
-  
+
+  var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
+      "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
+  getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
 }
 
 function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
