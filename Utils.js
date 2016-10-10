@@ -117,7 +117,7 @@ function removeElements(doc, tag, regex) {
 
 function newElement(doc, type, textContent) {
   var e = doc.createElement(type);
-  if (textContent && textContent != "") {
+  if (textContent && textContent !== "") {
     e.textContent = textContent;
   }
   for (var i = 3; i + 1 < arguments.length; i += 2) {

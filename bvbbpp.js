@@ -1,4 +1,4 @@
-// Copyright 2012-2014 Felix Kaelberer <bvbbpp@gmx-topmail.de>
+// Copyright 2012-2016 Felix Kaelberer
 //
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
@@ -20,7 +20,7 @@ var CALENDAR_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAA
 
 var MOBILE = false;
 
-// TODO store defaults (relict from old firefox extension)
+// TODO store defaults (relict from old Firefox extension)
 // preferences and defaults
 var PREFS = [{
   name: "useIframe",
@@ -61,7 +61,7 @@ var BvbbLeague = (function() {
   DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
   DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-  var FIRST_SEASON = 9
+  var FIRST_SEASON = 9;
   my.CURRENT_SEASON = getCurrentSeasonYear();
   my.SEASONS = [];
   for (var i = FIRST_SEASON; i <= my.CURRENT_SEASON; i++ ) {
@@ -75,11 +75,11 @@ var BvbbLeague = (function() {
     // lässt die neue Saison ab August starten
     var d = new Date();
     var year = d.getFullYear() - 2000;
-    var august = 7
+    var august = 7;
     if (d.getMonth() < august) {
-      year -= 1
+      year -= 1;
     }
-    return year
+    return year;
   }
 
   return my;
@@ -133,7 +133,7 @@ function Bvbbpp(document) {
     names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
   };
   this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
-  this.webSpielerstatistik = this.web + "spielerstatistik/"
+  this.webSpielerstatistik = this.web + "spielerstatistik/";
   this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
   this.webAufstellung = this.web + "aufstellung/";
   this.webHallen = this.web + "Hallen.HTML";
@@ -363,7 +363,7 @@ function makeFavoriteStar(bvbbpp, groupNum, teamNum) {
         doc.getElementById("menuAufstellung" + this.num).setAttribute("class", "favorite");
         doc.getElementById("menuVerein" + this.num).setAttribute("class", "favorite");
       }
-    })
+    });
   }
 
   var doc = bvbbpp.doc;
@@ -1577,8 +1577,7 @@ function makeSpielbericht() {
 
 /**
  * @target: link-target des erzeugten Links
- * @param klasse:
- *          Name einer Klasse als String, darf leerzeichen enthalten.
+ * @param klasse Name einer Klasse als String, darf leerzeichen enthalten.
  * @return HTML-Link zu der Klasse
  */
 function linkToKlasse(klasse, target) {
@@ -1615,8 +1614,7 @@ function loadPlayerStats() {
     var fest = (f[1] > 0 && f[1] !== f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
     // mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
     if (isBericht && staemme) {
-      var mannschaft = (parseInt(staemme[1], 10) == f[2]) ? parseInt(staemme[2], 10)
-                                                          : parseInt(staemme[4], 10);
+      var mannschaft = (+staemme[1] == f[2]) ? +staemme[2] : +staemme[4];
     }
     var slash = (/\//.test(e.textContent)) ? "  /" : "";
     if (isBericht && (f[0] !== mannschaft && staemme || !staemme && f[0] === 0)) {
@@ -1645,8 +1643,8 @@ function loadPlayerStats() {
 
   var doc = this.bvbbpp.doc;
   removeElement(doc.getElementById("loadStats"));
-  var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) ||
-  /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
+  var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) 
+          || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
   var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
 
   var as = doc.body.getElementsByTagName("a");
@@ -1947,7 +1945,7 @@ function getPlayersFromDocument(playerDoc) {
           name : captures[1],
           club : captures[2],
           link : BVBBPP.webSpielerstatistik + e.value
-        }
+        };
       }
   );
 }
@@ -2281,7 +2279,7 @@ function makeTabelle() {
   // Fix the domain name in all links in the table to match the current domain name.
   // Otherwise opening the iFrame would be hindered by same-origin-policy
   [].slice.call(BODY.querySelectorAll("h2 table a")).map(
-      a => { a.href = a.href.replace(getProtocolAndDomain(a.href), BVBBPP.domain) }
+      a => { a.href = a.href.replace(getProtocolAndDomain(a.href), BVBBPP.domain); }
   );
 
   // iFrame hinzufuegen
