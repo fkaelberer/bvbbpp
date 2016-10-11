@@ -137,9 +137,6 @@ function Bvbbpp(document) {
   this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
   this.webAufstellung = this.web + "aufstellung/";
   this.webHallen = this.web + "Hallen.HTML";
-  this.this_ = {
-    bvbbpp : this
-  };
 }
 
 Bvbbpp.prototype = {
@@ -325,7 +322,7 @@ function makeAufstellung() {
   h2[0].parentNode.appendChild(button);
 
   var playerListURL = BVBBPP.webSpielerstatistik + "/P-Drop-down-Spieler.HTML";
-  getDocument(playerListURL).then(makePlayerLinksCallback.bind(BVBBPP.this_));
+  getDocument(playerListURL).then(makePlayerLinksCallback.bind(BVBBPP));
 
   var f = BODY.getElementsByTagName("font");
   for (var i = 0; i < f.length; i++) {
@@ -451,7 +448,7 @@ function makeVerein() {
 
   // Vereine verlinken
   var vereineVerlinken = function(vereine) {
-    var doc = this.bvbbpp.doc;
+    var doc = this.doc;
     var tds = doc.body.getElementsByTagName("td");
     for (var i = 0; i < tds.length; i++) {
       var td = tds[i];
@@ -474,13 +471,13 @@ function makeVerein() {
         }
       }
     }
-  }.bind(BVBBPP.this_);
+  }.bind(BVBBPP);
 
 
   var vereineURL = BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML";
 
   Promise.all([ensureHallenschluessel(), parseVereine(vereineURL)]).then(function(loadedDocs) {
-    var doc = this.bvbbpp.doc;
+    var doc = this.doc;
     var hallen = loadedDocs[0];
     var vereine = loadedDocs[1];
 
@@ -490,19 +487,19 @@ function makeVerein() {
     var spiele = parseSpieltermine(doc, vereine);
     getPref("hideDoodle", function(value) {
       if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
-        (makeDoodleLinks.bind(this.this_))(doc, spiele);
+        (makeDoodleLinks.bind(this))(doc, spiele);
       }
-    }.bind({this_: this}));
+    }.bind(this));
     getPref("hideICS", function(value) {
       if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
-        (makeICalendar.bind(this.this_))(doc, spiele);
+        (makeICalendar.bind(this))(doc, spiele);
       }
-    }.bind({this_: this}));
+    }.bind(this));
     makeCurrentSpieltermine(doc, spiele);
     makeHallenbelegung(doc, spiele, hallen);
 //  disable catch because it doesn't compile in eclipse
 //  }).catch(function(error) {
-  }.bind(BVBBPP.this_));
+  }.bind(BVBBPP));
 
   var tables = BODY.getElementsByTagName("table");
   for (var i = 0; i < tables.length; i++) {
@@ -961,10 +958,10 @@ function makeCurrentSpieltermine(doc, spiele) {
   centerDiv.insertBefore(h2, doc.body.getElementsByTagName("table")[0].parentNode);
 
   function fillResults(result) {
-    var doc = this.bvbbpp.doc;
+    var doc = this.doc;
     var resultCell = doc.getElementById("result" + result.url.substr(-16));
     var resultLink = resultCell.parentNode.parentNode.firstChild;
-    var heimspiel = result.teamNr1 === this.bvbbpp.URL.substr(-7, 2);
+    var heimspiel = result.teamNr1 === this.URL.substr(-7, 2);
     var points = result.spielErgebnisText ? +result.spielErgebnisText.substr(0, 1) : 4;
     var colorClass = points === 4 ? Styles.orange.bg : (heimspiel === (points > 4) ? Styles.win.bg : Styles.lose.bg);
     resultLink.setAttribute("class", colorClass);
@@ -972,7 +969,7 @@ function makeCurrentSpieltermine(doc, spiele) {
   }
 
   for (i = 0; i < resultsToLoad.length; i++) {
-    loadSpielbericht(resultsToLoad[i]).then(fillResults.bind(BVBBPP.this_));
+    loadSpielbericht(resultsToLoad[i]).then(fillResults.bind(BVBBPP));
   }
 
 }
@@ -986,7 +983,7 @@ function makeLoadStatsButton(bvbbpp) {
   input.type = "button";
   input.id = "loadStats";
   input.value = "Spielerstatistik laden";
-  input.onclick = loadPlayerStats.bind({ bvbbpp: bvbbpp });
+  input.onclick = loadPlayerStats.bind(bvbbpp);
   return input;
 }
 
@@ -1300,7 +1297,7 @@ function makeAnsetzung() {
   ensureHallenschluessel().then(replaceHallenschluessel);
 
   var staffelURL = BVBBPP.URL.replace("staffel-", "gegenueber/gegenueber-");
-  getDocument(staffelURL).then(replaceTeamLinks.bind(BVBBPP.this_));
+  getDocument(staffelURL).then(replaceTeamLinks.bind(BVBBPP));
 }
 
 function replaceTeamLinks(tabelle) {
@@ -1334,7 +1331,7 @@ function replaceTeamLinks(tabelle) {
     }
   }
 
-  var doc = this.bvbbpp.doc;
+  var doc = this.doc;
   // teams durch links ersetzen und die Teamlinks speichern
   var team = doc.body.getElementsByTagName("table")[0].getElementsByTagName("div");
   var teamObj = []; // rank: nummer innerhalb des vereins (I,II, ...),
@@ -1362,12 +1359,12 @@ function replaceTeamLinks(tabelle) {
         team[i].replaceChild(newA, team[i].firstChild);
 
         team[i].onmouseover = highlight.bind({
-          bvbbpp: this.bvbbpp,
+          bvbbpp: this,
           col: "#ddedf5", // darkYellow.css * 0.3 opacity
           el: team[i]
         });
         team[i].onmouseout = highlight.bind({
-          bvbbpp: this.bvbbpp,
+          bvbbpp: this,
           col: "#ffffff", // yellow.css
           el: team[i]
         });
@@ -1402,9 +1399,9 @@ function replaceTeamLinks(tabelle) {
 
 
   // get directory listing, Format=0; Pattern=*-??_??-??.HTML
-  var link = this.bvbbpp.webSpielberichteVereine + "?F=0;P=*-??_??-??.HTML";
+  var link = this.webSpielberichteVereine + "?F=0;P=*-??_??-??.HTML";
   getDocument(link).then(makeGameLinks.bind({
-    bvbbpp: this.bvbbpp,
+    bvbbpp: this,
     nums1: nums1,
     nums2: nums2
   }));
@@ -1413,12 +1410,12 @@ function replaceTeamLinks(tabelle) {
 function ensureHallenschluessel() {
   if (BVBBPP.hallenschluessel) {
     return new Promise(function(resolve, reject) {
-      resolve(this.bvbbpp.hallenschluessel);
-    }.bind(BVBBPP.this_));
+      resolve(this.hallenschluessel);
+    }.bind(BVBBPP));
   }
 
   return new Promise(function(resolve, reject) {
-    getDocument(this.bvbbpp.webHallen).then(function(hallenDoc) {
+    getDocument(this.webHallen).then(function(hallenDoc) {
       var tr = hallenDoc.getElementsByTagName("tr");
       var hallenschluessel;
       hallenschluessel = [];
@@ -1496,10 +1493,10 @@ function ensureHallenschluessel() {
           };
         }
       }
-      this.bvbbpp.hallenschluessel = hallenschluessel;
-      resolve(this.bvbbpp.hallenschluessel);
-    }.bind(this.bvbbpp.this_));
-  }.bind(BVBBPP.this_));
+      this.hallenschluessel = hallenschluessel;
+      resolve(this.hallenschluessel);
+    }.bind(this));
+  }.bind(BVBBPP));
 }
 
 function replaceHallenschluessel(halle) {
@@ -1641,7 +1638,7 @@ function loadPlayerStats() {
     adjustIFrameHeight(doc);
   }
 
-  var doc = this.bvbbpp.doc;
+  var doc = this.doc;
   removeElement(doc.getElementById("loadStats"));
   var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) 
           || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
@@ -1651,7 +1648,7 @@ function loadPlayerStats() {
   for (var i = 0; i < as.length; i++) {
     var a = as[i];
     if (/spielerstatistik\/P-/.test(a.href)) {
-      getDocument(a.href).then(processLink.bind( { bvbbpp: this.bvbbpp, element: a } ));
+      getDocument(a.href).then(processLink.bind( { bvbbpp: this, element: a } ));
     }
   }
   adjustIFrameHeight(doc);
@@ -1953,7 +1950,7 @@ function getPlayersFromDocument(playerDoc) {
 
 function makePlayerLinksCallback(playerDoc) {
   var players = getPlayersFromDocument(playerDoc);
-  var doc = this.bvbbpp.doc;
+  var doc = this.doc;
   var td = doc.getElementsByTagName("td");
 
   // loop over player names in the document
@@ -2301,7 +2298,7 @@ function makeTabelle() {
 
   var urlAns = BVBBPP.URL.replace(/tabellen\/uebersicht-\d\d/,
       "staffel-" + BVBBPP.divisions.shortNames[groupNum]);
-  getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP.this_));
+  getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP));
 }
 
 function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
@@ -2383,7 +2380,7 @@ function filterCurrentSpiele(currentSpiele) {
 }
 
 function parseAnsetzungAndInsert(ansetzungen) {
-  var doc = this.bvbbpp.doc;
+  var doc = this.doc;
   var spiele = parseAnsetzungen(doc, ansetzungen);
   var currentSpiele = getCurrentSpiele(doc, spiele, 5);
   filterCurrentSpiele(currentSpiele);
