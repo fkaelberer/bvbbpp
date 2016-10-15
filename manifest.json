@@ -14,7 +14,7 @@
   "content_scripts": [
     {
       "matches": ["*://*.bvbb.net/*", "*://bvbb.net/*"],
-      "js": ["Utils.js", "bvbbpp.js"],
+      "js": ["Utils.js", "league.js", "bvbbpp.js"],
       "css": ["skin.css"],
       "all_frames": true
     }
