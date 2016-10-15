@@ -389,8 +389,7 @@ function makeVerein() {
 
   // Vereine verlinken
   var vereineVerlinken = function(vereine) {
-    var doc = this.doc;
-    var tds = doc.body.getElementsByTagName("td");
+    var tds = this.doc.getElementsByTagName("td");
     for (var i = 0; i < tds.length; i++) {
       var td = tds[i];
       var HTML = td.innerHTML;
@@ -414,10 +413,7 @@ function makeVerein() {
     }
   }.bind(BVBBPP);
 
-
-  var vereineURL = BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML";
-
-  Promise.all([ensureHallenschluessel(), loadVereine(vereineURL)]).then(function(loadedDocs) {
+  function makeVereinMain(loadedDocs) {
     var doc = this.doc;
     var hallen = loadedDocs[0];
     var vereine = loadedDocs[1];
@@ -426,21 +422,26 @@ function makeVerein() {
     vereineVerlinken(vereine);
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
+    
     getPref("hideDoodle", function(value) {
-      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
+      if (!value && this.year === BvbbLeague.CURRENT_SEASON) {
         (makeDoodleLinks.bind(this))(doc, spiele);
       }
     }.bind(this));
+    
     getPref("hideICS", function(value) {
-      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
+      if (!value && this.year === BvbbLeague.CURRENT_SEASON) {
         (makeICalendar.bind(this))(doc, spiele);
       }
     }.bind(this));
+    
     makeCurrentSpieltermine(doc, spiele);
     makeHallenbelegung(doc, spiele, hallen);
-//  disable catch because it doesn't compile in eclipse
-//  }).catch(function(error) {
-  }.bind(BVBBPP));
+  }
+
+  var vereineURL = BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML";
+
+  Promise.all([ensureHallenschluessel(), loadVereine(vereineURL)]).then(makeVereinMain.bind(BVBBPP));
 
   var tables = document.getElementsByTagName("table");
   for (var i = 0; i < tables.length; i++) {
@@ -1384,7 +1385,7 @@ function linkToKlasse(klasse, target) {
 }
 
 function loadPlayerStats() {
-  function processLink(playerDoc, e) {
+  function processLink(playerDoc) {
     var doc = this.bvbbpp.doc;
     var e = this.element;
     var wins = getWinPercentage(playerDoc);

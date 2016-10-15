@@ -5,9 +5,9 @@
 //
 
 /* 
- * The parsers.js file contains methods which load and parse documents from
- * given urls and return javascript objects. Methods should be implemented as
- * Promises.
+ * The parsers.js file contains methods which load or parse documents.
+ * Load methods should take urls and return promises,
+ * parse methods should take documents and return javascript objects.
  */
 
 
@@ -92,15 +92,14 @@ function parseSpielbericht(doc) {
     return bericht;
 }
 
+
 function loadHallenschluessel(url) {
     return getDocument(url).then(parseHallenschluessel);
 }
 
-
-function parseHallenschluessel(hallenDoc) {
-    var tr = hallenDoc.getElementsByTagName("tr");
-    var hallenschluessel;
-    hallenschluessel = [];
+function parseHallenschluessel(doc) {
+    var tr = doc.getElementsByTagName("tr");
+    var hallenschluessel = [];
 
     // speichere hallenschluessel in arrays
     for (var i = 0; i < tr.length; i++) {
@@ -179,8 +178,8 @@ function parseHallenschluessel(hallenDoc) {
 }
 
 
-function loadVereine(vereineURL) {
-    return getDocument(vereineURL).then(parseVereine);
+function loadVereine(url) {
+    return getDocument(url).then(parseVereine);
 }
 
 /**
@@ -212,13 +211,14 @@ function parseVereine(doc) {
     return vereine;
 }
 
+
 function loadListOfPlayers(url) {
     return getDocument(url).then(parseListOfPlayers);
 }
 
-function parseListOfPlayers(playerDoc) {
+function parseListOfPlayers(doc) {
   // Load player links from options element and convert it to an array of objects.
-  return [].map.call(playerDoc.getElementsByTagName("option"),
+  return [].map.call(doc.getElementsByTagName("option"),
       e => {
         var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
         return {
@@ -229,4 +229,3 @@ function parseListOfPlayers(playerDoc) {
       }
   );
 }
-
