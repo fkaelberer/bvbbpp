@@ -33,58 +33,6 @@ var PREFS = [{
   def: MOBILE
 }];
 
-var BvbbLeague = (function() {
-  var my = {};
-
-  var BB = "BB";
-  var L1 = "LL-1", L2 = "LL-2", L3 = "LL-3", L4 = "LL-4";
-  var Z1 = "BZ-1", Z2 = "BZ-2", Z3 = "BZ-3", Z4 = "BZ-4";
-  var A1 = "AK-1", A2 = "AK-2", A3 = "AK-3", A4 = "AK-4";
-  var B1 = "BK-1", B2 = "BK-2", B3 = "BK-3", B4 = "BK-4";
-  var C1 = "CK-1", C2 = "CK-2", C3 = "CK-3", C4 = "CK-4";
-  var D1 = "DK-1", D2 = "DK-2", D3 = "DK-3", D4 = "DK-4";
-  var E1 = "EK-1", E2 = "EK-2", E3 = "EK-3", E4 = "EK-4";
-  var F1 = "FK-1", F2 = "FK-2", F3 = "FK-3", F4 = "FK-4";
-  var G1 = "GK-1", G2 = "GK-2", G3 = "GK-3", G4 = "GK-4";
-
-  var DIVISIONS = [];
-  my.DIVISIONS = DIVISIONS;
-  // keine Gegenueberstellung 2006/07
-  // DIVISIONS[ 6] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, C1, C2, C3];
-  // keine Spieltermine 2007/08, 2008/09
-  // DIVISIONS[ 7] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-  // DIVISIONS[ 8] = [BB, L1, L2, Z1, Z2, Z3, Z4, A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3];
-
-  // Nur diejenigen Staffeln muessen angegeben werden, die sich von der Vorsaison unterscheiden.
-  DIVISIONS[ 9] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, F3];
-  DIVISIONS[11] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-  DIVISIONS[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
-  DIVISIONS[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
-
-  var FIRST_SEASON = 9;
-  my.CURRENT_SEASON = getCurrentSeasonYear();
-  my.SEASONS = [];
-  for (var i = FIRST_SEASON; i <= my.CURRENT_SEASON; i++ ) {
-    my.SEASONS.push(i);
-    if (!DIVISIONS[i]) {
-      DIVISIONS[i] = DIVISIONS[i - 1];
-    }
-  }
-
-  function getCurrentSeasonYear() {
-    // lässt die neue Saison ab August starten
-    var d = new Date();
-    var year = d.getFullYear() - 2000;
-    var august = 7;
-    if (d.getMonth() < august) {
-      year -= 1;
-    }
-    return year;
-  }
-
-  return my;
-
-}());
 
 var Styles = (function(){
   function toColorObject(color) {
@@ -110,11 +58,21 @@ var Styles = (function(){
   };
 }());
 
-var BODY = null;
 var BVBBPP;
 
-
 function Bvbbpp(document) {
+    function getYear(url) {
+        var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
+        if (seasonString === "schuch") {
+            return BvbbLeague.CURRENT_SEASON;
+        }
+        if (seasonString.indexOf("saison") >= 0) {
+            return parseInt(seasonString.substr("saison".length, 2), 10);
+        }
+        return BvbbLeague.CURRENT_SEASON;
+    }
+
+    
   this.URL = document.URL;
   this.valid = true;
   if (!this.valid) {
@@ -157,20 +115,19 @@ Bvbbpp.prototype = {
 
   run: function bvbbpp_run() {
     BVBBPP = this;
-    BODY = document.body;
 
     if (!this.body.firstChild || this.doc.getElementById("bvbbBody")) {
       return;
     }
 
     // avoid processing the same file twice (for example, when embedded in an iframe)
-    BODY.id = "bvbbBody";
+    document.body.id = "bvbbBody";
 
     var url = document.URL;
     makeStyle();
 
     if (!getIFrame()) {
-      setElementAttributes(BODY, "a", "target", "_self", /_blank/);
+      setElementAttributes(document.body, "a", "target", "_self", /_blank/);
     }
 
     if (/meisterschaft\/staffel-/.test(url)) {
@@ -199,17 +156,6 @@ Bvbbpp.prototype = {
     }
   }
 };
-
-function getYear(url) {
-  var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
-  if (seasonString === "schuch") {
-    return BvbbLeague.CURRENT_SEASON;
-  }
-  if (seasonString.indexOf("saison") >= 0) {
-    return parseInt(seasonString.substr("saison".length, 2), 10);
-  }
-  return BvbbLeague.CURRENT_SEASON;
-}
 
 function toSeasonName(year) {
   return "20" + twoDigits(year) + "/" + twoDigits(year + 1);
@@ -252,11 +198,6 @@ function isDue() { // Websites should be online by now.
  */
 function create() {
   return newElement.apply(this, [document].concat([].slice.call(arguments)));
-}
-
-function errorMsg(e, msg) {
-  return e ? "BVBB++: Fehler in Zeile " + e.lineNumber + ": " + e.message + " " + (msg ? msg : "")
-           : "BVBB++: " + msg;
 }
 
 /**
@@ -305,26 +246,26 @@ function makeAufstellung() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2");
+  var h2 = document.getElementsByTagName("h2");
   if (!h2[0]) {
     return;
   }
-  var td = BODY.getElementsByTagName("td");
+  var td = document.getElementsByTagName("td");
 
   var title = "Aufstellung " + td[1].textContent + " " + td[3].textContent;
   var titleNode = create("h1", title, "class", "title");
   h2[0].parentNode.replaceChild(titleNode, h2[0]);
   var favoriteStar = makeFavoriteStar(BVBBPP, -1, teamNum);
   titleNode.appendChild(favoriteStar);
-  BVBBPP.doc.title = title.replace(" (R\u00FCckrunde)", "").replace(" (Hinrunde)", "");
+  document.title = title.replace(" (R\u00FCckrunde)", "").replace(" (Hinrunde)", "");
   var button = makeLoadStatsButton(BVBBPP);
   button.setAttribute("style", "margin: auto 320px"); // wie geht's besser?
   h2[0].parentNode.appendChild(button);
 
   var playerListURL = BVBBPP.webSpielerstatistik + "/P-Drop-down-Spieler.HTML";
-  getDocument(playerListURL).then(makePlayerLinksCallback.bind(BVBBPP));
+  loadListOfPlayers(playerListURL).then(makePlayerLinksCallback.bind(BVBBPP));
 
-  var f = BODY.getElementsByTagName("font");
+  var f = document.body.getElementsByTagName("font");
   for (var i = 0; i < f.length; i++) {
     var link = linkToKlasse(f[i].textContent);
     if (link) {
@@ -417,17 +358,17 @@ function makeVerein() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2");
+  var h2 = document.getElementsByTagName("h2");
   if (h2[0]) {
-    var title = "Spieltermine " + BODY.getElementsByTagName("tr")[1].textContent;
-    BVBBPP.doc.title = title.replace("Spieltermine", "Termine");
+    var title = "Spieltermine " + document.getElementsByTagName("tr")[1].textContent;
+    document.title = title.replace("Spieltermine", "Termine");
     var titleNode = create("h1", title, "class", "title");
     h2[0].parentNode.replaceChild(titleNode, h2[0]);
     var favoriteStar = makeFavoriteStar(BVBBPP, -1, teamNum);
     titleNode.appendChild(favoriteStar);
   }
 
-  var span = BODY.getElementsByTagName("span");
+  var span = document.getElementsByTagName("span");
   var i;
   for (i = span.length - 1; i >= 0; i--) {
     if (span[i].id === "headline") {
@@ -438,18 +379,17 @@ function makeVerein() {
     span[i].parentNode.replaceChild(font, span[i]);
   }
 
-  setElementAttributes(BODY, "table", "style", "border:0", /Mannschaft/);
+  setElementAttributes(document, "table", "style", "border:0", /Mannschaft/);
 
   // trim links to klasse
-  var b = BODY.getElementsByTagName("b");
+  var b = document.getElementsByTagName("b");
   for (i = 0; i < b.length; i++) {
     b[i].textContent = b[i].textContent.replace(/^\s+|\s+$/g, "");
   }
 
   // Vereine verlinken
   var vereineVerlinken = function(vereine) {
-    var doc = this.doc;
-    var tds = doc.body.getElementsByTagName("td");
+    var tds = this.doc.getElementsByTagName("td");
     for (var i = 0; i < tds.length; i++) {
       var td = tds[i];
       var HTML = td.innerHTML;
@@ -473,10 +413,7 @@ function makeVerein() {
     }
   }.bind(BVBBPP);
 
-
-  var vereineURL = BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML";
-
-  Promise.all([ensureHallenschluessel(), parseVereine(vereineURL)]).then(function(loadedDocs) {
+  function makeVereinMain(loadedDocs) {
     var doc = this.doc;
     var hallen = loadedDocs[0];
     var vereine = loadedDocs[1];
@@ -485,27 +422,32 @@ function makeVerein() {
     vereineVerlinken(vereine);
     // Spieltermine erst einfuegen, wenn Vereine verlinkt
     var spiele = parseSpieltermine(doc, vereine);
+    
     getPref("hideDoodle", function(value) {
-      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
+      if (!value && this.year === BvbbLeague.CURRENT_SEASON) {
         (makeDoodleLinks.bind(this))(doc, spiele);
       }
     }.bind(this));
+    
     getPref("hideICS", function(value) {
-      if (!value && BVBBPP.year === BvbbLeague.CURRENT_SEASON) {
+      if (!value && this.year === BvbbLeague.CURRENT_SEASON) {
         (makeICalendar.bind(this))(doc, spiele);
       }
     }.bind(this));
+    
     makeCurrentSpieltermine(doc, spiele);
     makeHallenbelegung(doc, spiele, hallen);
-//  disable catch because it doesn't compile in eclipse
-//  }).catch(function(error) {
-  }.bind(BVBBPP));
+  }
 
-  var tables = BODY.getElementsByTagName("table");
+  var vereineURL = BVBBPP.webSpielberichteVereine + "spielbericht-vereine.HTML";
+
+  Promise.all([ensureHallenschluessel(), loadVereine(vereineURL)]).then(makeVereinMain.bind(BVBBPP));
+
+  var tables = document.getElementsByTagName("table");
   for (var i = 0; i < tables.length; i++) {
     tables[i].setAttribute("width", "600px");
   }
-  var cols = BODY.getElementsByTagName("col");
+  var cols = document.getElementsByTagName("col");
   for (var i = 8; i < cols.length; i += 14) {
     cols[i].setAttribute("width", "20px");
   }
@@ -1009,13 +951,13 @@ function makeGegenueber() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2");
+  var h2 = document.getElementsByTagName("h2");
   removeElement(h2[1]);
   var groupTitle = makeGroupTitle("Gegen\u00FCberstellung " + BVBBPP.divisions.names[groupNum]);
   h2[0].parentNode.replaceChild(groupTitle, h2[0]);
 
 
-  var tr = BODY.getElementsByTagName("tr");
+  var tr = document.getElementsByTagName("tr");
   for (var i = 1; i < tr.length; i++) {
     var td = tr[i].getElementsByTagName("td");
     for (var j = 0; j < td.length - 1; j++) {
@@ -1172,84 +1114,6 @@ function makeTrForGegenueberStats(bericht) {
 }
 
 
-function loadSpielbericht(url) {
-  return getDocument(url).then(function(doc) {
-    if (!doc) {
-        console.log("Konnte Dokument " + url + " nicht laden.");
-        return;
-      }
-      var h2 = doc.body.getElementsByTagName("h2")[2];
-      if (!h2) {
-        console.log("Fehler beim Lesen des Dokuments " + url +
-                       ": Konnte kein h2-Element finden.");
-        return;
-      }
-      var datum = /(\d\d.\d\d.\d\d\d\d)/.exec(doc.body.textContent)[1];
-      var tr = h2.getElementsByTagName("tr");
-      var spiele = new Array(8);
-      for (var i = 0; i < tr.length; i++) {
-        var td = tr[i].getElementsByTagName("td");
-
-        var bheim = td[1].getElementsByTagName("b");
-        var bgast = td[3].getElementsByTagName("b");
-        var invalid = /Mannschaft|hat|verloren/;
-        var validHeim = bheim[0] && !invalid.test(bheim[0]);
-        var validGast = bgast[0] && !invalid.test(bgast[0]);
-        var spieler = validHeim ? (bheim[1] ? [ bheim[0].textContent, bheim[1].textContent ]
-                                            : [ bheim[0].textContent ])
-                                : "<<<< kampflos >>>>";
-        var gegner = validGast ? (bgast[1] ? [ bgast[0].textContent, bgast[1].textContent ]
-                                           : [ bgast[0].textContent ])
-                               : "<<<< kampflos >>>>";
-        var spielerNode = validHeim ? td[1].cloneNode(true)
-                                    : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
-        var gegnerNode = validGast ? td[3].cloneNode(true)
-                                   : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
-        var p1 = /^(\d\d) : (\d\d)/.exec(td[5].textContent);
-        var p2 = /^(\d\d) : (\d\d)/.exec(td[6].textContent);
-        var p3 = /^(\d\d) : (\d\d)/.exec(td[7].textContent);
-        var hSaetze = (p1[1] > p1[2] ? 1 : 0) + (p2[1] > p2[2] ? 1 : 0)
-            + (p3 ? (p3[1] > p3[2] ? 1 : 0) : 0);
-        var gSaetze = (p1[1] < p1[2] ? 1 : 0) + (p2[1] < p2[2] ? 1 : 0)
-            + (p3 ? (p3[1] < p3[2] ? 1 : 0) : 0);
-        spiele[i] = {
-          type: ["1.HD", "DD", "2.HD", "DE", "GD", "1.HE", "2.HE", "3.HE"][i],
-          typeNum: i,
-          spielerNodes: [spielerNode, gegnerNode],
-          spieler1: [spieler[0], gegner[0]],
-          spieler2: [spieler[1], gegner[1]],
-          saetze: [hSaetze, gSaetze],
-          sieg: (hSaetze > gSaetze ? [1, 0] : [0, 1]),
-          p: [(p3 ? [p1[1], p2[1], p3[1]] : [p1[1], p2[1]]),
-              (p3 ? [p1[2], p2[2], p3[2]] : [p1[2], p2[2]])]
-        };
-      }
-
-      tr = doc.body.getElementsByTagName("tr");
-      var lastTr = tr[tr.length - 1].getElementsByTagName("td");
-      if (!(lastTr[6] && lastTr[4] && lastTr[2])) {
-        // console.log("undef: " + url);
-      } else {
-      var spielErgebnisText = lastTr[6].textContent;
-      var satzErgebnisText = lastTr[4].textContent;
-      var punktErgebnisText = lastTr[2].textContent;
-      }
-
-      var bericht = {
-        teamNr1: url.substr(-16, 2),
-        teamNr2: url.substr(-13, 2),
-        spielErgebnisText: spielErgebnisText,
-        satzErgebnisText: satzErgebnisText,
-        punktErgebnisText: punktErgebnisText,
-        spiele: spiele,
-        url: url,
-        datum: datum
-      };
-
-      return bericht;
-  });
-}
-
 function makeGroupTitle(title, isTabelle) {
   var titleLine = create("h1", title, "class", "title");
   var urlBack;
@@ -1290,7 +1154,7 @@ function makeAnsetzung() {
   }
 
   // erstes unnuetzes h2 loeschen
-  var h2_0 = BODY.getElementsByTagName("h2")[0];
+  var h2_0 = document.getElementsByTagName("h2")[0];
   var groupTitle = makeGroupTitle("Ansetzungen " + BVBBPP.divisions.names[groupNum]);
   h2_0.parentNode.replaceChild(groupTitle, h2_0);
 
@@ -1409,98 +1273,21 @@ function replaceTeamLinks(tabelle) {
 
 function ensureHallenschluessel() {
   if (BVBBPP.hallenschluessel) {
-    return new Promise(function(resolve, reject) {
-      resolve(this.hallenschluessel);
-    }.bind(BVBBPP));
+    function resolveExistingHallenschluessel(resolve, reject) {
+        resolve(this.hallenschluessel);
+    }
+    return new Promise(resolveExistingHallenschluessel.bind(BVBBPP));
   }
 
-  return new Promise(function(resolve, reject) {
-    getDocument(this.webHallen).then(function(hallenDoc) {
-      var tr = hallenDoc.getElementsByTagName("tr");
-      var hallenschluessel;
-      hallenschluessel = [];
-
-      // speichere hallenschluessel in arrays
-      for (var i = 0; i < tr.length; i++) {
-        var f = tr[i].getElementsByTagName("font")[0];
-        var d = tr[i].getElementsByTagName("div");
-        if (f && d[1] && d[2] && d[3]) {
-          var key = f.textContent;
-          if (key.length !== 2) {
-            continue;
-          }
-          var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
-          .replace(/(&nbsp;){2,}/g, " ")
-          .replace(/str\./, "stra\u00DFe")
-          .replace(/Str\./, "Stra\u00DFe");
-          var shortStreet = street.replace(/\s*\n.+/g, "");
-          var PLZ = d[1].textContent.replace(/^\s+/, "")
-          + d[2].textContent.replace("(", " ").replace(")", "");
-
-          // street corrections
-          if (/-Nydal-/.test(street)) {
-            street = street.replace("-Nydal-", "-Nydahl-");
-            shortStreet = street.replace(/\s*\n.+/g, "");
-          }
-          if (/Sportcenter\sPreu.enpark/.test(street)) {
-            shortStreet = "Kamenzer Damm 34";
-          }
-          if (/Pfalzburger\sStr/.test(street)) {
-            shortStreet = "G\u00FCntzelstra\u00DFe 34-35";
-          }
-          if (/Gr.ner\sWeg/.test(street)) {
-            shortStreet = "Gr\u00FCner Weg";
-          }
-          if (/Neuendorfer\sSand/.test(street)) {
-            shortStreet = shortStreet.replace(/Ecke\s/, "");
-          }
-          if (/Schwyzer.Stra.e/.test(street)) {
-            shortStreet = shortStreet.replace(/,\suntere\sHalle/, "");
-          }
-          if (/Sporthalle.Dabendorf/.test(street)) {
-            shortStreet += ", J\u00E4gerstra\u00DFe";
-          }
-          if (/Sporthalle\s+Saarlandstr/.test(street)) {
-            shortStreet = "Saarlandstra\u00DFe 14";
-          }
-          if (/Hausburgstr/.test(street) && !/Hausburgstra.e\s20/.test(street)) {
-            street = street.replace(/Hausburgstra.e/, "Hausburgstra\u00DFe 20");
-            shortStreet = street.replace(/\s*\n.+/g, "");
-          }
-          if (/Immanuel-Kant-Gesamtschule/.test(street)) {
-            shortStreet = "Kantstra\u00DFe 17";
-          }
-          if (/Kuno-Fischer-Stra.e\s27/.test(shortStreet)) {
-            shortStreet = "Kuno-Fischer-Stra\u00DFe 27";
-          }
-          if (/L.tzowstra.e.83-85/.test(shortStreet)) {
-            shortStreet = shortStreet.replace(/,..ber.Parkplatzeinf./, "");
-          }
-          var url = "http://maps.google.de/maps?q=" + shortStreet + ", " + PLZ;
-
-          // url corrections
-          if (street.indexOf("Giebelseehalle") >= 0) {
-            url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
-              + "15370+Petershagen/@52.5288403,13.7847762,17z/"
-              + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
-          }
-
-          hallenschluessel[key] = {
-              street: street,
-              PLZ: PLZ,
-              shortStreet: shortStreet,
-              URL: url
-          };
-        }
-      }
-      this.hallenschluessel = hallenschluessel;
-      resolve(this.hallenschluessel);
-    }.bind(this));
-  }.bind(BVBBPP));
+  function storeHallenschluessel(hallenschluessel) { 
+    this.hallenschluessel = hallenschluessel;
+    return hallenschluessel;
+  }
+  return loadHallenschluessel(BVBBPP.webHallen).then(storeHallenschluessel.bind(BVBBPP));
 }
 
 function replaceHallenschluessel(halle) {
-  var div = BODY.getElementsByTagName("div");
+  var div = document.getElementsByTagName("div");
   for (var j = 0; j < div.length; j++) {
     var key = div[j].textContent;
     if (halle[key]) {
@@ -1556,18 +1343,18 @@ function makeSpielbericht() {
     replaceChildren(fonts[2], linkToKlasse(fonts[2].textContent, hasFrame ? "_blank" : null));
   }
 
-  setElementAttributes(BODY, "table", "width", 820);
-  setElementAttributes(BODY.getElementsByTagName("table")[2], "tr", "height", 24);
-  setElementAttributes(BODY.getElementsByTagName("table")[2], "td", "style", "padding: 2");
-  setElementAttributes(BODY, "table", "style", "border:0",
+  setElementAttributes(document, "table", "width", 820);
+  setElementAttributes(document.getElementsByTagName("table")[2], "tr", "height", 24);
+  setElementAttributes(document.getElementsByTagName("table")[2], "td", "style", "padding: 2");
+  setElementAttributes(document, "table", "style", "border:0",
                        /Spielbericht|Klasse und Staffel|kampflos verloren/);
 
   if (!hasFrame) {
     var div = create("div", null, "id", "centerstyle", "width", "300px");
-    while (BODY.hasChildNodes()) {
-      div.appendChild(BODY.firstChild);
+    while (document.body.hasChildNodes()) {
+      div.appendChild(document.body.firstChild);
     }
-    BODY.appendChild(div);
+    document.body.appendChild(div);
   }
   adjustIFrameHeight();
 }
@@ -1598,7 +1385,7 @@ function linkToKlasse(klasse, target) {
 }
 
 function loadPlayerStats() {
-  function processLink(playerDoc, e) {
+  function processLink(playerDoc) {
     var doc = this.bvbbpp.doc;
     var e = this.element;
     var wins = getWinPercentage(playerDoc);
@@ -1741,7 +1528,7 @@ function makeSpieler() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2");
+  var h2 = document.getElementsByTagName("h2");
   for (var i = 0; i < h2.length; i++) {
     var h2i = h2[i];
     if (/vor dem Namen/.test(h2i.textContent)) {
@@ -1755,12 +1542,12 @@ function makeSpieler() {
   }
 
 
-  var table = BODY.getElementsByTagName("table");
+  var table = document.getElementsByTagName("table");
 
   var stand = table[0].getElementsByTagName("td")[1];
   var tr = table[1].getElementsByTagName("tr");
   var name = "" + tr[1].getElementsByTagName("td")[0].textContent;
-  BVBBPP.doc.title = name;
+  document.title = name;
   // erste spalte "Name" loeschen, und stand hinten anfuegen.
   tr[0].removeChild(tr[0].getElementsByTagName("td")[0]);
   tr[1].removeChild(tr[1].getElementsByTagName("td")[0]);
@@ -1933,23 +1720,8 @@ function getFestgespielt(doc1, doc) {
   return [stamm, fest, verein];
 }
 
-function getPlayersFromDocument(playerDoc) {
-  // Load player links from options element and convert it to an array of objects.
-  return [].map.call(playerDoc.getElementsByTagName("option"),
-      e => {
-        var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
-        return {
-          name : captures[1],
-          club : captures[2],
-          link : BVBBPP.webSpielerstatistik + e.value
-        };
-      }
-  );
-}
 
-
-function makePlayerLinksCallback(playerDoc) {
-  var players = getPlayersFromDocument(playerDoc);
+function makePlayerLinksCallback(players) {
   var doc = this.doc;
   var td = doc.getElementsByTagName("td");
 
@@ -1981,45 +1753,14 @@ function makePlayerLinksCallback(playerDoc) {
                 replaceChildren(this.di, a);
               }
             } catch (err) {
-              var msg = "Fehler beim Verlinken von doppelt vorkommenden Spielernamen: ";
-              console.log(errorMsg(err, msg + playerPage.URL));
+              var errorMsg = "BVBB++: Fehler beim Verlinken von doppelt vorkommenden Spielernamen (Zeile " + err.lineNumber + ")";
+              console.log(errorMsg);
             }
           }.bind( {doc: doc, displayName: displayName, di: td[i], link: players[j].link} ));
         }
       }
     }
   }
-}
-
-/**
- * Parse die Seite der Vereine als Objekte mit den Attributen
- *  {
- *    nr: integer,
- *    href: ,
- *    shortName: ,
- *    name: String
- *  }
- */
-function parseVereine(vereineURL) {
-  return getDocument(vereineURL).then(function(vereineDoc) {
-    var td = vereineDoc.getElementsByTagName("td");
-    var vereine; vereine = []; // eclipse compiler is confused if arrays are initialized immediately
-    for (var i = 0; i < td.length; i++) {
-      var textContent = td[i].textContent;
-      if (/^\d{2,3}$/.test(textContent)) {
-        var a = td[i + 1].getElementsByTagName("a")[0];
-        vereine.push({
-          nr: parseInt(textContent, 10),
-          href: getProtocolAndDomain(vereineURL) + "/" + a.href.substring(a.href.lastIndexOf("fileadmin")),
-          shortName: a.textContent,
-          name: td[i + 2].textContent
-        });
-      }
-    }
-    vereine = vereine.filter(e => e);
-    vereine.sort((v, w) => v.name !== w.name ? (v.name < w.name ? -1 : 1) : 0);
-    return vereine;
-  });
 }
 
 function fillMenuWithTeams(vereine) {
@@ -2094,7 +1835,7 @@ function makeHeadLine(groupNum, teamNum) {
 
   // load teams and fill team menues
   var args = {bvbbpp: BVBBPP, teamNum: teamNum, ulAuf: ulAuf, ulSpi: ulSpi};
-  parseVereine(webVereine + "spielbericht-vereine.HTML").then(fillMenuWithTeams.bind(args));
+  loadVereine(webVereine + "spielbericht-vereine.HTML").then(fillMenuWithTeams.bind(args));
 
   var aTab = create("a", "Tabelle", "class", "navigationUnselected");
   var aAns = create("a", "Ansetzungen", "class", "navigationUnselected");
@@ -2149,7 +1890,7 @@ function makeHeadLine(groupNum, teamNum) {
       stand.setAttribute("class", MOBILE ? "standMobile" : "stand");
       if (MOBILE) {
         stand = newParentElement("div", stand, "class", "standMobile");
-        BODY.insertBefore(stand, BODY.firstChild);
+        document.body.insertBefore(stand, document.body.firstChild);
       } else {
         header.appendChild(create("font", stand.textContent, "class", "stand"));
       }
@@ -2165,7 +1906,7 @@ function makeHeadLine(groupNum, teamNum) {
       centerDiv.insertBefore(h1, centerDiv.firstChild);
     }
   }
-  BODY.insertBefore(header, BODY.firstChild);
+  document.body.insertBefore(header, document.body.firstChild);
   return header;
 }
 
@@ -2247,19 +1988,19 @@ function makeTabelle() {
     return;
   }
 
-  var h2 = BODY.getElementsByTagName("h2")[0]; // Uebersicht
+  var h2 = document.getElementsByTagName("h2")[0]; // Uebersicht
   var groupTitle = makeGroupTitle("Spielstand " + BVBBPP.divisions.names[groupNum], true);
   h2.parentNode.replaceChild(groupTitle, h2);
 
-  removeElements(BODY, "p", /Vorheriger/);
-  removeElements(BODY, "h2", /Aufsteiger|Ergebniss-Link|Fenster schlie/);
+  removeElements(document, "p", /Vorheriger/);
+  removeElements(document, "h2", /Aufsteiger|Ergebniss-Link|Fenster schlie/);
 
-  var table = BODY.getElementsByTagName("table");
+  var table = document.getElementsByTagName("table");
   if (table[1] && table[1].getElementsByTagName("tr")[0]) {
     removeElement(table[1]);
   }
 
-  var td = BODY.getElementsByTagName("td");
+  var td = document.getElementsByTagName("td");
   var kampflos = false; // erschien "kampflos" schon in einer Zelle?
   for (var i = 0; i < td.length; i++) {
     if (td[i].width && td[i].width === 30) {
@@ -2275,7 +2016,7 @@ function makeTabelle() {
 
   // Fix the domain name in all links in the table to match the current domain name.
   // Otherwise opening the iFrame would be hindered by same-origin-policy
-  [].slice.call(BODY.querySelectorAll("h2 table a")).map(
+  [].slice.call(document.querySelectorAll("h2 table a")).map(
       a => { a.href = a.href.replace(getProtocolAndDomain(a.href), BVBBPP.domain); }
   );
 
@@ -2287,7 +2028,7 @@ function makeTabelle() {
       document.getElementById("centerstyle").appendChild(ifrm);
 
       // setze target der Links auf "Ergebnis", wenn sie auf ein Spielbericht zeigen.
-      var links = BODY.getElementsByTagName("a");
+      var links = document.getElementsByTagName("a");
       for (var i = 0; i < links.length; i++) {
         if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(links[i].href)) {
           links[i].target = "Ergebnis";
@@ -2301,7 +2042,7 @@ function makeTabelle() {
   getDocument(urlAns).then(parseAnsetzungAndInsert.bind(BVBBPP));
 }
 
-function getCurrentSpiele(doc, spiele, numCurrentSpiele) {
+function getCurrentSpiele(doc, spiele) {
   var verein = new Array(10);
   var gespielt = [ new Array(10), new Array(10), new Array(10), new Array(10), new Array(10),
                    new Array(10), new Array(10), new Array(10), new Array(10), new Array(10) ];
@@ -2465,19 +2206,19 @@ function makeStyle() {
   // center page
   if (!/\d\d-\d\d_\d\d-\d\d.HTML$/.test(BVBBPP.URL)) {
     var div = create("div", null, "id", "centerstyle");
-    while (BODY.hasChildNodes()) {
-      div.appendChild(BODY.firstChild);
+    while (document.body.hasChildNodes()) {
+      div.appendChild(document.body.firstChild);
     }
-    BODY.appendChild(div);
+    document.body.appendChild(div);
   }
 
   removeParents(document, "i");
   removeElements(document, "style");
-  removeElements(BODY, "h2", /Fenster schlie/);
-  removeElements(BODY, "table", /Fenster schlie/);
+  removeElements(document, "h2", /Fenster schlie/);
+  removeElements(document, "table", /Fenster schlie/);
 
   // set css class when color attributes are present
-  var elem = BODY.getElementsByTagName("*");
+  var elem = document.body.getElementsByTagName("*");
   for (var j = 0; j < elem.length; j++) {
     var e = elem[j];
     if (e.getAttribute("border") === "0" || e.getAttribute("style") === "border: 0") {

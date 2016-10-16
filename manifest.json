@@ -1,5 +1,4 @@
 {
-
   "description": "BVBB++ vereinfacht die Navigation zu Spielergebnissen auf den Webseiten des Badminton-Verband Berlin-Brandenburg (www.bvbb.net)",
   "manifest_version": 2,
   "name": "BVBB++",
@@ -14,17 +13,17 @@
   "content_scripts": [
     {
       "matches": ["*://*.bvbb.net/*", "*://bvbb.net/*"],
-      "js": ["Utils.js", "bvbbpp.js"],
+      "js": ["Utils.js", "parsers.js", "league.js", "bvbbpp.js"],
       "css": ["skin.css"],
       "all_frames": true
     }
   ],
 
   "web_accessible_resources": [ 
-	  "skin.css"
+    "skin.css"
   ],
 
-	"permissions": [
-		"storage"
-	]
+  "permissions": [
+    "storage"
+  ]
 }
