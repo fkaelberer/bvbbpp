@@ -651,7 +651,7 @@ function makeDoodleLinks(doc, spiele) {
     var href = "http://doodle.com/create?";
     href += "locale=de";
     href += "&type=text";
-    var title = "Spieltermine der " + tables[i].getElementsByTagName("div")[1].textContent;
+    var title = "Spieltermine der " + tables[i+1].getElementsByTagName("div")[1].textContent;
     href += "&title=" + encodeURIComponent(title);
     href += "&levels=3"; // ja-nein-vielleicht
     var description = escape("Ausw\u00E4rtige Spielst\u00E4tten:\n");
