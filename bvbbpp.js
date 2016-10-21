@@ -263,7 +263,7 @@ function makeAufstellung() {
   h2[0].parentNode.appendChild(button);
 
   var playerListURL = BVBBPP.webSpielerstatistik + "/P-Drop-down-Spieler.HTML";
-  loadListOfPlayers(playerListURL).then(makePlayerLinksCallback.bind(BVBBPP));
+  loadListOfPlayers(playerListURL).then(makePlayerLinks.bind(BVBBPP));
 
   var f = document.body.getElementsByTagName("font");
   for (var i = 0; i < f.length; i++) {
@@ -1721,7 +1721,7 @@ function getFestgespielt(doc1, doc) {
 }
 
 
-function makePlayerLinksCallback(players) {
+function makePlayerLinks(players) {
   var doc = this.doc;
   var td = doc.getElementsByTagName("td");
 
@@ -1925,24 +1925,24 @@ function parseAnsetzungen(doc, ansetzungen) {
 
   var teamNumber = 0;// kurznummer in dieser Tabelle
   for (var i = 0; i < div.length; i++) {
-    // leerzeichen alle entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
-    var nameI = div[i].innerHTML.replace(/<b>|<i>|&nbsp;|<\/b>|<\/i>/g, " ")
-                                .replace(/^\s+|\s+$/g, "");
+    // leerzeichen entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
+    var nameI = div[i].textContent.replace(/\s/g, " ").trim();
+
     if (nameI.length > 0 && nameI.length < 3) {
-      teamNumber = parseInt(nameI, 10);
+      teamNumber = +nameI;
       continue;
     }
     for (var j = 2; j < tr.length; j++) {
       var a = tr[j].getElementsByTagName("a")[0];
-      var nameJ = a.innerHTML.replace(/<b>|\s*<\/b>\s*$|\s+$/g, "");
+      var nameJ = a.textContent.trim();
       if (nameJ.length < 6)
         continue;
       if (nameJ === nameI) {
-        var href = a.getAttribute("href");
+        var href = a.href;
         teamObj[teamNumber] = {
           rank : deromanize(nameJ.substring(nameJ.lastIndexOf(" ") + 1)),
           link : "<a title='" + nameJ + "' href='" + href + "'>" + teamNumber + "</a>",
-          verein : parseInt(href.substr(-7, 2), 10),
+          verein : +href.substr(-7, 2),
           tabellenPlatz : j - 2
         };
       }
