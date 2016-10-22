@@ -229,3 +229,88 @@ function parseListOfPlayers(doc) {
       }
   );
 }
+
+
+/**
+ * @param {HTMLDivElement} game
+ * @param {HTMLDivElement} date
+ * @param {HTMLDivElement} time
+ * @param {HTMLDivElement} location
+ * @returns object, representing a scheduled game
+ *   {
+ *      team1: number index of team1 in Ansetzung's team list
+ *      team2: number index of team2 in Ansetzung's team list
+ *      date: string dd.mm.yyyy,
+ *      time: string hh:mm,
+ *      loc: string location code
+ *  }
+ */
+function divsToScheduleObject(game, date, time, location) {
+    var capture = /(\d+)\s*\/\s*(\d+)/.exec(game.textContent);
+    return {
+        team1: +capture[1],
+        team2: +capture[2],
+        date: date.textContent,
+        time: time.textContent,
+        loc: location.textContent
+    };
+}
+
+function divsToTeamObject(teamIndex, teamName) {
+    var name = teamName.textContent.replace(/\s/g, " ").trim();
+    return {
+        teamIndex: +teamIndex.textContent,
+        teamName: name,
+        teamRank: deromanize(name.substring(name.lastIndexOf(" ") + 1))
+    }
+}
+
+/**
+ * 
+ * @param {type} doc
+ * @returns {object} array of team names and indizes:
+ * {
+ *   teamIndex: number index of team1 in Ansetzung's team list
+ *   teamName: name of the team.
+ * }
+ */
+function parseTeamsFromAnsetzungen(doc) {
+    var teams = [];
+    var rows = doc.querySelectorAll("h2:nth-of-type(2) tr");
+    for (var row of rows) {
+        var divs = row.getElementsByTagName("div");
+        if (divs[0].textContent.trim() !== "") {
+            teams.push(divsToTeamObject(divs[0], divs[1]));
+        }
+        if (divs[2].textContent.trim() !== "") {
+            teams.push(divsToTeamObject(divs[2], divs[3]));
+        }
+    }
+    return teams;
+}
+
+function parseAnsetzungen2(doc) {
+    return {
+        teams: parseTeamsFromAnsetzungen(doc),
+        games: parseGamesFromAnsetzungen(doc)
+    }
+}
+
+/**
+ * @returns {Array} array of game objects, see divsToGameObject()
+ */
+function parseGamesFromAnsetzungen(doc) {
+    var games = [];
+    var rows = doc.querySelectorAll("h2:nth-of-type(3) tr");
+
+    var firstRow = 1;
+    for (var i = firstRow; i < rows.length; i++) {
+        var row = rows[i];
+        if (row.textContent.trim() !== "") {
+            var divs = row.getElementsByTagName("div");
+            games.push(divsToScheduleObject(divs[0], divs[1], divs[2], divs[3]));
+            games.push(divsToScheduleObject(divs[4], divs[5], divs[6], divs[7]));
+        }
+    }
+    return games;
+}

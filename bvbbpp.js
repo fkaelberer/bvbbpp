@@ -1910,70 +1910,31 @@ function makeHeadLine(groupNum, teamNum) {
   return header;
 }
 
+function parseTeamsInTabelle(doc) {
+      var linksToClub = doc.querySelectorAll("h2:first-of-type tr:nth-of-type(n+3) td:nth-of-type(2) a");
+      return Array.from(linksToClub).map((link, index) => ({ 
+          tabellenPlatz: index+1,
+          teamName: link.textContent.trim()
+      }));
+}
+
 function parseAnsetzungen(doc, ansetzungen) {
-  if (!ansetzungen) {
-    return;
+  var parsedAnsetzungen = parseAnsetzungen2(ansetzungen);
+  var parsedTabelle = parseTeamsInTabelle(doc);
+  
+  var positionOfNthTeamOfAnsetzung = [];
+
+  for (var team of parsedAnsetzungen.teams) {
+    var teamName = team.teamName;
+    var teamNumber = team.teamIndex;
+    positionOfNthTeamOfAnsetzung[teamNumber] = parsedTabelle.find( t => t.teamName === teamName ).tabellenPlatz;
   }
 
-  var tr = doc.querySelectorAll("h2:first-of-type tr");
-  // team-Tabelle parsen und die Teamlinks speichern
-  var div = ansetzungen.body.querySelectorAll("h2:nth-of-type(2) div");
-
-  // rank: nummer innerhalb des vereins (I,II, ...), verein: globale nummer, link: link zu
-  // ansetzungen
-  var teamObj = new Array(20);
-
-  var teamNumber = 0;// kurznummer in dieser Tabelle
-  for (var i = 0; i < div.length; i++) {
-    // leerzeichen entfernen, hier werden &nbsp; benutzt, in der Tabelle nur ' '.
-    var nameI = div[i].textContent.replace(/\s/g, " ").trim();
-
-    if (nameI.length > 0 && nameI.length < 3) {
-      teamNumber = +nameI;
-      continue;
-    }
-    for (var j = 2; j < tr.length; j++) {
-      var a = tr[j].getElementsByTagName("a")[0];
-      var nameJ = a.textContent.trim();
-      if (nameJ.length < 6)
-        continue;
-      if (nameJ === nameI) {
-        var href = a.href;
-        teamObj[teamNumber] = {
-          rank : deromanize(nameJ.substring(nameJ.lastIndexOf(" ") + 1)),
-          link : "<a title='" + nameJ + "' href='" + href + "'>" + teamNumber + "</a>",
-          verein : +href.substr(-7, 2),
-          tabellenPlatz : j - 2
-        };
-      }
-    }
+  for (var game of parsedAnsetzungen.games) {
+      game.t1 = positionOfNthTeamOfAnsetzung[game.team1] - 1;
+      game.t2 = positionOfNthTeamOfAnsetzung[game.team2] - 1
   }
-  teamObj = teamObj.filter(e => e);
-
-  var num1;
-  var num2;
-  var ansetzung = [];
-  var numAns = 0;
-  var div = ansetzungen.body.getElementsByTagName("div");
-  for (var j = 0; j < div.length; j++) {
-    var text = div[j].textContent;
-    var capture = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
-    if (capture) {
-      num1 = +capture[1];
-      num2 = +capture[2];
-    }
-    if (/^\s*\d\d.\d\d.\d\d\d\d\s*$/.test(text)) {
-      // num1 und num2 sind noch von der letzten Zelle belegt
-      ansetzung[numAns++] = {
-        t1: teamObj[num1 - 1].tabellenPlatz,
-        t2: teamObj[num2 - 1].tabellenPlatz,
-        date: div[j].textContent,
-        time: div[j + 1].textContent,
-        loc: div[j + 2].textContent
-      };
-    }
-  }
-  return ansetzung.filter(e => e);
+  return parsedAnsetzungen.games;
 }
 
 function makeTabelle() {
