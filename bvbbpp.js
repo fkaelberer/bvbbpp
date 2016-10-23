@@ -646,14 +646,15 @@ function parseSpieltermine(doc, vereine) {
 
 function makeDoodleLinks(doc, spiele) {
   var tables = doc.getElementsByTagName("table");
-  for (var i = 0; i < tables.length; i += 2) {
+  var numberOfTablesAddedByThisPlugin = 2;
+  for (var i = 0; i < tables.length-numberOfTablesAddedByThisPlugin; i += 2) {
     var href = "http://doodle.com/create?";
     href += "locale=de";
     href += "&type=text";
-    var title = "Spieltermine der " + tables[i].getElementsByTagName("div")[1].textContent;
+    var title = "Spieltermine der " + tables[i+1].getElementsByTagName("div")[0].textContent;
     href += "&title=" + encodeURIComponent(title);
     href += "&levels=3"; // ja-nein-vielleicht
-    var description = escape("Ausw\u00E4rtige Spielst\u00E4tten:\n");
+    var description = encodeURIComponent("Auswärtige Spielstätten:\n");
     var numOptions = 0;
     for (var j = 0; j < spiele.length; j++) {
       if (spiele[j].tableIndex !== i) {
@@ -680,7 +681,7 @@ function makeDoodleLinks(doc, spiele) {
     var a = newElement(doc, "a", null, "href", href, "target", "_blank", "class", "icon");
     a.title = "Eine Umfrage mit diesen Terminen bei Doodle.com erstellen";
     a.appendChild(newElement(doc, "span", "d", "style", doodleStyle));
-    getIconBar(i / 2, tables[i+1], doc).appendChild(a);
+    getIconBar(i / 2, tables[i+2], doc).appendChild(a);
   }
 }
 
@@ -736,19 +737,19 @@ ICal.prototype = {
   }
 };
 
-function getIconBar(i, table, doc) {
-  var h5 = doc.getElementById("iconBar" + i);
-  if (!h5) {
-    h5 = newElement(doc, "h5", null, "style", "width: 600px; margin: auto; text-align: right",
-                    "id", "iconBar" + i);
-    table.parentNode.appendChild(h5, table.nextSibling);
+function getIconBar(id, table, doc) {
+  var iconBar = doc.getElementById("iconBar" + id);
+  if (!iconBar) {
+    iconBar = newElement(doc, "div", null, "style", "width: 600px; margin: auto; text-align: right",
+                    "id", "iconBar" + id);
+    table.parentNode.appendChild(iconBar, table.nextSibling);
   }
-  return h5;
+  return iconBar;
 }
 
 function makeICalendar(doc, spiele) {
   var tables = doc.getElementsByTagName("table");
-  for (var i = 0; i < tables.length; i += 2) {
+  for (var i = 0; i < tables.length-2; i += 2) {
     var iCal = new ICal();
 
     var homeTeam = "";
@@ -783,7 +784,7 @@ function makeICalendar(doc, spiele) {
                                 "Google- oder Apple-Kalender herunterladen");
     a.appendChild(newElement(doc, "img", "c", "style", "margin-top: 2px", "src", CALENDAR_ICON));
 
-    getIconBar(i / 2, tables[i+1], doc).appendChild(a);
+    getIconBar(i / 2, tables[i+2], doc).appendChild(a);
   }
 }
 
