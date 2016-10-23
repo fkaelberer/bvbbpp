@@ -1385,52 +1385,54 @@ function linkToKlasse(klasse, target) {
   return create("a", name, "href", href);
 }
 
-function loadPlayerStats() {
-  function processLink(playerDoc) {
-    var doc = this.bvbbpp.doc;
-    var e = this.element;
-    var wins = getWinPercentage(playerDoc);
-    var f = getFestgespielt(doc, playerDoc);
-    // f = [stammmannschaft, festgespielt, vereinsnummer]
-    if (!f) {
-      return;
-    }
-    var stamm = f[0] > 0 ? "Stammmannschaft " + romanize(f[0]) : "Ersatz";
-    var fest = (f[1] > 0 && f[1] !== f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
-    // mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
-    if (isBericht && staemme) {
-      var mannschaft = (+staemme[1] == f[2]) ? +staemme[2] : +staemme[4];
-    }
-    var slash = (/\//.test(e.textContent)) ? "  /" : "";
-    if (isBericht && (f[0] !== mannschaft && staemme || !staemme && f[0] === 0)) {
-      if (f[1] === 0) {
-        e.textContent = e.textContent.replace(/\s+\//, "") + " (E)" + slash;
-        e.title = "Ersatz";
-      } else {
-        e.textContent = e.textContent.replace(/\s+\//, "") +
-                        (f[0] === 0 ? " (E" : " (") + f[1] + ")" + slash;
-        e.title = stamm + fest;
-      }
-    }
-    if (!isBericht && (f[1] !== 0 && f[1] !== f[0])) {
-      e.textContent = e.textContent.replace(/\s\(\d\)/, "") +
-                      (f[0] === 0 ? " (E" : " (") + f[1] + ")";
-      e.title = stamm + fest;
-    }
-    var tr = newElement(doc, "tr");
-    tr.appendChild(newElement(doc, "td", null, "class", Styles.win.bg, "width", "" + wins + "%"));
-    tr.appendChild(newElement(doc, "td", null, "class", Styles.lose.bg, "width", "" + (100 - wins) + "%"));
-    var table = newParentElement("table", tr, "height", 5, "width", 100, "class", "stats");
-    e.parentNode.insertBefore(table, e.nextSibling);
-    removeElements(e.parentNode, "br");
-    adjustIFrameHeight(doc);
+function addStatsToPlayerLink(playerDoc) {
+  var doc = this.bvbbpp.doc;
+  var link = this.link;
+  var wins = getWinPercentage(playerDoc);
+  var f = getFestgespielt(doc, playerDoc);
+  // f = [stammmannschaft, festgespielt, vereinsnummer]
+  if (!f) {
+    return;
   }
+  var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) 
+      || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
+  var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
 
+  var stamm = f[0] > 0 ? "Stammmannschaft " + romanize(f[0]) : "Ersatz";
+  var fest = (f[1] > 0 && f[1] !== f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
+  // mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
+  if (isBericht && staemme) {
+    var mannschaft = (+staemme[1] == f[2]) ? +staemme[2] : +staemme[4];
+  }
+  var slash = (/\//.test(link.textContent)) ? "  /" : "";
+  if (isBericht && (f[0] !== mannschaft && staemme || !staemme && f[0] === 0)) {
+    if (f[1] === 0) {
+      link.textContent = link.textContent.replace(/\s+\//, "") + " (E)" + slash;
+      link.title = "Ersatz";
+    } else {
+      link.textContent = link.textContent.replace(/\s+\//, "") +
+                      (f[0] === 0 ? " (E" : " (") + f[1] + ")" + slash;
+      link.title = stamm + fest;
+    }
+  }
+  if (!isBericht && (f[1] !== 0 && f[1] !== f[0])) {
+    link.textContent = link.textContent.replace(/\s\(\d\)/, "") +
+                    (f[0] === 0 ? " (E" : " (") + f[1] + ")";
+    link.title = stamm + fest;
+  }
+  var tr = newElement(doc, "tr");
+  tr.appendChild(newElement(doc, "td", null, "class", Styles.win.bg, "width", "" + wins + "%"));
+  tr.appendChild(newElement(doc, "td", null, "class", Styles.lose.bg, "width", "" + (100 - wins) + "%"));
+  var table = newParentElement("table", tr, "height", 5, "width", 100, "class", "stats");
+  link.parentNode.insertBefore(table, link.nextSibling);
+  removeElements(link.parentNode, "br");
+  adjustIFrameHeight(doc);
+}
+
+
+function loadPlayerStats() {
   var doc = this.doc;
   removeElement(doc.getElementById("loadStats"));
-  var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) 
-          || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
-  var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
 
   var links = Array.from(doc.body.getElementsByTagName("a"));
   links.forEach(link => {
@@ -1440,9 +1442,10 @@ function loadPlayerStats() {
       var correctDomain = getProtocolAndDomain(doc.URL); 
       // prevent same-origin-policy errors by using the document's domain
       var fixedUrl = url.replace(wrongDomain, correctDomain);
-      getDocument(fixedUrl).then(processLink.bind( { bvbbpp: this, element: link } ));
+      getDocument(fixedUrl).then(addStatsToPlayerLink.bind( { bvbbpp: this, link: link } ));
     }
   });
+  
   adjustIFrameHeight(doc);
 }
 
@@ -1545,7 +1548,6 @@ function makeSpieler() {
       h2i.replaceChild(newDiv, h2i.getElementsByTagName("table")[0]);
     }
   }
-
 
   var table = document.getElementsByTagName("table");
 
