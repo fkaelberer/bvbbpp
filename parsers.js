@@ -217,15 +217,109 @@ function loadListOfPlayers(url) {
 }
 
 function parseListOfPlayers(doc) {
-  // Load player links from options element and convert it to an array of objects.
-  return [].map.call(doc.getElementsByTagName("option"),
-      e => {
-        var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
-        return {
-          name : captures[1],
-          club : captures[2],
-          link : BVBBPP.webSpielerstatistik + e.value
-        };
-      }
-  );
+    // Load player links from options element and convert it to an array of objects.
+    return [].map.call(doc.getElementsByTagName("option"),
+            e => {
+                var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
+                return {
+                    name: captures[1],
+                    club: captures[2],
+                    link: BVBBPP.webSpielerstatistik + e.value
+                };
+            }
+    );
 }
+
+
+function loadPlayerPage(fixedUrl) {
+    return getDocument(fixedUrl).then(parsePlayerPage);
+}
+
+function parsePlayerPage(playerDoc) {
+    // TODO: return a reasonable set of properties
+    return {
+        festgespielt: getFestgespielt(playerDoc),
+        stats: parsePlayerStats(playerDoc)
+    };
+}
+
+/*
+ * Parses the first meaningful table in the player's document, containing
+ * name, club (Verein), cadre (Stammmannschaft) and relay (Staffel).
+ * @param {HTMLDocument} playerDoc 
+ * @returns {object}
+ */
+function parsePlayerHeadLine(playerDoc) {
+    var headRow = playerDoc.querySelector("h2:nth-of-type(2) table tr:nth-of-type(2)");
+    
+    var name = headRow.querySelector("td:nth-of-type(1)");
+    var verein = headRow.querySelector("td:nth-of-type(2)");
+    var stammmannschaft = headRow.querySelector("td:nth-of-type(3)");
+    var staffel = headRow.querySelector("td:nth-of-type(4)");
+    return {
+        playerName: name.textContent,
+        clubName: verein.textContent,
+        clubUrl: verein.querySelector("a").href,
+        cadre: stammmannschaft.textContent === "Ersatz" ? 0 : +stammmannschaft.textContent,
+        relay: removeEveryOtherCharacter(staffel.textContent)
+    }
+}
+
+/**
+ * return: i>0: Stammspieler in Mannschaft i, i=0: Ersatz, nicht festgespielt, i<0: ersatzspieler,
+ * festgespielt in Mannsch. i.
+ */
+function getFestgespielt(doc) {
+    // TODO: return a reasonable set of properties 
+    // and make this function more readable.
+    
+    var headLine = parsePlayerHeadLine(doc);
+    var verein = +headLine.clubUrl.substr(-7, 2);
+    var stamm = headLine.cadre;
+
+    var s = doc.getElementsByTagName("span");
+    var mannschaft = [];
+    for (var i = 0; i < s.length - 2; i++) {
+        // TODO: replace .innerHTML by .textContent
+        if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i + 2].innerHTML)) {
+            var d = s[i].innerHTML;
+            var m = parseInt(s[i + 2].innerHTML, 10);
+            var len = mannschaft.length;
+            if (len === 0 || mannschaft[len - 1].day !== d || mannschaft[len - 1].mann !== m) {
+                mannschaft.push({
+                    day: d,
+                    mann: m
+                });
+            }
+        }
+    }
+    if (mannschaft.length < 3) {
+        return [stamm, 0, verein];
+    }
+    var playedInTeams = mannschaft.map(e => e.mann);
+    playedInTeams.sort();
+    var fest = playedInTeams[2];
+    if (stamm !== 0 && fest !== 0 && stamm < fest) {
+        fest = 0;
+    }
+    return [stamm, fest, verein];
+}
+
+function parsePlayerStats(playerDoc) {
+    var statsTable = playerDoc.querySelector("h2:nth-of-type(3) table:nth-of-type(3) table:nth-of-type(2)");
+    var gamesWon = statsTable.querySelector("tr:nth-of-type(1) td:nth-of-type(3)");
+    var gamesLost = statsTable.querySelector("tr:nth-of-type(1) td:nth-of-type(5)");
+    var setsWon = statsTable.querySelector("tr:nth-of-type(2) td:nth-of-type(3)");
+    var setsLost = statsTable.querySelector("tr:nth-of-type(2) td:nth-of-type(5)");
+    var pointsWon = statsTable.querySelector("tr:nth-of-type(3) td:nth-of-type(3)");
+    var pointsLost = statsTable.querySelector("tr:nth-of-type(3) td:nth-of-type(5)");
+    return {
+        gamesWon: +gamesWon.textContent,
+        gamesLost: +gamesLost.textContent,
+        setsWon: +setsWon.textContent,
+        setsLost: +setsLost.textContent,
+        pointsWon: +pointsWon.textContent,
+        pointsLost: +pointsLost.textContent
+    };
+}
+
