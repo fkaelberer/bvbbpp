@@ -1385,11 +1385,11 @@ function linkToKlasse(klasse, target) {
   return create("a", name, "href", href);
 }
 
-function addStatsToPlayerLink(playerDoc) {
+
+function addStatsToPlayerLink(player) {
   var doc = this.bvbbpp.doc;
   var link = this.link;
-  var wins = getWinPercentage(playerDoc);
-  var f = getFestgespielt(doc, playerDoc);
+  var f = player.festgespielt;
   // f = [stammmannschaft, festgespielt, vereinsnummer]
   if (!f) {
     return;
@@ -1420,6 +1420,8 @@ function addStatsToPlayerLink(playerDoc) {
                     (f[0] === 0 ? " (E" : " (") + f[1] + ")";
     link.title = stamm + fest;
   }
+  var stats = player.stats;
+  var wins = (100.0 * stats.gamesWon) / (stats.gamesWon + stats.gamesLost);
   var tr = newElement(doc, "tr");
   tr.appendChild(newElement(doc, "td", null, "class", Styles.win.bg, "width", "" + wins + "%"));
   tr.appendChild(newElement(doc, "td", null, "class", Styles.lose.bg, "width", "" + (100 - wins) + "%"));
@@ -1442,7 +1444,7 @@ function loadPlayerStats() {
       var correctDomain = getProtocolAndDomain(doc.URL); 
       // prevent same-origin-policy errors by using the document's domain
       var fixedUrl = url.replace(wrongDomain, correctDomain);
-      getDocument(fixedUrl).then(addStatsToPlayerLink.bind( { bvbbpp: this, link: link } ));
+      loadPlayerPage(fixedUrl).then(addStatsToPlayerLink.bind( { bvbbpp: this, link: link } ));
     }
   });
   
@@ -1664,67 +1666,6 @@ function makeSpieler() {
   table[3].setAttribute("style", "border:1px solid #888");
   table[4].setAttribute("style", "border:1px solid #888");
   table[5].setAttribute("style", "border:1px solid #888");
-}
-
-function getWinPercentage(doc) {
-  if (!doc) {
-    return -1;
-  }
-  var table = doc.getElementsByTagName("table");
-  if (!table[10] || !table[11] || !table[12]) {
-    return;
-  }
-  var td = table[10].getElementsByTagName("td");
-  var width = /(\d+)%/.exec(td[0].width);
-  if (width) {
-    return width[1];
-  }
-  return 0;
-}
-
-/**
- * return: i>0: Stammspieler in Mannschaft i, i=0: Ersatz, nicht festgespielt, i<0: ersatzspieler,
- * festgespielt in Mannsch. i.
- */
-function getFestgespielt(doc1, doc) {
-  if (!doc1 || !doc) {
-    return;
-  }
-  var a = doc.getElementsByTagName("a");
-  if (!a || !a[0]) {
-    return;
-  }
-  var verein = a[0].href.substr(-7, 2);
-  var stamm = doc.getElementsByTagName("table")[1].getElementsByTagName("div")[3].textContent;
-  if (stamm === "Ersatz") {
-    stamm = 0;
-  }
-
-  var s = doc.getElementsByTagName("span");
-  var mannschaft = [];
-  for (var i = 0; i < s.length - 2; i++) {
-    if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i + 2].innerHTML)) {
-      var d = s[i].innerHTML;
-      var m = parseInt(s[i + 2].innerHTML, 10);
-      var len = mannschaft.length;
-      if (len === 0 || mannschaft[len - 1].day !== d || mannschaft[len - 1].mann !== m) {
-        mannschaft.push({
-          day: d,
-          mann: m
-        });
-      }
-    }
-  }
-  if (mannschaft.length < 3) {
-    return [stamm, 0, verein];
-  }
-  var playedInTeams = mannschaft.map(e => e.mann);
-  playedInTeams.sort();
-  var fest = playedInTeams[2];
-  if (stamm !== 0 && fest !== 0 && stamm < fest) {
-    fest = 0;
-  }
-  return [stamm, fest, verein];
 }
 
 
