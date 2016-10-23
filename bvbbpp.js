@@ -654,7 +654,7 @@ function makeDoodleLinks(doc, spiele) {
     var title = "Spieltermine der " + tables[i+1].getElementsByTagName("div")[0].textContent;
     href += "&title=" + encodeURIComponent(title);
     href += "&levels=3"; // ja-nein-vielleicht
-    var description = escape("Ausw\u00E4rtige Spielst\u00E4tten:\n");
+    var description = encodeURIComponent("Auswärtige Spielstätten:\n");
     var numOptions = 0;
     for (var j = 0; j < spiele.length; j++) {
       if (spiele[j].tableIndex !== i) {
