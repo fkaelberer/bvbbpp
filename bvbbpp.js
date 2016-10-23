@@ -1432,13 +1432,17 @@ function loadPlayerStats() {
           || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
   var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
 
-  var as = doc.body.getElementsByTagName("a");
-  for (var i = 0; i < as.length; i++) {
-    var a = as[i];
-    if (/spielerstatistik\/P-/.test(a.href)) {
-      getDocument(a.href).then(processLink.bind( { bvbbpp: this, element: a } ));
+  var links = Array.from(doc.body.getElementsByTagName("a"));
+  links.forEach(link => {
+    var url = link.href;
+    if (/spielerstatistik\/P-/.test(url)) {
+      var wrongDomain = getProtocolAndDomain(url);
+      var correctDomain = getProtocolAndDomain(doc.URL); 
+      // prevent same-origin-policy errors by using the document's domain
+      var fixedUrl = url.replace(wrongDomain, correctDomain);
+      getDocument(fixedUrl).then(processLink.bind( { bvbbpp: this, element: link } ));
     }
-  }
+  });
   adjustIFrameHeight(doc);
 }
 
@@ -1754,8 +1758,7 @@ function makePlayerLinks(players) {
                 replaceChildren(this.di, a);
               }
             } catch (err) {
-              var errorMsg = "BVBB++: Fehler beim Verlinken von doppelt vorkommenden Spielernamen (Zeile " + err.lineNumber + ")";
-              console.log(errorMsg);
+              console.log("BVBB++: Fehler beim Verlinken von doppelt vorkommenden Spielernamen (Zeile " + err.lineNumber + ")");
             }
           }.bind( {doc: doc, displayName: displayName, di: td[i], link: players[j].link} ));
         }
