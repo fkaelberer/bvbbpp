@@ -1389,37 +1389,40 @@ function linkToKlasse(klasse, target) {
 function addStatsToPlayerLink(player) {
   var doc = this.bvbbpp.doc;
   var link = this.link;
-  var f = player.festgespielt;
-  // f = [stammmannschaft, festgespielt, vereinsnummer]
-  if (!f) {
-    return;
-  }
+  
+  var festgespielt = player.festgespielt;
+  var cadre = player.cadre;
+
   var isBericht = /gegenueber\/gegenueber-/.test(doc.URL) 
       || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
   var staemme = /(\d\d)-(\d\d)_(\d\d)-(\d\d).HTML$/.exec(doc.URL);
 
-  var stamm = f[0] > 0 ? "Stammmannschaft " + romanize(f[0]) : "Ersatz";
-  var fest = (f[1] > 0 && f[1] !== f[0]) ? ", festgespielt in Mannschaft " + romanize(f[1]) : "";
-  // mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
+
+  // modify link text and link title
+  var linkTitle = (player.isErsatz ? "Ersatz" : ("Stammmannschaft " + romanize(cadre))) 
+          + (festgespielt ? ", festgespielt in Mannschaft " + romanize(festgespielt) : "");
+  // Mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
   if (isBericht && staemme) {
-    var mannschaft = (+staemme[1] == f[2]) ? +staemme[2] : +staemme[4];
+    var mannschaft = (+staemme[1] === player.clubIndex) ? +staemme[2] : +staemme[4];
   }
   var slash = (/\//.test(link.textContent)) ? "  /" : "";
-  if (isBericht && (f[0] !== mannschaft && staemme || !staemme && f[0] === 0)) {
-    if (f[1] === 0) {
+  if (isBericht && (cadre !== mannschaft && staemme || !staemme && cadre === 0)) {
+    if (festgespielt) {
+      link.textContent = link.textContent.replace(/\s+\//, "") +
+                      (cadre === 0 ? " (E" : " (") + festgespielt + ")" + slash;
+      link.title = linkTitle;
+    } else {
       link.textContent = link.textContent.replace(/\s+\//, "") + " (E)" + slash;
       link.title = "Ersatz";
-    } else {
-      link.textContent = link.textContent.replace(/\s+\//, "") +
-                      (f[0] === 0 ? " (E" : " (") + f[1] + ")" + slash;
-      link.title = stamm + fest;
     }
   }
-  if (!isBericht && (f[1] !== 0 && f[1] !== f[0])) {
+  if (!isBericht && festgespielt) {
     link.textContent = link.textContent.replace(/\s\(\d\)/, "") +
-                    (f[0] === 0 ? " (E" : " (") + f[1] + ")";
-    link.title = stamm + fest;
+                    (cadre === 0 ? " (E" : " (") + festgespielt + ")";
+    link.title = linkTitle;
   }
+  
+  // add stats bar
   var stats = player.stats;
   var wins = (100.0 * stats.gamesWon) / (stats.gamesWon + stats.gamesLost);
   var tr = newElement(doc, "tr");
