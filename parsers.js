@@ -236,11 +236,15 @@ function loadPlayerPage(fixedUrl) {
 }
 
 function parsePlayerPage(playerDoc) {
-    // TODO: return a reasonable set of properties
-    return {
-        festgespielt: getFestgespielt(playerDoc),
-        stats: parsePlayerStats(playerDoc)
-    };
+    var player = parsePlayerHeadLine(playerDoc);
+    var games = parsePlayerGames(playerDoc);
+    var stats = parsePlayerStats(playerDoc);
+    var festgespielt = getFestgespielt(player, games);
+    // leave player properties at top level and add more properties
+    player.games = games;
+    player.festgespielt = festgespielt;
+    player.stats = stats;
+    return player;
 }
 
 /*
@@ -256,53 +260,56 @@ function parsePlayerHeadLine(playerDoc) {
     var verein = headRow.querySelector("td:nth-of-type(2)");
     var stammmannschaft = headRow.querySelector("td:nth-of-type(3)");
     var staffel = headRow.querySelector("td:nth-of-type(4)");
+    var isErsatz = (stammmannschaft.textContent === "Ersatz");
+    var staffelText = staffel.textContent.trim();
     return {
         playerName: name.textContent,
         clubName: verein.textContent,
         clubUrl: verein.querySelector("a").href,
-        cadre: stammmannschaft.textContent === "Ersatz" ? 0 : +stammmannschaft.textContent,
-        relay: removeEveryOtherCharacter(staffel.textContent)
+        clubIndex: verein.querySelector("a").href.substr(-7, 2),
+        isErsatz: isErsatz,
+        cadre: isErsatz ? 0 : +stammmannschaft.textContent,
+        relay: isErsatz ? "Ersatzspieler" : dropEveryOtherCharacter(staffelText)
     }
 }
 
-/**
- * return: i>0: Stammspieler in Mannschaft i, i=0: Ersatz, nicht festgespielt, i<0: ersatzspieler,
- * festgespielt in Mannsch. i.
- */
-function getFestgespielt(doc) {
-    // TODO: return a reasonable set of properties 
-    // and make this function more readable.
-    
-    var headLine = parsePlayerHeadLine(doc);
-    var verein = +headLine.clubUrl.substr(-7, 2);
-    var stamm = headLine.cadre;
-
-    var s = doc.getElementsByTagName("span");
-    var mannschaft = [];
-    for (var i = 0; i < s.length - 2; i++) {
-        // TODO: replace .innerHTML by .textContent
-        if (/^\d\d\.\d\d\.\d\d$/.test(s[i].innerHTML) && /^\d\d$|^\d$/.test(s[i + 2].innerHTML)) {
-            var d = s[i].innerHTML;
-            var m = parseInt(s[i + 2].innerHTML, 10);
-            var len = mannschaft.length;
-            if (len === 0 || mannschaft[len - 1].day !== d || mannschaft[len - 1].mann !== m) {
-                mannschaft.push({
-                    day: d,
-                    mann: m
-                });
-            }
+function parsePlayerGames(playerDoc) {
+    var rows = playerDoc.querySelectorAll("body > table:first-of-type table:nth-of-type(2) tr:nth-of-type(n+2)")
+    return Array.from(rows).map(row => {
+        var cells = row.getElementsByTagName("td");
+        return {
+            date: cells[0].textContent,
+            locationCode: cells[1].textContent,
+            cadre: +cells[2].textContent
+            // ... parse more cells as needed
         }
+    });
+}
+
+function getFestgespielt(player, games) {
+    var gamesInCadres = [];
+    games.forEach(game => {
+        var lastGame = gamesInCadres[gamesInCadres.length - 1];
+        if (!lastGame || (lastGame.date !== game.date) || (lastGame.cadre !== game.cadre)) {
+            gamesInCadres.push(game);
+        }
+    });
+    
+    if (gamesInCadres.length < 3) {
+        return 0; // not festgespielt
     }
-    if (mannschaft.length < 3) {
-        return [stamm, 0, verein];
+    
+    // sort in increasing order
+    var cadres = gamesInCadres.map(e => e.cadre);
+    cadres.sort();
+    // third array entry is then the lowest allowed cadre (by playing ability, not numerically)
+    var festgespielt = cadres[2];
+
+    if (!player.isErsatz && player.cadre <= festgespielt) {
+        festgespielt = 0;
     }
-    var playedInTeams = mannschaft.map(e => e.mann);
-    playedInTeams.sort();
-    var fest = playedInTeams[2];
-    if (stamm !== 0 && fest !== 0 && stamm < fest) {
-        fest = 0;
-    }
-    return [stamm, fest, verein];
+    
+    return festgespielt;
 }
 
 function parsePlayerStats(playerDoc) {

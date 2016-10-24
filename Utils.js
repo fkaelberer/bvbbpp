@@ -199,7 +199,7 @@ function getProtocolAndDomain(url) {
   return protocol + domain;
 }
 
-function removeEveryOtherCharacter(s_t_r_i_n_g) {
+function dropEveryOtherCharacter(s_t_r_i_n_g) {
     var string = s_t_r_i_n_g.split("").filter((ch, i) => i % 2 === 0).join("")
     return string;
 }
