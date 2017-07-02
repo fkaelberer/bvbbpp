@@ -43,49 +43,44 @@ var Styles = (function(){
 
 var BVBBPP;
 
-function Bvbbpp(document) {
+class Bvbbpp {
+  constructor(document) {
     function getYear(url) {
-        var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
-        if (seasonString === "schuch") {
-            return BvbbLeague.CURRENT_SEASON;
-        }
-        if (seasonString.indexOf("saison") >= 0) {
-            return parseInt(seasonString.substr("saison".length, 2), 10);
-        }
+      var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
+      if (seasonString === "schuch") {
         return BvbbLeague.CURRENT_SEASON;
+      }
+      if (seasonString.indexOf("saison") >= 0) {
+        return parseInt(seasonString.substr("saison".length, 2), 10);
+      }
+      return BvbbLeague.CURRENT_SEASON;
     }
 
-    
-  this.URL = document.URL;
-  this.valid = true;
-  if (!this.valid) {
-    return;
+    this.URL = document.URL;
+    this.domain = getProtocolAndDomain(this.URL);
+    this.doc = document;
+    this.body = document.body;
+    this.year = getYear(this.URL);
+    this.season = {
+      webName: toWebName(this.year),
+      name: toSeasonName(this.year)
+    };
+    this.divisions = {
+      shortNames: BvbbLeague.DIVISIONS[this.year],
+      names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
+    };
+    this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
+    this.webSpielerstatistik = this.web + "spielerstatistik/";
+    this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
+    this.webAufstellung = this.web + "aufstellung/";
+    this.webHallen = this.web + "Hallen.HTML";
   }
-  this.domain = getProtocolAndDomain(this.URL);
-  this.doc = document;
-  this.body = document.body;
-  this.year = getYear(this.URL);
-  this.season = {
-    webName: toWebName(this.year),
-    name: toSeasonName(this.year)
-  };
-  this.divisions = {
-    shortNames: BvbbLeague.DIVISIONS[this.year],
-    names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
-  };
-  this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
-  this.webSpielerstatistik = this.web + "spielerstatistik/";
-  this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
-  this.webAufstellung = this.web + "aufstellung/";
-  this.webHallen = this.web + "Hallen.HTML";
-}
 
-Bvbbpp.prototype = {
-  otherYearURL: function bvbbpp_otherYearURL(otherYear) {
+  otherYearURL(otherYear) {
     return this.URL.replace(this.season.webName, toWebName(otherYear));
-  },
+  }
 
-  getGroupNum: function bvbbpp_getGroupNum() {
+  getGroupNum() {
     var groupName = this.URL.substr(-9, 4);
     for (var i = 0; i < this.divisions.shortNames.length; i++) {
       if (this.divisions.shortNames[i] === groupName) {
@@ -94,9 +89,9 @@ Bvbbpp.prototype = {
     }
     // wenn nix trifft, dann wars wohl BB (hat nur 2 Buchstaben)
     return 0;
-  },
+  }
 
-  run: function bvbbpp_run() {
+  run() {
     BVBBPP = this;
 
     if (!this.body.firstChild || this.doc.getElementById("bvbbBody")) {
@@ -138,7 +133,7 @@ Bvbbpp.prototype = {
       ensureHallenschluessel().then(replaceHallenschluessel);
     }
   }
-};
+}
 
 function toSeasonName(year) {
   return "20" + twoDigits(year) + "/" + twoDigits(year + 1);
