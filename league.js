@@ -14,8 +14,8 @@ var BvbbLeague = (function () {
         // lässt die neue Saison ab August starten
         var d = new Date();
         var year = d.getFullYear() - 2000;
-        var august = 7;
-        if (d.getMonth() < august) {
+        var july = 6;
+        if (d.getMonth() < july) {
             year -= 1;
         }
         return year;
