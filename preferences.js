@@ -3,14 +3,14 @@ var MOBILE = false;
 // TODO store defaults (relict from old Firefox extension)
 // preferences and defaults
 var PREFS = [{
-  name: "useIframe",
-  def: true
+    name: "useIframe",
+    def: true
 }, {
-  name: "hideDoodle",
-  def: MOBILE
+    name: "hideDoodle",
+    def: MOBILE
 }, {
-  name: "hideICS",
-  def: MOBILE
+    name: "hideICS",
+    def: MOBILE
 }];
 
 
@@ -20,8 +20,8 @@ var PREFS = [{
  * @returns the default value of the preference if it exists, 'undefined' otherwise.
  */
 function getDefaultPrefValue(name) {
-  var defaultPreference = PREFS.find(element => (element.name === name));
-  return defaultPreference ? defaultPreference.def : undefined;
+    var defaultPreference = PREFS.find(element => (element.name === name));
+    return defaultPreference ? defaultPreference.def : undefined;
 }
 
 /**
@@ -36,11 +36,11 @@ function getDefaultPrefValue(name) {
  *            callback function which is called with pref value as argument
  */
 function getPref(name, callback) {
-  if (!callback) return false;
-  return chrome.storage.local.get(name, value => {
-    var prefValue = (value[name] !== undefined) ? value[name] : getDefaultPrefValue(name);
-    callback(prefValue);
-  });
+    if (!callback) return false;
+    return chrome.storage.local.get(name, value => {
+        var prefValue = (value[name] !== undefined) ? value[name] : getDefaultPrefValue(name);
+        callback(prefValue);
+    });
 }
 
 function setPref(name, value) {

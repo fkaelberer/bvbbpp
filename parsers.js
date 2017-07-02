@@ -23,7 +23,7 @@ function parseSpielbericht(doc) {
     var h2 = doc.body.getElementsByTagName("h2")[2];
     if (!h2) {
         console.log("Fehler beim Lesen des Dokuments " + url +
-                ": Konnte kein h2-Element finden.");
+            ": Konnte kein h2-Element finden.");
         return;
     }
     var datum = /(\d\d.\d\d.\d\d\d\d)/.exec(doc.body.textContent)[1];
@@ -38,22 +38,22 @@ function parseSpielbericht(doc) {
         var validHeim = bheim[0] && !invalid.test(bheim[0]);
         var validGast = bgast[0] && !invalid.test(bgast[0]);
         var spieler = validHeim ? (bheim[1] ? [bheim[0].textContent, bheim[1].textContent]
-                : [bheim[0].textContent])
-                : "<<<< kampflos >>>>";
+            : [bheim[0].textContent])
+            : "<<<< kampflos >>>>";
         var gegner = validGast ? (bgast[1] ? [bgast[0].textContent, bgast[1].textContent]
-                : [bgast[0].textContent])
-                : "<<<< kampflos >>>>";
+            : [bgast[0].textContent])
+            : "<<<< kampflos >>>>";
         var spielerNode = validHeim ? td[1].cloneNode(true)
-                : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
+            : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
         var gegnerNode = validGast ? td[3].cloneNode(true)
-                : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
+            : newElement(doc, "td", "\u003C\u003C kampflos \u003E\u003E");
         var p1 = /^(\d\d) : (\d\d)/.exec(td[5].textContent);
         var p2 = /^(\d\d) : (\d\d)/.exec(td[6].textContent);
         var p3 = /^(\d\d) : (\d\d)/.exec(td[7].textContent);
         var hSaetze = (p1[1] > p1[2] ? 1 : 0) + (p2[1] > p2[2] ? 1 : 0)
-                + (p3 ? (p3[1] > p3[2] ? 1 : 0) : 0);
+            + (p3 ? (p3[1] > p3[2] ? 1 : 0) : 0);
         var gSaetze = (p1[1] < p1[2] ? 1 : 0) + (p2[1] < p2[2] ? 1 : 0)
-                + (p3 ? (p3[1] < p3[2] ? 1 : 0) : 0);
+            + (p3 ? (p3[1] < p3[2] ? 1 : 0) : 0);
         spiele[i] = {
             type: ["1.HD", "DD", "2.HD", "DE", "GD", "1.HE", "2.HE", "3.HE"][i],
             typeNum: i,
@@ -63,7 +63,7 @@ function parseSpielbericht(doc) {
             saetze: [hSaetze, gSaetze],
             sieg: (hSaetze > gSaetze ? [1, 0] : [0, 1]),
             p: [(p3 ? [p1[1], p2[1], p3[1]] : [p1[1], p2[1]]),
-                (p3 ? [p1[2], p2[2], p3[2]] : [p1[2], p2[2]])]
+            (p3 ? [p1[2], p2[2], p3[2]] : [p1[2], p2[2]])]
         };
     }
 
@@ -111,12 +111,12 @@ function parseHallenschluessel(doc) {
                 continue;
             }
             var street = d[3].textContent.replace(/^\n|<br>|^\s+|\s+$/g, "")
-                    .replace(/(&nbsp;){2,}/g, " ")
-                    .replace(/str\./, "stra\u00DFe")
-                    .replace(/Str\./, "Stra\u00DFe");
+                .replace(/(&nbsp;){2,}/g, " ")
+                .replace(/str\./, "stra\u00DFe")
+                .replace(/Str\./, "Stra\u00DFe");
             var shortStreet = street.replace(/\s*\n.+/g, "");
             var PLZ = d[1].textContent.replace(/^\s+/, "")
-                    + d[2].textContent.replace("(", " ").replace(")", "");
+                + d[2].textContent.replace("(", " ").replace(")", "");
 
             // street corrections
             if (/-Nydal-/.test(street)) {
@@ -162,8 +162,8 @@ function parseHallenschluessel(doc) {
             // url corrections
             if (street.indexOf("Giebelseehalle") >= 0) {
                 url = "https://www.google.com/maps/place/Elbestra%C3%9Fe+1,+"
-                        + "15370+Petershagen/@52.5288403,13.7847762,17z/"
-                        + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
+                    + "15370+Petershagen/@52.5288403,13.7847762,17z/"
+                    + "data=!4m2!3m1!1s0x47a833882c65fac3:0xea675402231f8b28?hl=en-US";
             }
 
             hallenschluessel[key] = {
@@ -219,14 +219,14 @@ function loadListOfPlayers(url) {
 function parseListOfPlayers(doc) {
     // Load player links from options element and convert it to an array of objects.
     return [].map.call(doc.getElementsByTagName("option"),
-            e => {
-                var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
-                return {
-                    name: captures[1],
-                    club: captures[2],
-                    link: BVBBPP.webSpielerstatistik + e.value
-                };
-            }
+        e => {
+            var captures = /(.*)\s\s\((.*)\)/.exec(e.textContent);
+            return {
+                name: captures[1],
+                club: captures[2],
+                link: BVBBPP.webSpielerstatistik + e.value
+            };
+        }
     );
 }
 
@@ -255,7 +255,7 @@ function parsePlayerPage(playerDoc) {
  */
 function parsePlayerHeadLine(playerDoc) {
     var headRow = playerDoc.querySelector("h2:nth-of-type(2) table tr:nth-of-type(2)");
-    
+
     var name = headRow.querySelector("td:nth-of-type(1)");
     var verein = headRow.querySelector("td:nth-of-type(2)");
     var stammmannschaft = headRow.querySelector("td:nth-of-type(3)");
@@ -294,11 +294,11 @@ function getFestgespielt(player, games) {
             gamesInCadres.push(game);
         }
     });
-    
+
     if (gamesInCadres.length < 3) {
         return 0; // not festgespielt
     }
-    
+
     // sort in increasing order
     var cadres = gamesInCadres.map(e => e.cadre);
     cadres.sort();
@@ -308,7 +308,7 @@ function getFestgespielt(player, games) {
     if (!player.isErsatz && player.cadre <= festgespielt) {
         festgespielt = 0;
     }
-    
+
     return festgespielt;
 }
 
