@@ -1,0 +1,29 @@
+{
+  "name": "bvbbpp",
+  "version": "1.0.0",
+  "description": "BVBB++",
+  "main": "bvbbpp.js",
+  "directories": {},
+  "dependencies": {
+    "iconv-lite": "^0.4.13",
+    "recursive-readdir": "^2.1.0",
+    "request": "^2.76.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-zip": "^4.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fkaelberer/bvbbpp.git"
+  },
+  "author": "Felix Kälberer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fkaelberer/bvbbpp/issues"
+  },
+  "homepage": "https://github.com/fkaelberer/bvbbpp#readme"
+}

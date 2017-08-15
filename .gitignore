@@ -1,5 +1,5 @@
 .settings/
 .project
 nbproject/
-/nbproject/private/
-bvbbpp.xpi
+node_modules/
+dist-*
