@@ -7,17 +7,17 @@ https://addons.mozilla.org/de/firefox/addon/bvbbpp/
 
 ### Hinweise für Entwickler
 
-Haupt-Entwicklungszweig dieses Projekts ist derzeit `feature/webextension`.
+#### Bauen mit gulp
 
-#### Einrichtung des Plugins für Entwickler unter Google Chrome
+1. [Node.js](https://nodejs.org) und [gulp](https://github.com/gulpjs/gulp/blob/master/docs/getting-started.md) installieren.
+2. Im Stammverzeichnis `gulp` ausführen. 
+   Dabei werden die Verzeichnisse `dist-chrome` und `dist-firefox` angelegt, die die jeweiligen Erweiterungen enthalten.
 
-*Einstellungen* --> *Erweiterungen* --> *Entpackte Erweiterung laden* auswählen, hier den Pfad zum git-Repository angeben. Der Haken *Entwicklermodus* in den Erweiterungseinstellungen muss hierfür gesetzt sein.
+#### Installation des Plugins für Entwickler unter Google Chrome
 
-#### Einrichtung für des Plugins Entwickler unter Mozilla Firefox
+*Einstellungen* --> *Weitere Tools* --> *Erweiterungen* --> *Entpackte Erweiterung laden* auswählen, hier den Pfad `dist-chrome` angeben. Der Haken *Entwicklermodus* in den Erweiterungseinstellungen muss hierfür gesetzt sein.
+
+#### Installation des Plugins für Entwickler unter Mozilla Firefox
 
 1. Die Release-Version von Firefox akzeptiert nur signierte Addons, daher ist die Installation der [Firefox Developer Edition](https://www.mozilla.org/de/firefox/developer/) ratsam. 
-2. Die Dateien `LICENSE`, `manifest.json` sowie alle `.js`- und `.css`- Quellcode-Dateien in eine Zip-Datei packen und deren Dateiendung von `.zip` nach `.xpi` ändern.
-3. Die `.xpi`-Datei mit Firefox öffnen
-
-
-
+2. Die Datei `dist-firefox/bvbbpp.xpi`-Datei mit Firefox öffnen
