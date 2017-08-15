@@ -726,7 +726,8 @@ function makeCurrentSpieltermine(doc, spiele) {
 
     // kuerzlich
     var resultsToLoad = [], currTr, s, b;
-    for (var i = Math.max(0, past.length - numLines); i < past.length; i++) {
+    var i = Math.max(0, past.length - numLines);
+    for ( ; i < past.length; i++) {
         currTr = tr[i - Math.max(0, past.length - numLines)];
         s = past[i];
 
@@ -748,7 +749,7 @@ function makeCurrentSpieltermine(doc, spiele) {
         }
     }
     // fill empty cells
-    for (; i < numLines; i++) {
+    for ( ; i < numLines; i++) {
         currTr = tr[i];
         td = create("td", null, "style", "padding: 3 8");
         td.appendChild(create("b", null));
@@ -1397,7 +1398,7 @@ function highlightPlayerStats() {
             }
         }
     }
-    var tr = table[2].getElementsByTagName("tr");
+    tr = table[2].getElementsByTagName("tr");
     var descr = tr[0].getElementsByTagName("td")[0];
     var div = newElement(doc, "div", (name ? name : ""),
         "align", "center", "style", "font-weight:bold; font-size:12");
@@ -1544,7 +1545,7 @@ function makeSpieler() {
     // table[2], table[3] sind text, table[4] die aeussere Tabelle, table[5] ueberschrift
     tr = table[3].getElementsByTagName("tr")[0];
     tr.setAttribute("class", Styles.darkYellow.bg);
-    var td = tr.getElementsByTagName("td");
+    td = tr.getElementsByTagName("td");
     td[2].setAttribute("colspan", 2);
     td[3].setAttribute("colspan", 2);
     td[6].setAttribute("colspan", 4);
@@ -1797,7 +1798,7 @@ function parseAnsetzungen(doc, ansetzungen) {
     var num2;
     var ansetzung = [];
     var numAns = 0;
-    var div = ansetzungen.body.getElementsByTagName("div");
+    div = ansetzungen.body.getElementsByTagName("div");
     for (var j = 0; j < div.length; j++) {
         var text = div[j].textContent;
         var capture = /\s*(\d+)\s*\/\s*(\d+)\s*/.exec(text);
