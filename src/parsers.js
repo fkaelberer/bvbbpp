@@ -266,7 +266,7 @@ function parsePlayerHeadLine(playerDoc) {
         playerName: name.textContent,
         clubName: verein.textContent,
         clubUrl: verein.querySelector("a").href,
-        clubIndex: verein.querySelector("a").href.substr(-7, 2),
+        clubIndex: +verein.querySelector("a").href.substr(-7, 2),
         isErsatz: isErsatz,
         cadre: isErsatz ? 0 : +stammmannschaft.textContent,
         relay: isErsatz ? "Ersatzspieler" : dropEveryOtherCharacter(staffelText)

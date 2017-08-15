@@ -1286,6 +1286,7 @@ function addStatsToPlayerLink(player) {
 
     var festgespielt = player.festgespielt;
     var cadre = player.cadre;
+    var isErsatz = player.isErsatz;
 
     var isBericht = /gegenueber\/gegenueber-/.test(doc.URL)
         || /\d\d-\d\d_\d\d-\d\d.HTML$/.test(doc.URL);
@@ -1295,24 +1296,23 @@ function addStatsToPlayerLink(player) {
     // modify link text and link title
     var linkTitle = (player.isErsatz ? "Ersatz" : ("Stammmannschaft " + romanize(cadre)))
         + (festgespielt ? ", festgespielt in Mannschaft " + romanize(festgespielt) : "");
+
     // Mannschaft innerhalb des vereins vom aktuellen spieler, die gerade spielt
-    if (isBericht && staemme) {
-        var mannschaft = (+staemme[1] === player.clubIndex) ? +staemme[2] : +staemme[4];
-    }
+    var mannschaft = staemme && ((+staemme[1] === player.clubIndex) ? +staemme[2] : +staemme[4]);
+    var notStammmannschaft = (staemme && cadre !== mannschaft);
+
     var slash = (/\//.test(link.textContent)) ? "    /" : "";
-    if (isBericht && (cadre !== mannschaft && staemme || !staemme && cadre === 0)) {
+    if (isBericht && (notStammmannschaft || !staemme && isErsatz)) {
         if (festgespielt) {
-            link.textContent = link.textContent.replace(/\s+\//, "") +
-                (cadre === 0 ? " (E" : " (") + festgespielt + ")" + slash;
+            link.textContent = link.textContent.replace(/\s+\//, "") + (isErsatz ? " (E" : " (") + festgespielt + ")" + slash;
             link.title = linkTitle;
         } else {
             link.textContent = link.textContent.replace(/\s+\//, "") + " (E)" + slash;
-            link.title = "Ersatz";
+            link.title = linkTitle;
         }
     }
     if (!isBericht && festgespielt) {
-        link.textContent = link.textContent.replace(/\s\(\d\)/, "") +
-            (cadre === 0 ? " (E" : " (") + festgespielt + ")";
+        link.textContent = link.textContent.replace(/\s\(\d\)/, "") + (isErsatz ? " (E" : " (") + festgespielt + ")";
         link.title = linkTitle;
     }
 
