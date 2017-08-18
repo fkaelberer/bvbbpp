@@ -590,8 +590,8 @@ function parseSpieltermine(doc, vereine) {
 
 function makeDoodleLinks(doc, spiele) {
     var tables = doc.getElementsByTagName("table");
-    var numberOfTablesAddedByThisPlugin = 2;
-    for (var i = 0; i < tables.length - numberOfTablesAddedByThisPlugin; i += 2) {
+    var numberOfTablesAddedByThisExtension = 2;
+    for (var i = 0; i < tables.length - numberOfTablesAddedByThisExtension; i += 2) {
         var href = "http://doodle.com/create?";
         href += "locale=de";
         href += "&type=text";
