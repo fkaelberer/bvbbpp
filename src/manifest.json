@@ -12,7 +12,12 @@
 
   "content_scripts": [
     {
-      "matches": ["*://*.bvbb.net/*", "*://bvbb.net/*"],
+      "matches": [
+        "http://*.bvbb.net/fileadmin/user_upload/*",
+        "http://bvbb.net/fileadmin/user_upload/*",
+        "https://*.bvbb.net/fileadmin/user_upload/*",
+        "https://bvbb.net/fileadmin/user_upload/*"
+      ],
       "js": ["Utils.js", "parsers.js", "league.js", "iCal.js", "preferences.js", "bvbbpp.js"],
       "css": ["skin.css"],
       "all_frames": true
