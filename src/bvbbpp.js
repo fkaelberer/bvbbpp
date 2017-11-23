@@ -1645,7 +1645,8 @@ function makeHeadLine(groupNum, teamNum) {
     var web = BVBBPP.web;
     var webAufstellung = BVBBPP.webAufstellung;
     var webVereine = BVBBPP.webSpielberichteVereine;
-    if (MOBILE) {
+    let isAndroid = window.navigator.platform.includes("arm")
+    if (isAndroid) {
         groupNum = -1;
         teamNum = -1;
     }
