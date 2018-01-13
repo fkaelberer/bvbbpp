@@ -45,7 +45,7 @@ var BvbbLeague = (function () {
     divisions[13] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2, G3];
     divisions[14] = [BB, L1, L2, Z1, Z2, A1, A2, B1, B2, C1, C2, D1, D2, E1, E2, F1, F2, G1, G2];
 
-    var firstSeason = 9; // 2009
+    var firstSeason = 15; // 2009
     var seasons = [];
     var currentSeason = getCurrentSeasonYear();
     for (var i = firstSeason; i <= currentSeason; i++) {

@@ -1,5 +1,3 @@
-var MOBILE = false;
-
 // TODO store defaults (relict from old Firefox extension)
 // preferences and defaults
 var PREFS = [{
@@ -7,10 +5,10 @@ var PREFS = [{
     def: true
 }, {
     name: "hideDoodle",
-    def: MOBILE
+    def: true
 }, {
     name: "hideICS",
-    def: MOBILE
+    def: false
 }];
 
 
