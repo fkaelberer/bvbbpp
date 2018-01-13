@@ -1,3 +1,5 @@
+var MOBILE = window.navigator.platform.includes("arm"); // TODO: better detection of mouse-less devices
+
 // TODO store defaults (relict from old Firefox extension)
 // preferences and defaults
 var PREFS = [{
@@ -8,7 +10,7 @@ var PREFS = [{
     def: true
 }, {
     name: "hideICS",
-    def: false
+    def: MOBILE
 }];
 
 
