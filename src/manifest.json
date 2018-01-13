@@ -16,7 +16,8 @@
         "http://*.bvbb.net/fileadmin/user_upload/*",
         "http://bvbb.net/fileadmin/user_upload/*",
         "https://*.bvbb.net/fileadmin/user_upload/*",
-        "https://bvbb.net/fileadmin/user_upload/*"
+        "https://bvbb.net/fileadmin/user_upload/*",
+        "https://www.bvbb-online.de/bvbb_daten/daten_aus_access/*"
       ],
       "js": ["Utils.js", "parsers.js", "league.js", "iCal.js", "preferences.js", "bvbbpp.js"],
       "css": ["skin.css"],
