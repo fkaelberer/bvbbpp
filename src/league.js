@@ -1,4 +1,4 @@
-// Copyright 2012-2016 Felix Kaelberer
+// Copyright 2012-2018 Felix Kaelberer
 //
 // This work is licensed for reuse under an MIT license. Details are
 // given in the LICENSE file included with this file.
