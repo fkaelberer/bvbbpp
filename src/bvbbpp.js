@@ -1158,12 +1158,12 @@ function replaceTeamLinks(tabelle) {
 
 
     // get directory listing, Format=0; Pattern=*-??_??-??.HTML
-    var link = this.webSpielberichteVereine + "?F=0;P=*-??_??-??.HTML";
-    getDocument(link).then(makeGameLinks.bind({
-        bvbbpp: this,
-        nums1: nums1,
-        nums2: nums2
-    }));
+    // var link = this.webSpielberichteVereine + "?F=0;P=*-??_??-??.HTML";
+    // getDocument(link).then(makeGameLinks.bind({
+    //     bvbbpp: this,
+    // nums1: nums1,
+    //     nums2: nums2
+    // }));
 }
 
 function ensureHallenschluessel() {
