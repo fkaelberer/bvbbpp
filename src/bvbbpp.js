@@ -46,8 +46,8 @@ var BVBBPP;
 class Bvbbpp {
     constructor(document) {
         function getYear(url) {
-            var seasonString = /user_upload\/(\w*)\//.exec(url)[1];
-            if (seasonString === "schuch") {
+            var seasonString = /meisterschaft\/(\w*)\//.exec(url)[1];
+            if (seasonString === "aktuell") {
                 return BvbbLeague.CURRENT_SEASON;
             }
             if (seasonString.indexOf("saison") >= 0) {
@@ -69,7 +69,7 @@ class Bvbbpp {
             shortNames: BvbbLeague.DIVISIONS[this.year],
             names: BvbbLeague.DIVISIONS[this.year].map(toLongName)
         };
-        this.web = this.domain + "/fileadmin/user_upload/" + this.season.webName + "/meisterschaft/";
+        this.web = this.domain + "/bvbb_daten/daten_aus_access/meisterschaft/" + this.season.webName + "/";
         this.webSpielerstatistik = this.web + "spielerstatistik/";
         this.webSpielberichteVereine = this.web + "spielberichte-vereine/";
         this.webAufstellung = this.web + "aufstellung/";
@@ -108,10 +108,10 @@ class Bvbbpp {
             setElementAttributes(document.body, "a", "target", "_self", /_blank/);
         }
 
-        if (/meisterschaft\/staffel-/.test(url)) {
+        if (/\/staffel-/.test(url)) {
             makeAnsetzung();
         }
-        if (/gegenueber\/gegenueber-/.test(url)) {
+        if (/gegenueber\/gegenueber-[A-Z]{2}/.test(url)) {
             makeGegenueber();
         }
         if (/aufstellung-\d{2,3}.HTML/i.test(url)) {
@@ -123,13 +123,13 @@ class Bvbbpp {
         if (/\d\d-\d\d_\d\d-\d\d.HTML$/.test(url)) {
             makeSpielbericht();
         }
-        if (/uebersicht/.test(url)) {
+        if (/uebersicht-\d\d/.test(url)) {
             makeTabelle();
         }
         if (/spielerstatistik\/P-/.test(url)) {
             makeSpieler();
         }
-        if (/meisterschaft\/Hallen.HTML/.test(url)) {
+        if (/\/Hallen.HTML/.test(url)) {
             ensureHallenschluessel().then(replaceHallenschluessel);
         }
     }
@@ -141,7 +141,7 @@ function toSeasonName(year) {
 
 function toWebName(year) {
     if (year === BvbbLeague.CURRENT_SEASON) {
-        return "schuch";
+        return "aktuell";
     }
     return "saison" + twoDigits(year) + twoDigits(year + 1);
 }
