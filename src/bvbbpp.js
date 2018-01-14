@@ -104,7 +104,7 @@ class Bvbbpp {
         var url = document.URL;
         makeStyle();
 
-        if (!getIFrame()) {
+        if (!window.frameElement) {
             setElementAttributes(document.body, "a", "target", "_self", /_blank/);
         }
 
